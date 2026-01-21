@@ -877,6 +877,20 @@
                             已關閉
                           </div>
                         )}
+
+                        {/* Ephemeral Mode Badges */}
+                        {s.expireAt && (
+                          <div className={`px-3 py-1.5 rounded-xl border flex items-center gap-2 ${safeNow() > s.expireAt ? 'bg-rose-50 text-rose-600 border-rose-100' : 'bg-indigo-50 text-indigo-600 border-indigo-100'}`}>
+                            <i className="ph ph-clock-countdown-bold"></i>
+                            {safeNow() > s.expireAt ? '已過期' : `截止：${new Date(s.expireAt).toLocaleDateString()}`}
+                          </div>
+                        )}
+                        {s.limitCount && (
+                          <div className="px-3 py-1.5 rounded-xl bg-amber-50 text-amber-600 border border-amber-100 flex items-center gap-2">
+                            <i className="ph ph-users-four-bold"></i>
+                            上限：{s.limitCount}人
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -902,6 +916,11 @@
       const [questions, setQuestions] = useState([{ id: String(safeNow()), type: "text", title: "", options: [] }]);
       const [saving, setSaving] = useState(false);
       const [toast, setToast] = useState(null);
+      const [expireAt, setExpireAt] = useState(""); // ISO string
+      const [limitCount, setLimitCount] = useState(""); // Number
+      const [showAdvanced, setShowAdvanced] = useState(false);
+      const [shareToken, setShareToken] = useState(String(Math.random().toString(36).substring(2, 11)));
+      const [sharePublic, setSharePublic] = useState(false);
 
       const addQuestion = () => setQuestions(prev => [...prev, { id: String(safeNow() + Math.random()), type: "text", title: "", options: [] }]);
       const removeQuestion = (id) => setQuestions(prev => (prev.length <= 1 ? prev : prev.filter(q => q.id !== id)));
@@ -939,6 +958,9 @@
               options: q.type === "choice" ? (q.options || []).map(o => String(o || "").trim()) : [],
             })),
             createdAt: safeNow(),
+            expireAt: expireAt ? new Date(expireAt).getTime() : null,
+            limitCount: limitCount ? parseInt(limitCount) : null,
+            shareToken: sharePublic ? shareToken : null,
             active: true,
           });
           setToast({ message: "問卷建立成功！", type: "success" });
@@ -990,6 +1012,90 @@
                 onChange={e => setDesc(e.target.value)}
               />
             </div>
+          </div>
+
+          {/* Advanced Settings - Ephemeral Mode */}
+          <div className="mb-12">
+            <button 
+              onClick={() => setShowAdvanced(!showAdvanced)}
+              className="flex items-center gap-3 text-slate-400 hover:text-indigo-600 transition-all font-black uppercase tracking-widest text-[10px] mb-4"
+            >
+              <i className={`ph ph-caret-${showAdvanced ? 'down' : 'right'}-bold text-sm`}></i>
+              {showAdvanced ? '隱藏進階設定' : '顯示進階設定 (限時/限量焚毀模式)'}
+            </button>
+            
+            {showAdvanced && (
+              <div className="glass p-8 rounded-[2.5rem] border-2 border-dashed border-slate-100 flex flex-wrap gap-8 items-end fade-in">
+                <div className="flex-1 min-w-[200px] space-y-3">
+                  <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    <i className="ph ph-clock-countdown-fill text-indigo-500 text-lg"></i>
+                    自動過期時間 (Optional)
+                  </label>
+                  <input 
+                    type="datetime-local" 
+                    className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-600 transition-all"
+                    value={expireAt}
+                    onChange={e => setExpireAt(e.target.value)}
+                  />
+                </div>
+                <div className="flex-1 min-w-[200px] space-y-3">
+                  <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    <i className="ph ph-users-four-fill text-emerald-500 text-lg"></i>
+                    填答人數上限 (Optional)
+                  </label>
+                  <input 
+                    type="number" 
+                    placeholder="例如: 100"
+                    className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-600 transition-all"
+                    value={limitCount}
+                    onChange={e => setLimitCount(e.target.value)}
+                  />
+                </div>
+                <div className="flex-1 min-w-[250px] p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100/50">
+                  <p className="text-[10px] leading-relaxed text-indigo-600 font-bold">
+                    💡 <b>焚毀模式：</b>設定後，問卷將在到達時間或人數上限時自動關閉，確保數據的時效性與稀缺性。
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Public Insight Share Settings */}
+          <div className="mb-12">
+            <button 
+              onClick={() => setShowAdvanced(!showAdvanced)}
+              className="hidden" // Just a dummy to reuse showAdvanced or create a new one
+            ></button>
+            
+            {showAdvanced && (
+              <div className="glass p-8 rounded-[2.5rem] border-2 border-dashed border-slate-100 flex flex-wrap gap-8 items-center fade-in mt-4 bg-emerald-50/10">
+                <div className="flex items-center gap-4 flex-1 min-w-[300px]">
+                  <div 
+                    onClick={() => setSharePublic(!sharePublic)}
+                    className={`w-14 h-8 rounded-full transition-all cursor-pointer relative ${sharePublic ? 'bg-emerald-500' : 'bg-slate-200'}`}
+                  >
+                    <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all ${sharePublic ? 'left-7' : 'left-1'}`}></div>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-black text-slate-700 uppercase tracking-widest flex items-center gap-2">
+                      <i className="ph ph-share-network-fill text-emerald-500"></i>
+                      公開分析連結 (Insight Share)
+                    </h4>
+                    <p className="text-[10px] text-slate-400 font-bold">開啟後，任何人持有連結皆可查看去識別化的分析數據。</p>
+                  </div>
+                </div>
+                {sharePublic && (
+                  <div className="flex-1 min-w-[300px] flex items-center gap-3 bg-white p-3 rounded-2xl border-2 border-emerald-100">
+                    <code className="flex-1 text-[10px] font-mono text-emerald-700 truncate">
+                      .../analytics/public/{shareToken}
+                    </code>
+                    <div className="px-3 py-1 bg-emerald-50 text-emerald-600 text-[10px] font-black rounded-lg">
+                      AUTO-TOKEN
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="space-y-10">
@@ -1096,6 +1202,7 @@
 
     const TakeSurvey = ({ surveyId }) => {
       const [survey, setSurvey] = useState(null);
+      const [closedReason, setClosedReason] = useState(null); // 'expired' | 'limited' | 'inactive'
       const [step, setStep] = useState(-1); // -1 intro, 0..n-1 questions, n success
       const [respondent, setRespondent] = useState({ name: "", email: "" });
       const [answers, setAnswers] = useState({});
@@ -1103,6 +1210,7 @@
       const [loading, setLoading] = useState(true);
       const [submitting, setSubmitting] = useState(false);
       const [toast, setToast] = useState(null);
+      const [focusMode, setFocusMode] = useState(true); // Default to Focus Mode
       const startAtRef = useRef(null);
 
       useEffect(() => {
@@ -1120,6 +1228,31 @@
             if (!doc.exists) throw new Error("問卷不存在或已被刪除");
             const data = { id: doc.id, ...doc.data() };
             document.title = `SurveyLight｜${data.title || "填寫問卷"}`;
+
+            // Check Active
+            if (!data.active) {
+              setClosedReason('inactive');
+              if (!cancelled) setSurvey(data);
+              return;
+            }
+
+            // Check Expire
+            if (data.expireAt && safeNow() > data.expireAt) {
+              setClosedReason('expired');
+              if (!cancelled) setSurvey(data);
+              return;
+            }
+
+            // Check Limit
+            if (data.limitCount) {
+              const resSnap = await db.collection("responses").where("surveyId", "==", surveyId).get();
+              if (resSnap.size >= data.limitCount) {
+                setClosedReason('limited');
+                if (!cancelled) setSurvey(data);
+                return;
+              }
+            }
+
             if (!cancelled) setSurvey(data);
           } catch (err) {
             setToast({ message: (err && err.message) ? err.message : "載入問卷失敗", type: "error" });
@@ -1209,6 +1342,33 @@
         </div>
       );
 
+      // Survey Closed State
+      if (closedReason) {
+        const reasonConfig = {
+          expired: { icon: "ph-clock-countdown-fill", color: "text-indigo-600", bg: "bg-indigo-50", title: "問卷已過期", desc: "本問卷已達到預設的截止時間，目前不開放填寫。" },
+          limited: { icon: "ph-users-four-fill", color: "text-emerald-600", bg: "bg-emerald-50", title: "填答人數已滿", desc: "感謝熱烈參與！本問卷已達到填答人數上限。" },
+          inactive: { icon: "ph-lock-fill", color: "text-slate-600", bg: "bg-slate-50", title: "問卷已關閉", desc: "發布者已手動關閉此問卷。" }
+        }[closedReason] || { icon: "ph-prohibit-fill", color: "text-rose-600", bg: "bg-rose-50", title: "無法填寫", desc: "此問卷目前不開放填答。" };
+
+        return (
+          <div className="min-h-screen flex items-center justify-center p-6 bg-slate-50/50">
+            <div className="text-center glass p-16 md:p-24 rounded-[4rem] shadow-2xl shadow-slate-100 max-w-2xl w-full border-4 border-white fade-in relative overflow-hidden">
+              <div className={`w-32 h-32 ${reasonConfig.bg} ${reasonConfig.color} rounded-[2.5rem] flex items-center justify-center mx-auto mb-10 shadow-xl border border-white`}>
+                <i className={`ph ${reasonConfig.icon} text-6xl`}></i>
+              </div>
+              <h2 className="text-5xl font-black text-slate-900 mb-6 tracking-tight leading-tight">{reasonConfig.title}</h2>
+              <p className="text-slate-500 text-xl font-medium leading-relaxed max-w-md mx-auto">
+                {reasonConfig.desc}
+              </p>
+              <div className="mt-16 pt-10 border-t border-slate-100 flex items-center justify-center gap-3 text-slate-400 font-black uppercase tracking-[0.2em] text-xs">
+                <i className="ph ph-shield-check-fill text-slate-300"></i>
+                SurveyLight Secure Access
+              </div>
+            </div>
+          </div>
+        );
+      }
+
       if (step >= (survey.questions || []).length && step !== -1) {
         return (
         <div className="min-h-screen flex items-center justify-center p-6 bg-indigo-50/20">
@@ -1248,6 +1408,24 @@
               <h1 className="text-5xl font-black text-slate-900 mb-6 tracking-tight leading-tight">{survey.title}</h1>
               <p className="text-slate-500 mb-12 whitespace-pre-wrap text-xl font-medium leading-relaxed">{survey.description || "歡迎填寫此問卷，您的意見對我們非常重要。"}</p>
 
+              {/* Urgency/Info Badges for Respondent */}
+              {(survey.expireAt || survey.limitCount) && (
+                <div className="flex flex-wrap gap-3 mb-12">
+                  {survey.expireAt && (
+                    <div className="px-4 py-2 rounded-2xl bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center gap-2 text-sm font-black">
+                      <i className="ph ph-clock-countdown-fill"></i>
+                      <span>截止時間：{new Date(survey.expireAt).toLocaleString()}</span>
+                    </div>
+                  )}
+                  {survey.limitCount && (
+                    <div className="px-4 py-2 rounded-2xl bg-amber-50 text-amber-600 border border-amber-100 flex items-center gap-2 text-sm font-black">
+                      <i className="ph ph-users-four-fill"></i>
+                      <span>限量填答：{survey.limitCount} 人</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="space-y-8 mb-12">
                 <div className="space-y-3">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] ml-2">Your Name</label>
@@ -1284,119 +1462,189 @@
       const nextProgress = Math.round(((step + 1) / survey.questions.length) * 100);
 
       return (
-        <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-slate-50 relative overflow-hidden">
+        <div className={`min-h-screen flex flex-col items-center justify-center p-6 transition-all duration-1000 relative overflow-hidden ${focusMode ? 'bg-slate-950' : 'bg-slate-50'}`}>
           {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
           
+          {/* Focus Mode Background Effects */}
+          {focusMode && (
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+              <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-indigo-900/20 rounded-full blur-[120px] animate-pulse"></div>
+              <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-blue-900/20 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }}></div>
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full opacity-10" style={{ background: 'radial-gradient(circle, rgba(79,70,229,0.1) 0%, transparent 70%)' }}></div>
+            </div>
+          )}
+
           {/* Top Progress Bar */}
-          <div className="fixed top-0 left-0 w-full h-2.5 bg-slate-200 z-[60]">
+          <div className={`fixed top-0 left-0 w-full h-1.5 z-[60] transition-all duration-500 ${focusMode ? 'bg-white/5' : 'bg-slate-200'}`}>
             <div 
               className="h-full bg-gradient-to-r from-indigo-500 via-indigo-600 to-indigo-400 transition-all duration-700 ease-out shadow-[0_0_20px_rgba(79,70,229,0.5)]"
               style={{ width: `${nextProgress}%` }}
             ></div>
           </div>
 
-          <div className="fixed top-10 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-4 bg-white/80 backdrop-blur-xl px-6 py-3 rounded-full border border-white shadow-xl shadow-indigo-500/5">
-            <span className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.3em]">Progress</span>
+          <div className={`fixed top-10 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-4 px-6 py-3 rounded-full border transition-all duration-500 ${focusMode ? 'bg-white/5 border-white/10 text-white backdrop-blur-xl' : 'bg-white/80 border-white text-slate-900 shadow-xl shadow-indigo-500/5 backdrop-blur-xl'}`}>
+            <span className={`text-[10px] font-black uppercase tracking-[0.3em] ${focusMode ? 'text-indigo-400' : 'text-indigo-600'}`}>Progress</span>
             <div className="flex items-center gap-1.5">
               {survey.questions.map((_, idx) => (
                 <div 
                   key={idx}
-                  className={`w-2.5 h-2.5 rounded-full transition-all duration-500 ${
-                    idx < step ? 'bg-indigo-600' : idx === step ? 'bg-indigo-600 w-8' : 'bg-slate-200'
+                  className={`w-2 h-2 rounded-full transition-all duration-500 ${
+                    idx < step 
+                      ? (focusMode ? 'bg-indigo-500' : 'bg-indigo-600') 
+                      : idx === step 
+                        ? (focusMode ? 'bg-indigo-400 w-6' : 'bg-indigo-600 w-8') 
+                        : (focusMode ? 'bg-white/10' : 'bg-slate-200')
                   }`}
                 ></div>
               ))}
             </div>
+            <div className="w-px h-4 bg-white/10 mx-2"></div>
+            <button 
+              onClick={() => setFocusMode(!focusMode)}
+              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${focusMode ? 'bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500/30' : 'bg-slate-100 text-slate-400 hover:bg-indigo-50 hover:text-indigo-600'}`}
+              title={focusMode ? "切換至一般模式" : "切換至沈浸模式"}
+            >
+              <i className={`ph ${focusMode ? 'ph-eye-fill' : 'ph-eye-closed-fill'} text-lg`}></i>
+            </button>
           </div>
 
-          <div id={`q-${q.id}`} className="glass p-10 md:p-20 rounded-[4rem] shadow-2xl shadow-indigo-100/20 max-w-2xl w-full border-4 border-white fade-in relative">
-            <div className="flex justify-between items-center mb-10">
-              <div className="px-6 py-2.5 bg-slate-900 text-white rounded-2xl text-xs font-black tracking-[0.2em]">
-                QUESTION {step + 1} OF {survey.questions.length}
-              </div>
-              <div className="text-slate-300 font-black italic text-4xl">
-                {String(step + 1).padStart(2, '0')}
-              </div>
-            </div>
-
-            <h2 className="text-4xl font-black text-slate-900 mb-12 tracking-tight leading-tight min-h-[5rem]">{q.title}</h2>
-
-            <div className="space-y-6 mb-16">
-              {q.type === "text" ? (
-                <div className="relative group">
-                  <textarea
-                    className="w-full bg-white border-2 border-slate-100 rounded-[2.5rem] px-8 py-7 focus:ring-8 focus:ring-indigo-500/5 focus:border-indigo-600 outline-none transition-all font-bold text-slate-700 text-xl min-h-[200px] placeholder-slate-200 resize-none shadow-inner"
-                    value={answers[q.id] || ""}
-                    onChange={e => setAnswers({ ...answers, [q.id]: e.target.value })}
-                    placeholder="請在此輸入您的回答..."
-                  />
-                  <div className="absolute bottom-6 right-8 text-[10px] font-black text-slate-300 uppercase tracking-widest pointer-events-none group-focus-within:text-indigo-400 transition-colors">
-                    Character Count: {(answers[q.id] || "").length}
-                  </div>
+          <div id={`q-${q.id}`} className={`transition-all duration-700 w-full max-w-2xl relative ${focusMode ? 'scale-105' : ''}`}>
+            <div className={`p-10 md:p-20 rounded-[4rem] shadow-2xl transition-all duration-700 border-4 relative overflow-hidden ${
+              focusMode 
+                ? 'bg-white/5 backdrop-blur-3xl border-white/10 shadow-indigo-950/50' 
+                : 'glass border-white shadow-indigo-100/20'
+            }`}>
+              {focusMode && (
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent"></div>
+              )}
+              
+              <div className="flex justify-between items-center mb-10">
+                <div className={`px-6 py-2.5 rounded-2xl text-xs font-black tracking-[0.2em] transition-all duration-500 ${
+                  focusMode ? 'bg-indigo-500/20 text-indigo-300' : 'bg-slate-900 text-white'
+                }`}>
+                  QUESTION {step + 1} OF {survey.questions.length}
                 </div>
-              ) : (
-                <div className="grid gap-4">
-                  {(q.options || []).map((opt, oIdx) => (
-                    <button
-                      key={oIdx}
-                      onClick={() => setAnswers({ ...answers, [q.id]: opt })}
-                      className={`group flex items-center gap-6 p-7 rounded-[2rem] border-2 transition-all duration-500 text-left relative overflow-hidden ${
-                        answers[q.id] === opt 
-                        ? 'border-indigo-600 bg-indigo-600 text-white shadow-2xl shadow-indigo-200 scale-[1.02] z-10' 
-                        : 'border-slate-100 bg-white text-slate-600 hover:border-indigo-200 hover:bg-indigo-50/30'
+                <div className={`font-black italic text-4xl transition-all duration-500 ${
+                  focusMode ? 'text-white/5' : 'text-slate-300'
+                }`}>
+                  {String(step + 1).padStart(2, '0')}
+                </div>
+              </div>
+
+              <h2 className={`text-4xl font-black mb-12 tracking-tight leading-tight min-h-[5rem] transition-all duration-500 ${
+                focusMode ? 'text-white' : 'text-slate-900'
+              }`}>{q.title}</h2>
+
+              <div className="space-y-6 mb-16">
+                {q.type === "text" ? (
+                  <div className="relative group">
+                    <textarea
+                      className={`w-full border-2 rounded-[2.5rem] px-8 py-7 focus:ring-8 outline-none transition-all font-bold text-xl min-h-[200px] placeholder-slate-400 resize-none shadow-inner ${
+                        focusMode 
+                          ? 'bg-white/5 border-white/10 text-white focus:ring-indigo-500/20 focus:border-indigo-500/50' 
+                          : 'bg-white border-slate-100 text-slate-700 focus:ring-indigo-500/5 focus:border-indigo-600'
                       }`}
-                    >
-                      <div className={`w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 transition-all duration-500 ${
-                        answers[q.id] === opt ? 'bg-white text-indigo-600 rotate-12' : 'bg-slate-50 text-slate-300 group-hover:bg-indigo-100 group-hover:text-indigo-400'
-                      }`}>
-                        <span className="font-black text-lg">{String.fromCharCode(65 + oIdx)}</span>
-                      </div>
-                      <span className="flex-1 font-bold text-xl tracking-tight">{opt}</span>
-                      {answers[q.id] === opt && (
-                        <i className="ph ph-check-circle-fill text-3xl animate-in fade-in zoom-in duration-300"></i>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+                      value={answers[q.id] || ""}
+                      onChange={e => setAnswers({ ...answers, [q.id]: e.target.value })}
+                      placeholder="請在此輸入您的回答..."
+                    />
+                    <div className={`absolute bottom-6 right-8 text-[10px] font-black uppercase tracking-widest pointer-events-none transition-colors ${
+                      focusMode ? 'text-white/20 group-focus-within:text-indigo-400' : 'text-slate-300 group-focus-within:text-indigo-400'
+                    }`}>
+                      Character Count: {(answers[q.id] || "").length}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid gap-4">
+                    {(q.options || []).map((opt, oIdx) => {
+                      const isSelected = answers[q.id] === opt;
+                      return (
+                        <button
+                          key={oIdx}
+                          onClick={() => setAnswers({ ...answers, [q.id]: opt })}
+                          className={`group flex items-center gap-6 p-7 rounded-[2rem] border-2 transition-all duration-500 text-left relative overflow-hidden ${
+                            isSelected 
+                              ? (focusMode 
+                                  ? 'border-indigo-500 bg-indigo-500 text-white shadow-2xl shadow-indigo-500/40 scale-[1.02] z-10' 
+                                  : 'border-indigo-600 bg-indigo-600 text-white shadow-2xl shadow-indigo-200 scale-[1.02] z-10')
+                              : (focusMode 
+                                  ? 'border-white/5 bg-white/5 text-white/60 hover:border-white/20 hover:bg-white/10' 
+                                  : 'border-slate-100 bg-white text-slate-600 hover:border-indigo-200 hover:bg-indigo-50/30')
+                          }`}
+                        >
+                          <div className={`w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 transition-all duration-500 ${
+                            isSelected 
+                              ? (focusMode ? 'bg-white text-indigo-600 rotate-12' : 'bg-white text-indigo-600 rotate-12')
+                              : (focusMode ? 'bg-white/5 text-white/30 group-hover:bg-white/10 group-hover:text-white/50' : 'bg-slate-50 text-slate-300 group-hover:bg-indigo-100 group-hover:text-indigo-400')
+                          }`}>
+                            <span className="font-black text-lg">{String.fromCharCode(65 + oIdx)}</span>
+                          </div>
+                          <span className="flex-1 font-bold text-xl tracking-tight">{opt}</span>
+                          {isSelected && (
+                            <i className="ph ph-check-circle-fill text-3xl animate-in fade-in zoom-in duration-300"></i>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
 
-            <div className="flex gap-4">
-              {step > 0 && (
-                <button
-                  onClick={() => setStep(prev => prev - 1)}
-                  className="flex-1 py-6 bg-white border-2 border-slate-100 text-slate-400 rounded-[2rem] font-black text-lg hover:border-indigo-600 hover:text-indigo-600 transition-all active:scale-95"
-                >
-                  上一步
-                </button>
-              )}
-              {isLast ? (
-                <Button 
-                  onClick={submit} 
-                  disabled={submitting} 
-                  className="flex-[2] py-6 text-xl rounded-[2rem] shadow-2xl shadow-indigo-200"
-                >
-                  {submitting ? (
-                    <span className="spinner w-7 h-7 border-4 border-white/20 border-l-white"></span>
-                  ) : (
-                    <>完成並提交 <i className="ph ph-paper-plane-right-fill text-2xl"></i></>
-                  )}
-                </Button>
-              ) : (
-                <Button 
-                  onClick={nextQuestion} 
-                  className="flex-[2] py-6 text-xl rounded-[2rem] shadow-2xl shadow-indigo-200"
-                >
-                  下一題 <i className="ph ph-arrow-right-bold text-2xl"></i>
-                </Button>
-              )}
+              <div className="flex gap-4">
+                {step > 0 && (
+                  <button
+                    onClick={() => setStep(prev => prev - 1)}
+                    className={`flex-1 py-6 rounded-[2rem] font-black text-lg transition-all active:scale-95 border-2 ${
+                      focusMode 
+                        ? 'bg-white/5 border-white/10 text-white/40 hover:text-white hover:border-white/20' 
+                        : 'bg-white border-slate-100 text-slate-400 hover:border-indigo-600 hover:text-indigo-600'
+                    }`}
+                  >
+                    上一步
+                  </button>
+                )}
+                {isLast ? (
+                  <Button 
+                    onClick={submit} 
+                    disabled={submitting} 
+                    className={`flex-[2] py-6 text-xl rounded-[2rem] shadow-2xl ${
+                      focusMode ? 'shadow-indigo-500/20' : 'shadow-indigo-200'
+                    }`}
+                  >
+                    {submitting ? (
+                      <span className="spinner w-7 h-7 border-4 border-white/20 border-l-white"></span>
+                    ) : (
+                      <>完成並提交 <i className="ph ph-paper-plane-right-fill text-2xl ml-2"></i></>
+                    )}
+                  </Button>
+                ) : (
+                  <Button 
+                    onClick={nextQuestion} 
+                    className={`flex-[2] py-6 text-xl rounded-[2rem] shadow-2xl ${
+                      focusMode ? 'shadow-indigo-500/20' : 'shadow-indigo-200'
+                    }`}
+                  >
+                    下一題 <i className="ph ph-arrow-right-bold text-2xl"></i>
+                  </Button>
+                )}
+              </div>
             </div>
+            
+            {focusMode && (
+              <div className="mt-8 text-center">
+                <p className="text-white/20 text-[10px] font-black uppercase tracking-[0.4em] flex items-center justify-center gap-3">
+                  <span className="w-8 h-px bg-white/10"></span>
+                  Immersive Focus Mode Active
+                  <span className="w-8 h-px bg-white/10"></span>
+                </p>
+              </div>
+            )}
           </div>
         </div>
       );
     };
 
-    const Analytics = ({ surveyId, user, onBack }) => {
+    const Analytics = ({ surveyId, user, onBack, publicToken = null }) => {
       const [survey, setSurvey] = useState(null);
       const [responses, setResponses] = useState([]);
       const [stats, setStats] = useState(null);
@@ -1404,60 +1652,84 @@
       const [error, setError] = useState(null);
       const [selected, setSelected] = useState(null);
       const [toast, setToast] = useState(null);
+      const [pulse, setPulse] = useState(false);
 
       useEffect(() => {
         let cancelled = false;
-        const run = async () => {
+        let unsubscribeSurvey = () => {};
+        let unsubscribeResponses = () => {};
+
+        const init = async () => {
           setLoading(true);
-          setError(null);
           try {
-            const sDoc = await db.collection("surveys").doc(surveyId).get();
+            let sDoc;
+            if (publicToken) {
+              const sSnap = await db.collection("surveys").where("shareToken", "==", publicToken).get();
+              if (sSnap.empty) throw new Error("此公開分析連結無效或已關閉");
+              sDoc = sSnap.docs[0];
+            } else {
+              sDoc = await db.collection("surveys").doc(surveyId).get();
+            }
+
             if (!sDoc.exists) throw new Error("問卷不存在");
             const sData = { id: sDoc.id, ...sDoc.data() };
 
-            if (sData.creatorId !== user.uid) throw new Error("權限不足：您不是此問卷的建立者");
+            if (!publicToken && sData.creatorId !== user?.uid) {
+              throw new Error("權限不足：您不是此問卷的建立者");
+            }
             if (!cancelled) setSurvey(sData);
 
-            const rSnap = await db.collection("responses")
-              .where("surveyId", "==", surveyId)
-              .where("surveyCreatorId", "==", user.uid)
-              .get();
-            
-            const rData = rSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-            if (!cancelled) setResponses(rData);
+            // Real-time listener for Live Pulse
+            unsubscribeResponses = db.collection("responses")
+              .where("surveyId", "==", sData.id)
+              .onSnapshot(snap => {
+                const rData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                if (!cancelled) {
+                  setResponses(rData);
+                  setPulse(true);
+                  setTimeout(() => setPulse(false), 1000);
+                  
+                  if (rData.length > 0) {
+                    let totalTime = 0;
+                    const qTimings = {};
+                    rData.forEach(r => {
+                      let rTotal = 0;
+                      Object.entries(r.timings || {}).forEach(([qid, time]) => {
+                        const t = Number(time) || 0;
+                        rTotal += t;
+                        if (!qTimings[qid]) qTimings[qid] = { sum: 0, count: 0 };
+                        qTimings[qid].sum += t;
+                        qTimings[qid].count += 1;
+                      });
+                      totalTime += rTotal;
+                    });
+                    setStats({
+                      totalCount: rData.length,
+                      avgCompletionTime: totalTime / rData.length,
+                      questionStats: qTimings,
+                    });
+                  } else {
+                    setStats({ totalCount: 0, avgCompletionTime: 0, questionStats: {} });
+                  }
+                }
+              }, err => {
+                if (!cancelled) setError(err.message);
+              });
 
-            if (rData.length > 0) {
-              let totalTime = 0;
-              const qTimings = {};
-              rData.forEach(r => {
-                let rTotal = 0;
-                Object.entries(r.timings || {}).forEach(([qid, time]) => {
-                  const t = Number(time) || 0;
-                  rTotal += t;
-                  if (!qTimings[qid]) qTimings[qid] = { sum: 0, count: 0 };
-                  qTimings[qid].sum += t;
-                  qTimings[qid].count += 1;
-                });
-                totalTime += rTotal;
-              });
-              if (!cancelled) setStats({
-                totalCount: rData.length,
-                avgCompletionTime: totalTime / rData.length,
-                questionStats: qTimings,
-              });
-            } else {
-              if (!cancelled) setStats({ totalCount: 0, avgCompletionTime: 0, questionStats: {} });
-            }
           } catch (err) {
-            console.error(err);
-            if (!cancelled) setError(err && err.message ? err.message : String(err));
+            if (!cancelled) setError(err.message);
           } finally {
             if (!cancelled) setLoading(false);
           }
         };
-        run();
-        return () => { cancelled = true; };
-      }, [surveyId, user.uid]);
+
+        init();
+        return () => { 
+          cancelled = true; 
+          unsubscribeSurvey();
+          unsubscribeResponses();
+        };
+      }, [surveyId, user?.uid, publicToken]);
 
       const formatTime = (seconds) => {
         const s = Number(seconds) || 0;
@@ -1531,15 +1803,18 @@
           {/* Header */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-16">
             <div className="flex items-center gap-8">
-              <button 
-                onClick={onBack} 
-                className="group w-14 h-14 flex items-center justify-center bg-white rounded-2xl shadow-sm text-slate-400 hover:text-indigo-600 transition-all border border-slate-100 hover:border-indigo-100 hover:bg-indigo-50"
-              >
-                <i className="ph ph-arrow-left text-2xl group-hover:-translate-x-1 transition-transform"></i>
-              </button>
+              {!publicToken && (
+                <button 
+                  onClick={onBack} 
+                  className="group w-14 h-14 flex items-center justify-center bg-white rounded-2xl shadow-sm text-slate-400 hover:text-indigo-600 transition-all border border-slate-100 hover:border-indigo-100 hover:bg-indigo-50"
+                >
+                  <i className="ph ph-arrow-left text-2xl group-hover:-translate-x-1 transition-transform"></i>
+                </button>
+              )}
               <div className="min-w-0">
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-600 text-white text-[10px] font-black uppercase tracking-[0.2em] mb-4">
-                  <i className="ph ph-chart-line-up-fill"></i> Insight Analytics
+                <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-white text-[10px] font-black uppercase tracking-[0.2em] mb-4 transition-all duration-500 ${pulse ? 'bg-rose-500 scale-110 shadow-lg shadow-rose-200' : 'bg-indigo-600'}`}>
+                  <i className={`ph ${pulse ? 'ph-broadcast-fill animate-pulse' : 'ph-chart-line-up-fill'}`}></i>
+                  {pulse ? 'Live Update Incoming!' : 'Insight Analytics'}
                 </div>
                 <h1 className="text-4xl font-black text-slate-900 truncate tracking-tight leading-tight">{survey?.title}</h1>
                 <div className="flex items-center gap-4 mt-2">
@@ -1552,11 +1827,17 @@
                     <i className="ph ph-hash-bold"></i>
                     ID: {surveyId.slice(0, 8)}...
                   </span>
+                  {publicToken && (
+                    <>
+                      <span className="w-1 h-1 rounded-full bg-slate-200"></span>
+                      <span className="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded text-[10px] font-black uppercase tracking-widest border border-emerald-100">Public View</span>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
 
-            {responses.length > 0 && (
+            {responses.length > 0 && !publicToken && (
               <Button 
                 onClick={downloadCSV}
                 className="bg-emerald-600 hover:bg-emerald-700 shadow-xl shadow-emerald-100/50 px-8 py-4 rounded-2xl flex items-center gap-3"
@@ -1582,11 +1863,12 @@
             <div className="space-y-20 fade-in">
               {/* Stats Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-                <div className="glass p-12 rounded-[4rem] border-4 border-white shadow-2xl shadow-indigo-100/30 relative overflow-hidden group hover:-translate-y-2 transition-all duration-500">
+                <div className={`glass p-12 rounded-[4rem] border-4 border-white shadow-2xl relative overflow-hidden group hover:-translate-y-2 transition-all duration-500 ${pulse ? 'ring-8 ring-indigo-500/20 scale-[1.02] shadow-indigo-200' : 'shadow-indigo-100/30'}`}>
                   <div className="absolute top-0 right-0 w-40 h-40 bg-indigo-50/50 rounded-full -mr-20 -mt-20 group-hover:scale-150 transition-transform duration-1000"></div>
+                  {pulse && <div className="absolute top-8 right-8 w-4 h-4 bg-rose-500 rounded-full animate-ping z-20"></div>}
                   <div className="relative">
                     <div className="w-16 h-16 bg-slate-900 text-white rounded-[1.5rem] flex items-center justify-center mb-10 shadow-2xl shadow-slate-200 group-hover:bg-indigo-600 transition-colors">
-                      <i className="ph ph-users-fill text-3xl"></i>
+                      <i className={`ph ph-users-fill text-3xl ${pulse ? 'animate-bounce' : ''}`}></i>
                     </div>
                     <p className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.3em] mb-3">Total Responses</p>
                     <div className="flex items-baseline gap-4">
@@ -1596,7 +1878,7 @@
                   </div>
                 </div>
 
-                <div className="glass p-12 rounded-[4rem] border-4 border-white shadow-2xl shadow-emerald-100/30 relative overflow-hidden group hover:-translate-y-2 transition-all duration-500">
+                <div className={`glass p-12 rounded-[4rem] border-4 border-white shadow-2xl relative overflow-hidden group hover:-translate-y-2 transition-all duration-500 ${pulse ? 'ring-8 ring-emerald-500/20 scale-[1.02] shadow-emerald-200' : 'shadow-emerald-100/30'}`}>
                   <div className="absolute top-0 right-0 w-40 h-40 bg-emerald-50/50 rounded-full -mr-20 -mt-20 group-hover:scale-150 transition-transform duration-1000"></div>
                   <div className="relative">
                     <div className="w-16 h-16 bg-emerald-500 text-white rounded-[1.5rem] flex items-center justify-center mb-10 shadow-2xl shadow-emerald-100 group-hover:bg-emerald-600 transition-colors">
@@ -1609,15 +1891,16 @@
                   </div>
                 </div>
 
-                <div className="glass p-12 rounded-[4rem] border-4 border-white shadow-2xl shadow-amber-100/30 relative overflow-hidden group hover:-translate-y-2 transition-all duration-500 hidden lg:block">
+                <div className={`glass p-12 rounded-[4rem] border-4 border-white shadow-2xl relative overflow-hidden group hover:-translate-y-2 transition-all duration-500 ${pulse ? 'ring-8 ring-amber-500/20 scale-[1.02] shadow-amber-200' : 'shadow-amber-100/30'} hidden lg:block`}>
                   <div className="absolute top-0 right-0 w-40 h-40 bg-amber-50/50 rounded-full -mr-20 -mt-20 group-hover:scale-150 transition-transform duration-1000"></div>
                   <div className="relative">
                     <div className="w-16 h-16 bg-amber-500 text-white rounded-[1.5rem] flex items-center justify-center mb-10 shadow-2xl shadow-amber-100 group-hover:bg-amber-600 transition-colors">
-                      <i className="ph ph-trend-up-fill text-3xl"></i>
+                      <i className={`ph ${pulse ? 'ph-lightning-fill text-rose-500 animate-pulse' : 'ph-trend-up-fill'} text-3xl`}></i>
                     </div>
-                    <p className="text-[10px] font-black text-amber-600 uppercase tracking-[0.3em] mb-3">Completion Rate</p>
-                    <div className="flex items-baseline gap-4">
-                      <p className="text-7xl font-black text-slate-900 tracking-tighter">100%</p>
+                    <p className="text-[10px] font-black text-amber-600 uppercase tracking-[0.3em] mb-3">{pulse ? 'LIVE PULSE ACTIVE' : 'Status Monitoring'}</p>
+                    <div className="flex items-center gap-3">
+                      <div className={`w-4 h-4 rounded-full ${pulse ? 'bg-rose-500 animate-ping' : 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]'}`}></div>
+                      <p className="text-3xl font-black text-slate-900 tracking-tighter uppercase">{pulse ? 'Receiving...' : 'Connected'}</p>
                     </div>
                   </div>
                 </div>
@@ -1919,6 +2202,15 @@
         return params.get("s");
       }, []);
 
+      // 2) Public Analytics Mode
+      const publicToken = useMemo(() => {
+        const r = getHashRoute();
+        if (r.startsWith("/analytics/public/")) {
+          return r.replace("/analytics/public/", "");
+        }
+        return null;
+      }, [route]);
+
       useEffect(() => {
         const onHashChange = () => setRoute(getHashRoute());
         window.addEventListener("hashchange", onHashChange);
@@ -1947,7 +2239,7 @@
       }, []);
 
       useEffect(() => {
-        if (publicSurveyId) return; // public respondent view 不用等 auth
+        if (publicSurveyId || publicToken) return; // public mode 不用等 auth
         const unsub = auth.onAuthStateChanged(
           (u) => {
             setUser(u);
@@ -1966,13 +2258,24 @@
         return () => unsub();
       }, [publicSurveyId, authLoading]);
 
-      if (booting || (authLoading && !publicSurveyId)) return <Loading text="正在確認身分..." />;
+      if (booting || (authLoading && !publicSurveyId && !publicToken)) return <Loading text="正在確認身分..." />;
 
       if (publicSurveyId) {
         return (
           <React.Fragment>
             {globalToast && <Toast message={globalToast.message} type={globalToast.type} onClose={() => setGlobalToast(null)} />}
             <TakeSurvey surveyId={publicSurveyId} />
+            <Footer />
+            <DebugStatus />
+          </React.Fragment>
+        );
+      }
+
+      if (publicToken) {
+        return (
+          <React.Fragment>
+            {globalToast && <Toast message={globalToast.message} type={globalToast.type} onClose={() => setGlobalToast(null)} />}
+            <Analytics surveyId={null} user={null} onBack={null} publicToken={publicToken} />
             <Footer />
             <DebugStatus />
           </React.Fragment>

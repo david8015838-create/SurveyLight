@@ -635,7 +635,8 @@
             ...survey,
             title: `${survey.title || "未命名問卷"} (副本)`,
             createdAt: safeNow(),
-            active: true
+            active: true,
+            shareToken: survey.shareToken ? String(Math.random().toString(36).substring(2, 11)) : null
           };
           delete newSurvey.id; // Let Firestore generate a new ID
           const docRef = await db.collection("surveys").add(newSurvey);
@@ -646,6 +647,33 @@
           setToast({ message: "複製失敗：" + (err.message || "未知錯誤"), type: "error" });
         } finally {
           setLoading(false);
+        }
+      };
+
+      const getPublicAnalyticsUrl = (token) => {
+        const url = new URL(window.location.href.split('?')[0].split('#')[0]);
+        url.hash = `#/analytics/public/${token}`;
+        return url.toString();
+      };
+
+      const sharePublicAnalytics = async (survey) => {
+        if (!survey.shareToken) return;
+        const url = getPublicAnalyticsUrl(survey.shareToken);
+        const title = `SurveyLight 分析報告｜${survey.title || "問卷"}`;
+        const text = `查看此問卷的即時分析數據：${survey.title}\n公開連結：${url}`;
+
+        if (navigator.share) {
+          try {
+            await navigator.share({ title, text, url });
+            return;
+          } catch (e) {}
+        }
+
+        try {
+          await navigator.clipboard.writeText(url);
+          setToast({ message: "已複製公開分析連結", type: "success" });
+        } catch (e) {
+          setToast({ message: "複製失敗", type: "error" });
         }
       };
 

@@ -520,16 +520,29 @@
       const [cleanupStatus, setCleanupStatus] = useState(null);
       const [toast, setToast] = useState(null);
       const [deleteTarget, setDeleteTarget] = useState(null);
+      const [isDeleting, setIsDeleting] = useState(false);
       const [searchTerm, setSearchTerm] = useState("");
+      const [sortBy, setSortBy] = useState("newest"); // newest, oldest, responses
 
       const filteredSurveys = useMemo(() => {
-        if (!searchTerm.trim()) return surveys;
-        const term = searchTerm.toLowerCase();
-        return surveys.filter(s => 
-          (s.title || "").toLowerCase().includes(term) || 
-          (s.description || "").toLowerCase().includes(term)
-        );
-      }, [surveys, searchTerm]);
+        let list = [...surveys];
+        if (searchTerm.trim()) {
+          const term = searchTerm.toLowerCase();
+          list = list.filter(s => 
+            (s.title || "").toLowerCase().includes(term) || 
+            (s.description || "").toLowerCase().includes(term)
+          );
+        }
+        
+        if (sortBy === "newest") {
+          list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+        } else if (sortBy === "oldest") {
+          list.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+        } else if (sortBy === "alphabetical") {
+          list.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
+        }
+        return list;
+      }, [surveys, searchTerm, sortBy]);
 
       useEffect(() => {
         let cancelled = false;
@@ -624,21 +637,29 @@
         }
         const id = deleteTarget;
         console.log("Dashboard: confirmDelete starting for id:", id);
-        if (!id) return;
+        if (!id || isDeleting) return;
 
-        setDeleteTarget(null);
+        setIsDeleting(true);
         try {
+          console.log("Dashboard: Fetching responses for deletion...");
           const rSnap = await db.collection("responses").where("surveyId", "==", id).get();
           console.log(`Dashboard: found ${rSnap.size} responses to delete`);
+          
           const ops = [];
           rSnap.docs.forEach(d => ops.push((batch) => batch.delete(d.ref)));
           ops.push((batch) => batch.delete(db.collection("surveys").doc(id)));
+          
+          console.log("Dashboard: Executing batch deletion...");
           await commitBatches(ops, "delete-survey");
+          
           setSurveys(prev => prev.filter(s => s.id !== id));
           setToast({ message: "問卷已成功刪除", type: "success" });
+          setDeleteTarget(null);
         } catch (err) {
           console.error("Dashboard: delete failed:", err);
           setToast({ message: "刪除失敗：" + (err.message || "未知錯誤"), type: "error" });
+        } finally {
+          setIsDeleting(false);
         }
       };
 
@@ -702,27 +723,36 @@
           {toast && <Toast message={toast.message} onClose={() => setToast(null)} />}
         
         {deleteTarget && (
-          <Modal onClose={() => setDeleteTarget(null)}>
+          <Modal onClose={() => !isDeleting && setDeleteTarget(null)}>
             <div className="text-center p-8">
-              <div className="w-24 h-24 bg-rose-50 text-rose-500 rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-xl shadow-rose-100">
-                <i className="ph ph-trash-fill text-5xl"></i>
+              <div className="w-24 h-24 bg-rose-50 text-rose-500 rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-xl shadow-rose-100 relative">
+                {isDeleting ? (
+                  <div className="spinner w-12 h-12 border-4 border-rose-200 border-l-rose-500"></div>
+                ) : (
+                  <i className="ph ph-trash-fill text-5xl"></i>
+                )}
               </div>
-              <h2 className="text-3xl font-black text-slate-900 mb-4 tracking-tight">確定要刪除嗎？</h2>
+              <h2 className="text-3xl font-black text-slate-900 mb-4 tracking-tight">
+                {isDeleting ? "正在刪除問卷..." : "確定要刪除嗎？"}
+              </h2>
               <p className="text-slate-500 mb-10 text-lg font-medium">
-                這項操作將永久刪除問卷及其所有收集到的回覆數據，且無法復原。
+                {isDeleting ? "請稍候，我們正在清理所有相關數據..." : "這項操作將永久刪除問卷及其所有收集到的回覆數據，且無法復原。"}
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <button 
-                  onClick={() => setDeleteTarget(null)}
-                  className="flex-1 py-5 rounded-2xl bg-slate-100 text-slate-600 font-black hover:bg-slate-200 transition-all"
+                  onClick={() => !isDeleting && setDeleteTarget(null)}
+                  disabled={isDeleting}
+                  className="flex-1 py-5 rounded-2xl bg-slate-100 text-slate-600 font-black hover:bg-slate-200 transition-all disabled:opacity-50"
                 >
                   取消
                 </button>
                 <button 
                   onClick={confirmDelete}
-                  className="flex-1 py-5 rounded-2xl bg-rose-500 text-white font-black hover:bg-rose-600 shadow-xl shadow-rose-200 transition-all"
+                  disabled={isDeleting}
+                  className="flex-1 py-5 rounded-2xl bg-rose-500 text-white font-black hover:bg-rose-600 shadow-xl shadow-rose-200 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                 >
-                  確認刪除
+                  {isDeleting && <div className="spinner w-5 h-5 border-2 border-white/20 border-l-white"></div>}
+                  {isDeleting ? "處理中..." : "確認刪除"}
                 </button>
               </div>
             </div>
@@ -807,17 +837,42 @@
           {cleanupStatus && <div className="mb-10"><Notice variant="info">{cleanupStatus}</Notice></div>}
 
           <div className="mb-12 flex flex-col md:flex-row gap-6 items-center justify-between">
-            <div className="relative w-full md:max-w-md group">
-              <i className="ph ph-magnifying-glass-bold absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors text-xl"></i>
-              <input 
-                type="text"
-                placeholder="搜尋問卷標題或內容..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-14 pr-8 py-5 bg-white border-2 border-slate-100 rounded-[2rem] focus:outline-none focus:border-indigo-600 focus:shadow-2xl focus:shadow-indigo-500/10 transition-all font-medium text-slate-900 placeholder:text-slate-300"
-              />
+            <div className="flex flex-col md:flex-row items-stretch md:items-center gap-6 w-full md:max-w-3xl">
+              <div className="relative flex-1 group">
+                <i className="ph ph-magnifying-glass-bold absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors text-xl"></i>
+                <input 
+                  type="text"
+                  placeholder="搜尋問卷標題或內容..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-14 pr-8 py-5 bg-white border-2 border-slate-100 rounded-[2rem] focus:outline-none focus:border-indigo-600 focus:shadow-2xl focus:shadow-indigo-500/10 transition-all font-medium text-slate-900 placeholder:text-slate-300 shadow-sm"
+                />
+              </div>
+              
+              <div className="flex items-center bg-white p-2 rounded-[2rem] border-2 border-slate-100 shadow-sm">
+                <button 
+                  onClick={() => setSortBy("newest")}
+                  className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${sortBy === "newest" ? "bg-slate-900 text-white shadow-lg" : "text-slate-400 hover:bg-slate-50"}`}
+                >
+                  最新
+                </button>
+                <button 
+                  onClick={() => setSortBy("oldest")}
+                  className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${sortBy === "oldest" ? "bg-slate-900 text-white shadow-lg" : "text-slate-400 hover:bg-slate-50"}`}
+                >
+                  最舊
+                </button>
+                <button 
+                  onClick={() => setSortBy("alphabetical")}
+                  className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${sortBy === "alphabetical" ? "bg-slate-900 text-white shadow-lg" : "text-slate-400 hover:bg-slate-50"}`}
+                >
+                  名稱
+                </button>
+              </div>
             </div>
-            <div className="flex items-center gap-4 text-slate-400 text-sm font-black uppercase tracking-widest">
+            
+            <div className="flex items-center gap-4 text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] bg-slate-50 px-6 py-3 rounded-2xl border border-slate-100">
+              <i className="ph ph-list-numbers-bold text-lg"></i>
               <span>共 {filteredSurveys.length} 份問卷</span>
             </div>
           </div>
@@ -857,33 +912,34 @@
                             {/* Shadow and glow */}
                             <div className="absolute inset-2 bg-indigo-600/20 blur-xl group-hover:blur-2xl transition-all"></div>
                             
-                            {/* Icon Base */}
-                            <div className="relative w-full h-full bg-white rounded-3xl shadow-lg border border-slate-100 overflow-hidden flex items-center justify-center">
-                              {/* Abstract Paper Decor - More "Survey" like */}
-                              <div className="absolute top-0 left-0 w-full h-2 bg-indigo-600"></div>
-                              <div className="flex flex-col gap-2.5 w-full px-5">
+                            {/* Icon Base - Questionnaire Design */}
+                            <div className="relative w-full h-full bg-white rounded-[2rem] shadow-lg border border-slate-100 overflow-hidden flex items-center justify-center group-hover:border-indigo-100 transition-colors">
+                              {/* Survey Paper Header */}
+                              <div className="absolute top-0 left-0 w-full h-2.5 bg-gradient-to-r from-indigo-600 to-indigo-400"></div>
+                              
+                              {/* Mock Questionnaire Content */}
+                              <div className="flex flex-col gap-2.5 w-full px-5 pt-3">
                                 <div className="flex items-center gap-2">
-                                  <div className="w-3 h-3 rounded-md bg-indigo-100 flex items-center justify-center flex-shrink-0">
-                                    <div className="w-1.5 h-1.5 rounded-sm bg-indigo-500"></div>
+                                  <div className="w-4 h-4 rounded-md bg-indigo-50 flex items-center justify-center flex-shrink-0 border border-indigo-100 group-hover:bg-indigo-500 group-hover:border-indigo-500 transition-colors duration-500">
+                                    <i className="ph ph-check-bold text-[8px] text-transparent group-hover:text-white transition-colors duration-500"></i>
                                   </div>
-                                  <div className="w-full h-2 bg-slate-100 rounded-full"></div>
+                                  <div className="w-full h-1.5 bg-slate-100 rounded-full group-hover:bg-slate-200 transition-colors"></div>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                  <div className="w-3 h-3 rounded-md bg-slate-50 flex-shrink-0 border border-slate-100"></div>
-                                  <div className="w-4/5 h-2 bg-slate-100 rounded-full"></div>
+                                  <div className="w-4 h-4 rounded-md bg-slate-50 flex-shrink-0 border border-slate-100"></div>
+                                  <div className="w-3/4 h-1.5 bg-slate-100 rounded-full"></div>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                  <div className="w-3 h-3 rounded-md bg-indigo-100 flex items-center justify-center flex-shrink-0">
-                                    <div className="w-1.5 h-1.5 rounded-sm bg-indigo-500"></div>
+                                  <div className="w-4 h-4 rounded-md bg-indigo-50 flex items-center justify-center flex-shrink-0 border border-indigo-100 group-hover:bg-indigo-500 group-hover:border-indigo-500 transition-colors duration-500 [transition-delay:100ms]">
+                                    <i className="ph ph-check-bold text-[8px] text-transparent group-hover:text-white transition-colors duration-500 [transition-delay:100ms]"></i>
                                   </div>
-                                  <div className="w-full h-2 bg-slate-100 rounded-full"></div>
+                                  <div className="w-4/5 h-1.5 bg-slate-100 rounded-full group-hover:bg-slate-200 transition-colors"></div>
                                 </div>
-                                <div className="w-2/3 h-2 bg-indigo-50 rounded-full ml-5"></div>
                               </div>
                               
-                              {/* Floating Floating Icon Overlay */}
-                              <div className="absolute -right-1 -bottom-1 w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center shadow-xl group-hover:bg-indigo-600 transition-colors duration-500 rotate-12 group-hover:rotate-0">
-                                <i className="ph ph-file-text-fill text-white text-2xl"></i>
+                              {/* Pencil / Floating Element */}
+                              <div className="absolute -right-1 -bottom-1 w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center shadow-xl group-hover:bg-indigo-600 transition-all duration-500 rotate-12 group-hover:rotate-0 group-hover:scale-110">
+                                <i className="ph ph-pencil-line-fill text-white text-2xl group-hover:scale-110 transition-transform"></i>
                               </div>
                             </div>
                           </div>
@@ -891,14 +947,14 @@
                           <div className="flex flex-col gap-2 relative z-10">
                             <div className="flex gap-2">
                               <button
-                                onClick={() => { console.log("Share clicked for:", s.id); shareSurvey(s); }}
+                                onClick={(e) => { e.stopPropagation(); console.log("Share clicked for:", s.id); shareSurvey(s); }}
                                 className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-xl transition-all duration-300 font-bold text-xs border border-indigo-100/50 active:scale-95"
                               >
                                 <i className="ph ph-share-network-bold text-lg"></i>
                                 <span>分享</span>
                               </button>
                               <button
-                                onClick={() => { console.log("Duplicate clicked for:", s.id); duplicateSurvey(s); }}
+                                onClick={(e) => { e.stopPropagation(); console.log("Duplicate clicked for:", s.id); duplicateSurvey(s); }}
                                 className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-xl transition-all duration-300 font-bold text-xs border border-emerald-100/50 active:scale-95"
                               >
                                 <i className="ph ph-copy-bold text-lg"></i>
@@ -906,8 +962,8 @@
                               </button>
                             </div>
                             <button
-                              onClick={() => { console.log("Delete button clicked for:", s.id); deleteSurvey(s.id); }}
-                              className="flex items-center justify-center gap-2 px-4 py-2 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white rounded-xl transition-all duration-300 font-bold text-xs border border-rose-100/50 active:scale-95"
+                              onClick={(e) => { e.stopPropagation(); console.log("Delete button clicked for:", s.id); deleteSurvey(s.id); }}
+                              className="flex items-center justify-center gap-2 px-4 py-2 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white rounded-xl transition-all duration-300 font-black text-xs border border-rose-100/50 active:scale-95"
                             >
                               <i className="ph ph-trash-bold text-lg"></i>
                               <span>刪除問卷</span>
@@ -950,8 +1006,13 @@
                     </div>
 
                     <button
-                      onClick={() => { console.log("Analytics Center clicked for:", s.id); onAnalytics(s.id); }}
-                      className="w-full bg-slate-900 text-white py-7 rounded-[2.2rem] font-black text-lg flex items-center justify-center gap-4 hover:bg-indigo-600 active:scale-95 transition-all duration-700 shadow-2xl shadow-slate-200 group-hover:shadow-indigo-500/20 hover:-translate-y-2 border-b-4 border-slate-800 hover:border-indigo-700"
+                      onClick={(e) => { 
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log("Analytics Center button clicked for:", s.id); 
+                        onAnalytics(s.id); 
+                      }}
+                      className="w-full bg-slate-900 text-white py-7 rounded-[2.2rem] font-black text-lg flex items-center justify-center gap-4 hover:bg-indigo-600 active:scale-95 transition-all duration-700 shadow-2xl shadow-slate-200 group-hover:shadow-indigo-500/20 hover:-translate-y-2 border-b-4 border-slate-800 hover:border-indigo-700 relative z-10"
                     >
                       <i className="ph ph-chart-bar-fill text-2xl"></i> 
                       <span>數據分析中心</span>
@@ -1904,13 +1965,38 @@
             </div>
 
             {responses.length > 0 && !publicToken && (
-              <Button 
-                onClick={downloadCSV}
-                className="bg-emerald-600 hover:bg-emerald-700 shadow-xl shadow-emerald-100/50 px-8 py-4 rounded-2xl flex items-center gap-3"
-              >
-                <i className="ph ph-file-csv-fill text-2xl"></i>
-                匯出數據報表 (CSV)
-              </Button>
+              <div className="flex items-center gap-4">
+                <Button 
+                  onClick={downloadCSV}
+                  className="bg-slate-900 hover:bg-slate-800 shadow-xl shadow-slate-100/50 px-8 py-4 rounded-2xl flex items-center gap-3"
+                >
+                  <i className="ph ph-file-csv-fill text-2xl"></i>
+                  匯出 (CSV)
+                </Button>
+                {survey?.shareToken && (
+                  <Button 
+                    onClick={() => {
+                      const url = new URL(window.location.href.split('?')[0].split('#')[0]);
+                      url.hash = `#/analytics/public/${survey.shareToken}`;
+                      const shareUrl = url.toString();
+                      if (navigator.share) {
+                        navigator.share({
+                          title: `SurveyLight 分析報告｜${survey.title}`,
+                          text: `查看此問卷的即時分析數據：${survey.title}`,
+                          url: shareUrl
+                        });
+                      } else {
+                        navigator.clipboard.writeText(shareUrl);
+                        setToast({ message: "已複製分析報告連結", type: "success" });
+                      }
+                    }}
+                    className="bg-indigo-600 hover:bg-indigo-700 shadow-xl shadow-indigo-100/50 px-8 py-4 rounded-2xl flex items-center gap-3"
+                  >
+                    <i className="ph ph-share-network-fill text-2xl"></i>
+                    分享報告
+                  </Button>
+                )}
+              </div>
             )}
           </div>
 
@@ -2389,16 +2475,28 @@
         console.log("App component detected /analytics route:", current);
         // /analytics?s= is public param; 我們用 hash query 的方式：#/analytics/{id}
         const parts = current.split("/");
-        const sid = parts.length >= 3 ? parts[2] : activeSurveyId;
-        console.log("Resolved sid:", sid);
+        // 優先從 URL 中取得 ID，如果沒有則從 activeSurveyId 取得
+        let sid = null;
+        if (parts.length >= 3 && parts[2]) {
+          sid = parts[2];
+        } else if (activeSurveyId) {
+          sid = activeSurveyId;
+        }
+        
+        console.log("Resolved sid for Analytics:", sid);
+        
         if (!sid) {
-          console.warn("No sid found for /analytics route");
+          console.warn("No sid found for /analytics route, redirecting to dashboard...");
           return (
             <React.Fragment>
               {globalToast && <Toast message={globalToast.message} type={globalToast.type} onClose={() => setGlobalToast(null)} />}
-              <div className="max-w-xl mx-auto p-6">
-                <Notice variant="danger">找不到問卷 ID，請從儀表板進入分析頁。</Notice>
-                <Button className="mt-4" onClick={() => navigateHash("/dashboard")}>返回儀表板</Button>
+              <div className="max-w-xl mx-auto p-12 text-center">
+                <div className="w-20 h-20 bg-rose-50 text-rose-500 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                  <i className="ph ph-warning-bold text-4xl"></i>
+                </div>
+                <h3 className="text-2xl font-black text-slate-900 mb-4">找不到問卷 ID</h3>
+                <p className="text-slate-500 mb-8 font-medium">請從儀表板點擊「數據分析中心」進入。</p>
+                <Button onClick={() => navigateHash("/dashboard")}>返回儀表板</Button>
               </div>
               <Footer />
               <DebugStatus />
@@ -2416,14 +2514,26 @@
       }
 
       const onAnalytics = (sid) => {
-        console.log("Navigating to analytics for sid:", sid);
+        console.log("App.onAnalytics called with sid:", sid);
         if (!sid) {
           console.error("onAnalytics called with empty sid");
           return;
         }
         setActiveSurveyId(sid);
         // 強制更新 hash 並觸發頁面渲染
-        window.location.hash = "#/analytics/" + sid;
+        const targetHash = "#/analytics/" + sid;
+        console.log("Setting window.location.hash to:", targetHash);
+        window.location.hash = targetHash;
+        
+        // 額外保險：如果 hashchange 沒觸發，手動更新 route
+        setTimeout(() => {
+          const currentHash = getHashRoute();
+          console.log("Current hash after navigation:", currentHash);
+          if (currentHash !== "/analytics/" + sid) {
+            console.warn("Hash mismatch, manually setting route...");
+            setRoute("/analytics/" + sid);
+          }
+        }, 100);
       };
 
       // default dashboard

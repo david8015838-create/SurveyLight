@@ -307,23 +307,26 @@
       );
     };
 
-    const Modal = ({ title, children, onClose, footer }) => (
-      <div className="fixed inset-0 z-[1000] p-4 flex items-center justify-center">
-        <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-xl transition-all duration-500" onClick={onClose}></div>
-        <div className="relative bg-white/90 backdrop-blur-2xl rounded-[3rem] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.15)] w-full max-w-2xl overflow-hidden fade-in border border-white">
-          <div className="flex items-center justify-between p-8 border-b border-slate-50/50">
-            <h3 className="font-black text-slate-900 text-2xl tracking-tight">{title}</h3>
-            <button onClick={onClose} className="w-12 h-12 flex items-center justify-center rounded-2xl bg-slate-50 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-all duration-300">
-              <i className="ph ph-x text-2xl"></i>
-            </button>
+    const Modal = ({ title, children, onClose, footer }) => {
+      console.log("Rendering Modal with title:", title);
+      return (
+        <div className="fixed inset-0 z-[10000] p-4 flex items-center justify-center">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-xl transition-all duration-500" onClick={onClose}></div>
+          <div className="relative bg-white/90 backdrop-blur-2xl rounded-[3rem] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.15)] w-full max-w-2xl overflow-hidden fade-in border border-white">
+            <div className="flex items-center justify-between p-8 border-b border-slate-50/50">
+              <h3 className="font-black text-slate-900 text-2xl tracking-tight">{title}</h3>
+              <button onClick={onClose} className="w-12 h-12 flex items-center justify-center rounded-2xl bg-slate-50 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-all duration-300">
+                <i className="ph ph-x text-2xl"></i>
+              </button>
+            </div>
+            <div className="p-8 max-h-[75vh] overflow-auto custom-scrollbar">
+              {children}
+            </div>
+            {footer && <div className="p-8 bg-slate-50/30 backdrop-blur-md flex justify-end gap-4 border-t border-slate-50/50">{footer}</div>}
           </div>
-          <div className="p-8 max-h-[75vh] overflow-auto custom-scrollbar">
-            {children}
-          </div>
-          {footer && <div className="p-8 bg-slate-50/30 backdrop-blur-md flex justify-end gap-4 border-t border-slate-50/50">{footer}</div>}
         </div>
-      </div>
-    );
+      );
+    };
 
     // --- Routing ---
     // 部署在 GitHub Pages 子路徑（/SurveyLight/）時，建議用 hash 路由避免 404。
@@ -608,15 +611,25 @@
         }
       };
 
-      const deleteSurvey = async (id) => {
+      const deleteSurvey = (id) => {
+        console.log("Dashboard: deleteSurvey called for id:", id);
+        if (!id) return;
         setDeleteTarget(id);
       };
 
-      const confirmDelete = async () => {
+      const confirmDelete = async (e) => {
+        if (e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
         const id = deleteTarget;
+        console.log("Dashboard: confirmDelete starting for id:", id);
+        if (!id) return;
+
         setDeleteTarget(null);
         try {
           const rSnap = await db.collection("responses").where("surveyId", "==", id).get();
+          console.log(`Dashboard: found ${rSnap.size} responses to delete`);
           const ops = [];
           rSnap.docs.forEach(d => ops.push((batch) => batch.delete(d.ref)));
           ops.push((batch) => batch.delete(db.collection("surveys").doc(id)));
@@ -624,6 +637,7 @@
           setSurveys(prev => prev.filter(s => s.id !== id));
           setToast({ message: "問卷已成功刪除", type: "success" });
         } catch (err) {
+          console.error("Dashboard: delete failed:", err);
           setToast({ message: "刪除失敗：" + (err.message || "未知錯誤"), type: "error" });
         }
       };
@@ -861,17 +875,17 @@
                             </div>
                           </div>
 
-                          <div className="flex flex-col gap-2">
+                          <div className="flex flex-col gap-2 relative z-10">
                             <div className="flex gap-2">
                               <button
-                                onClick={() => shareSurvey(s)}
+                                onClick={() => { console.log("Share clicked for:", s.id); shareSurvey(s); }}
                                 className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-xl transition-all duration-300 font-bold text-xs border border-indigo-100/50 active:scale-95"
                               >
                                 <i className="ph ph-share-network-bold text-lg"></i>
                                 <span>分享</span>
                               </button>
                               <button
-                                onClick={() => duplicateSurvey(s)}
+                                onClick={() => { console.log("Duplicate clicked for:", s.id); duplicateSurvey(s); }}
                                 className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-xl transition-all duration-300 font-bold text-xs border border-emerald-100/50 active:scale-95"
                               >
                                 <i className="ph ph-copy-bold text-lg"></i>
@@ -879,7 +893,7 @@
                               </button>
                             </div>
                             <button
-                              onClick={() => deleteSurvey(s.id)}
+                              onClick={() => { console.log("Delete button clicked for:", s.id); deleteSurvey(s.id); }}
                               className="flex items-center justify-center gap-2 px-4 py-2 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white rounded-xl transition-all duration-300 font-bold text-xs border border-rose-100/50 active:scale-95"
                             >
                               <i className="ph ph-trash-bold text-lg"></i>
@@ -923,7 +937,7 @@
                     </div>
 
                     <button
-                      onClick={() => onAnalytics(s.id)}
+                      onClick={() => { console.log("Analytics Center clicked for:", s.id); onAnalytics(s.id); }}
                       className="w-full bg-slate-900 text-white py-7 rounded-[2.2rem] font-black text-lg flex items-center justify-center gap-4 hover:bg-indigo-600 active:scale-95 transition-all duration-700 shadow-2xl shadow-slate-200 group-hover:shadow-indigo-500/20 hover:-translate-y-2 border-b-4 border-slate-800 hover:border-indigo-700"
                     >
                       <i className="ph ph-chart-bar-fill text-2xl"></i> 
@@ -1673,6 +1687,7 @@
     };
 
     const Analytics = ({ surveyId, user, onBack, publicToken = null }) => {
+      console.log("Analytics component mounting with:", { surveyId, userId: user?.uid, publicToken });
       const [survey, setSurvey] = useState(null);
       const [responses, setResponses] = useState([]);
       const [stats, setStats] = useState(null);
@@ -1689,28 +1704,35 @@
 
         const init = async () => {
           setLoading(true);
+          console.log("Analytics init started...");
           try {
             let sDoc;
             if (publicToken) {
+              console.log("Fetching by publicToken:", publicToken);
               const sSnap = await db.collection("surveys").where("shareToken", "==", publicToken).get();
               if (sSnap.empty) throw new Error("此公開分析連結無效或已關閉");
               sDoc = sSnap.docs[0];
             } else {
+              console.log("Fetching by surveyId:", surveyId);
               sDoc = await db.collection("surveys").doc(surveyId).get();
             }
 
             if (!sDoc.exists) throw new Error("問卷不存在");
             const sData = { id: sDoc.id, ...sDoc.data() };
+            console.log("Survey data loaded:", sData.id);
 
             if (!publicToken && sData.creatorId !== user?.uid) {
+              console.error("Permission denied. Creator:", sData.creatorId, "User:", user?.uid);
               throw new Error("權限不足：您不是此問卷的建立者");
             }
             if (!cancelled) setSurvey(sData);
 
             // Real-time listener for Live Pulse
+            console.log("Listening for responses...");
             unsubscribeResponses = db.collection("responses")
               .where("surveyId", "==", sData.id)
               .onSnapshot(snap => {
+                console.log("Responses snapshot received, count:", snap.size);
                 const rData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 if (!cancelled) {
                   setResponses(rData);
@@ -1741,10 +1763,12 @@
                   }
                 }
               }, err => {
+                console.error("Responses snapshot error:", err);
                 if (!cancelled) setError(err.message);
               });
 
           } catch (err) {
+            console.error("Analytics init error:", err);
             if (!cancelled) setError(err.message);
           } finally {
             if (!cancelled) setLoading(false);
@@ -1753,6 +1777,7 @@
 
         init();
         return () => { 
+          console.log("Analytics unmounting, cancelling...");
           cancelled = true; 
           unsubscribeSurvey();
           unsubscribeResponses();
@@ -1853,7 +1878,7 @@
                   <span className="w-1 h-1 rounded-full bg-slate-200"></span>
                   <span className="text-slate-400 text-sm font-bold flex items-center gap-1.5">
                     <i className="ph ph-hash-bold"></i>
-                    ID: {surveyId.slice(0, 8)}...
+                    ID: {(surveyId || survey?.id || '').slice(0, 8)}...
                   </span>
                   {publicToken && (
                     <>
@@ -2348,10 +2373,13 @@
       }
 
       if (current.startsWith("/analytics")) {
+        console.log("App component detected /analytics route:", current);
         // /analytics?s= is public param; 我們用 hash query 的方式：#/analytics/{id}
         const parts = current.split("/");
         const sid = parts.length >= 3 ? parts[2] : activeSurveyId;
+        console.log("Resolved sid:", sid);
         if (!sid) {
+          console.warn("No sid found for /analytics route");
           return (
             <React.Fragment>
               {globalToast && <Toast message={globalToast.message} type={globalToast.type} onClose={() => setGlobalToast(null)} />}
@@ -2374,6 +2402,17 @@
         );
       }
 
+      const onAnalytics = (sid) => {
+        console.log("Navigating to analytics for sid:", sid);
+        if (!sid) {
+          console.error("onAnalytics called with empty sid");
+          return;
+        }
+        setActiveSurveyId(sid);
+        // 強制更新 hash 並觸發頁面渲染
+        window.location.hash = "#/analytics/" + sid;
+      };
+
       // default dashboard
       return (
         <React.Fragment>
@@ -2381,7 +2420,7 @@
           <Dashboard
             user={user}
             onCreate={() => navigateHash("/create")}
-            onAnalytics={(sid) => { setActiveSurveyId(sid); navigateHash("/analytics/" + sid); }}
+            onAnalytics={onAnalytics}
           />
           <Footer />
           <DebugStatus />

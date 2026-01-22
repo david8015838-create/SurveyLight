@@ -2602,7 +2602,8 @@
                     const qRatings = {};
                     const geoCounts = {};
                     const sentimentStats = { positive: 0, neutral: 0, negative: 0 };
-                    
+                    const timeHeatmap = {}; // "day-hour": count
+
                     rData.forEach(r => {
                       let rTotal = 0;
                       // Time stats
@@ -2621,6 +2622,15 @@
                       } else if (r.geo && r.geo.region && r.geo.region !== '未知') {
                         const region = r.geo.region;
                         geoCounts[region] = (geoCounts[region] || 0) + 1;
+                      }
+
+                      // Heatmap stats
+                      if (r.submittedAt) {
+                        const date = new Date(r.submittedAt);
+                        const day = date.getDay(); // 0-6 (Sun-Sat)
+                        const hour = date.getHours(); // 0-23
+                        const key = `${day}-${hour}`;
+                        timeHeatmap[key] = (timeHeatmap[key] || 0) + 1;
                       }
 
                       // Rating & Sentiment stats
@@ -2665,10 +2675,11 @@
                       questionStats: qTimings,
                       ratingStats: qRatings,
                       geoStats: sortedGeo,
-                      sentiment: sentimentStats
+                      sentiment: sentimentStats,
+                      heatmap: timeHeatmap
                     });
                   } else {
-                    setStats({ totalCount: 0, avgCompletionTime: 0, questionStats: {}, ratingStats: {}, geoStats: [], sentiment: { positive: 0, neutral: 0, negative: 0 } });
+                    setStats({ totalCount: 0, avgCompletionTime: 0, questionStats: {}, ratingStats: {}, geoStats: [], sentiment: { positive: 0, neutral: 0, negative: 0 }, heatmap: {} });
                   }
                 }
               }, err => {
@@ -3289,29 +3300,226 @@
                 </div>
               </div>
 
+              {/* Strategic Data Heatmap (War Room & Analytics) */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 fade-in-up">
+                {/* Time Heatmap Card */}
+                <div className={`rounded-[4rem] p-12 border-4 shadow-2xl overflow-hidden relative group ${
+                  warRoom ? 'war-room-card border-white/10 war-room-cyber-border' : 'glass border-white shadow-indigo-100/30'
+                }`}>
+                  <div className="flex items-center justify-between mb-10">
+                    <div>
+                      <h3 className={`text-2xl font-black tracking-tight mb-2 ${warRoom ? 'text-white' : 'text-slate-900'}`}>數據互動頻率熱點圖</h3>
+                      <p className={`text-xs font-black uppercase tracking-widest ${warRoom ? 'text-indigo-400' : 'text-indigo-600'}`}>Interaction Frequency Heatmap</p>
+                    </div>
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${warRoom ? 'bg-indigo-500/20 text-indigo-400' : 'bg-indigo-50 text-indigo-600'}`}>
+                      <i className="ph ph-calendar-check-fill text-2xl"></i>
+                    </div>
+                  </div>
+
+                  <div className="overflow-x-auto pb-4">
+                    <div className="min-w-[600px]">
+                      {/* Hour Labels */}
+                      <div className="flex mb-4 ml-10">
+                        {[0, 4, 8, 12, 16, 20].map(h => (
+                          <div key={h} className="flex-1 text-center">
+                            <span className={`text-[10px] font-black ${warRoom ? 'text-white/30' : 'text-slate-400'}`}>{h}:00</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Heatmap Grid */}
+                      <div className="space-y-2">
+                        {['週日', '週一', '週二', '週三', '週四', '週五', '週六'].map((dayName, dayIdx) => (
+                          <div key={dayIdx} className="flex items-center gap-4">
+                            <span className={`w-10 text-[10px] font-black ${warRoom ? 'text-white/40' : 'text-slate-500'}`}>{dayName}</span>
+                            <div className="flex-1 grid grid-cols-24 gap-1">
+                              {Array.from({ length: 24 }).map((_, hour) => {
+                                const count = stats?.heatmap?.[`${dayIdx}-${hour}`] || 0;
+                                const maxCount = Math.max(...Object.values(stats?.heatmap || {}), 1);
+                                const intensity = count / maxCount;
+                                
+                                return (
+                                  <div 
+                                    key={hour}
+                                    className={`h-6 rounded-sm transition-all relative group/cell ${
+                                      count === 0 
+                                        ? (warRoom ? 'bg-white/5' : 'bg-slate-50') 
+                                        : (warRoom ? 'bg-indigo-500' : 'bg-indigo-600')
+                                    }`}
+                                    style={{ opacity: count === 0 ? 1 : 0.2 + intensity * 0.8 }}
+                                    title={`${dayName} ${hour}:00 - ${count} 筆回覆`}
+                                  >
+                                    {count > 0 && (
+                                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-slate-900 text-white text-[10px] font-bold rounded opacity-0 group-hover/cell:opacity-100 pointer-events-none whitespace-nowrap z-50 shadow-xl">
+                                        {count} 回覆
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className={`mt-10 pt-8 border-t flex items-center justify-between ${warRoom ? 'border-white/5' : 'border-slate-100'}`}>
+                    <div className="flex items-center gap-6">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-3 h-3 rounded-sm ${warRoom ? 'bg-white/5' : 'bg-slate-50'}`}></div>
+                        <span className={`text-[10px] font-black ${warRoom ? 'text-white/30' : 'text-slate-400'}`}>較少</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className={`w-3 h-3 rounded-sm ${warRoom ? 'bg-indigo-500' : 'bg-indigo-600'}`}></div>
+                        <span className={`text-[10px] font-black ${warRoom ? 'text-white/30' : 'text-slate-400'}`}>較多</span>
+                      </div>
+                    </div>
+                    <p className={`text-[10px] font-black italic ${warRoom ? 'text-white/20' : 'text-slate-300'}`}>Based on UTC+8 Submission Time</p>
+                  </div>
+                </div>
+
+                {/* Geo Heatmap Card */}
+                <div className={`rounded-[4rem] p-12 border-4 shadow-2xl overflow-hidden group ${
+                  warRoom ? 'war-room-card border-white/10 war-room-cyber-border' : 'glass border-white shadow-emerald-100/30'
+                }`}>
+                  <div className="flex items-center justify-between mb-10">
+                    <div>
+                      <h3 className={`text-2xl font-black tracking-tight mb-2 ${warRoom ? 'text-white' : 'text-slate-900'}`}>地理分佈熱力圖</h3>
+                      <p className={`text-xs font-black uppercase tracking-widest ${warRoom ? 'text-emerald-400' : 'text-emerald-600'}`}>Geographic Sentiment Analysis</p>
+                    </div>
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${warRoom ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-50 text-emerald-600'}`}>
+                      <i className="ph ph-map-pin-fill text-2xl"></i>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-8">
+                    {(stats?.geoStats || []).length > 0 ? stats.geoStats.map(([city, count]) => (
+                      <div key={city} className="group/item">
+                        <div className="flex items-end justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            <span className={`text-lg font-black ${warRoom ? 'text-white' : 'text-slate-700'}`}>{city}</span>
+                            <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${warRoom ? 'bg-white/10 text-white/40' : 'bg-slate-100 text-slate-400'}`}>
+                              {Math.round((count / stats.totalCount) * 100)}%
+                            </span>
+                          </div>
+                          <span className={`text-2xl font-black tabular-nums ${warRoom ? 'text-white' : 'text-slate-900'}`}>{count}</span>
+                        </div>
+                        <div className={`h-3 rounded-full overflow-hidden ${warRoom ? 'bg-white/5' : 'bg-slate-50'}`}>
+                          <div 
+                            className={`h-full transition-all duration-1000 ease-out rounded-full ${warRoom ? 'bg-emerald-500 war-room-glow' : 'bg-emerald-500'}`}
+                            style={{ width: `${(count / stats.totalCount) * 100}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    )) : (
+                      <div className="text-center py-20">
+                        <p className={warRoom ? 'text-white/20' : 'text-slate-300'}>尚未有足夠地理數據</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
               {/* Strategic Data Heatmap (War Room Only) */}
               {warRoom && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 fade-in-up">
                   <div className="war-room-card rounded-[4rem] p-12 border-white/10 war-room-cyber-border overflow-hidden group">
                     <div className="flex items-center justify-between mb-10">
                       <div>
-                        <h3 className="text-2xl font-black text-white tracking-tight mb-2">地理分佈熱力圖</h3>
-                        <p className="text-indigo-400 text-[10px] font-black uppercase tracking-[0.3em]">Geographic Data Heatmap</p>
+                        <h3 className="text-2xl font-black text-white tracking-tight mb-2">互動頻率分佈</h3>
+                        <p className="text-indigo-400 text-[10px] font-black uppercase tracking-[0.3em]">Temporal Interaction Pulse</p>
                       </div>
                       <div className="w-12 h-12 bg-indigo-600/20 rounded-2xl flex items-center justify-center border border-indigo-500/30">
-                        <i className="ph ph-map-trifold-fill text-indigo-400 text-xl"></i>
+                        <i className="ph ph-calendar-check-fill text-indigo-400 text-xl"></i>
+                      </div>
+                    </div>
+
+                    <div className="space-y-10">
+                      {/* Time Distribution Analysis */}
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <h4 className="text-[10px] font-black text-white/40 uppercase tracking-widest flex items-center gap-2">
+                            <i className="ph ph-clock-fill text-indigo-400"></i>
+                            24小時熱度分佈
+                          </h4>
+                        </div>
+                        <div className="grid grid-cols-24 gap-1 h-24">
+                          {(() => {
+                            // Calculate hourly aggregation across all days
+                            const hourlyData = Array(24).fill(0);
+                            Object.entries(stats?.heatmap || {}).forEach(([key, count]) => {
+                              const hour = parseInt(key.split('-')[1]);
+                              hourlyData[hour] += count;
+                            });
+                            const maxH = Math.max(...hourlyData, 1);
+                            return hourlyData.map((count, h) => (
+                              <div 
+                                key={h} 
+                                className="h-full bg-indigo-500/10 rounded-sm relative group/h"
+                                title={`${h}:00 - ${count} 回覆`}
+                              >
+                                <div 
+                                  className="absolute bottom-0 left-0 w-full bg-indigo-500 rounded-sm transition-all duration-1000 war-room-glow"
+                                  style={{ height: `${(count / maxH) * 100}%`, opacity: 0.3 + (count / maxH) * 0.7 }}
+                                ></div>
+                                <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[8px] font-black text-white/20">
+                                  {h % 4 === 0 ? h : ''}
+                                </div>
+                              </div>
+                            ));
+                          })()}
+                        </div>
+                      </div>
+
+                      {/* Geographic Pulse Summary */}
+                      <div className="space-y-4 pt-4 border-t border-white/5">
+                        <h4 className="text-[10px] font-black text-white/40 uppercase tracking-widest flex items-center gap-2">
+                          <i className="ph ph-map-pin-fill text-emerald-400"></i>
+                          區域數據摘要
+                        </h4>
+                        <div className="space-y-3">
+                          {(stats?.geoStats || []).length > 0 ? stats.geoStats.slice(0, 3).map(([city, count]) => (
+                            <div key={city} className="space-y-1">
+                              <div className="flex justify-between text-[10px] font-black">
+                                <span className="text-white/60">{city}</span>
+                                <span className="text-white">{count}</span>
+                              </div>
+                              <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                                <div 
+                                  className="h-full bg-emerald-500 war-room-glow transition-all duration-1000"
+                                  style={{ width: `${(count / stats.totalCount) * 100}%` }}
+                                ></div>
+                              </div>
+                            </div>
+                          )) : (
+                            <p className="text-[10px] text-white/20 italic text-center py-4">等待數據流入...</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="war-room-card rounded-[4rem] p-12 border-white/10 war-room-cyber-border overflow-hidden group">
+                    <div className="flex items-center justify-between mb-10">
+                      <div>
+                        <h3 className="text-2xl font-black text-white tracking-tight mb-2">地理分佈熱力圖</h3>
+                        <p className="text-emerald-400 text-[10px] font-black uppercase tracking-[0.3em]">Geographic Data Heatmap</p>
+                      </div>
+                      <div className="w-12 h-12 bg-emerald-500/20 rounded-2xl flex items-center justify-center border border-emerald-500/30">
+                        <i className="ph ph-map-pin-fill text-emerald-400 text-xl"></i>
                       </div>
                     </div>
                     
-                    <div className="relative aspect-video bg-indigo-950/40 rounded-[2.5rem] border border-white/5 flex items-center justify-center group-hover:border-indigo-500/30 transition-colors">
+                    <div className="relative aspect-video bg-emerald-950/40 rounded-[2.5rem] border border-white/5 flex items-center justify-center group-hover:border-emerald-500/30 transition-colors">
                       <div className="absolute inset-0 war-room-grid opacity-20"></div>
                       <div className="relative z-10 text-center space-y-4">
                         <div className="flex justify-center gap-4">
-                          <div className="w-16 h-16 bg-indigo-500/20 rounded-full animate-ping"></div>
-                          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-indigo-400 rounded-full shadow-[0_0_20px_#6366f1]"></div>
+                          <div className="w-16 h-16 bg-emerald-500/20 rounded-full animate-ping"></div>
+                          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-emerald-400 rounded-full shadow-[0_0_20px_#10b981]"></div>
                         </div>
-                        <p className="text-indigo-300/60 font-black text-[10px] uppercase tracking-[0.2em]">Map Simulation Active</p>
-                        <div className="text-white/20 font-black text-4xl italic tracking-tighter opacity-30 select-none">TAIWAN / ASIA-PACIFIC</div>
+                        <p className="text-emerald-300/60 font-black text-[10px] uppercase tracking-[0.2em]">Live Location Tracking</p>
+                        <div className="text-white/20 font-black text-4xl italic tracking-tighter opacity-30 select-none">DATA DISTRIBUTION MAP</div>
                       </div>
                       
                       {/* Random Data Points */}
@@ -3438,72 +3646,6 @@
                   </div>
                  </div>
                )}
-
-              {/* Engagement Pulse Heatmap (War Room Only) */}
-              {warRoom && (
-                <div className="war-room-card rounded-[4rem] p-12 border-4 border-white/10 war-room-glow war-room-cyber-border relative overflow-hidden group">
-                  <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-8 mb-12">
-                    <div>
-                      <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-500/10 text-indigo-400 text-[10px] font-black uppercase tracking-[0.2em] mb-4">
-                        <i className="ph ph-activity-bold animate-pulse"></i>
-                        Real-time Engagement Pulse
-                      </div>
-                      <h3 className="text-4xl font-black text-white tracking-tighter">數據互動頻率熱點圖</h3>
-                    </div>
-                    <div className="flex gap-4">
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-indigo-500/20"></div>
-                        <span className="text-[10px] font-bold text-white/40 uppercase">Low</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.8)]"></div>
-                        <span className="text-[10px] font-bold text-white/40 uppercase">Peak</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-7 md:grid-cols-12 lg:grid-cols-24 gap-2">
-                    {[...Array(window.innerWidth < 768 ? 28 : 72)].map((_, i) => {
-                      const activity = Math.random();
-                      const isPeak = activity > 0.8;
-                      return (
-                        <div 
-                          key={i}
-                          className={`aspect-square rounded-lg transition-all duration-1000 ${
-                            isPeak 
-                              ? 'bg-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.6)] animate-pulse' 
-                              : activity > 0.4 
-                                ? 'bg-indigo-500/40' 
-                                : activity > 0.1 
-                                  ? 'bg-indigo-500/20' 
-                                  : 'bg-white/5'
-                          }`}
-                          title={`Activity Level: ${Math.floor(activity * 100)}%`}
-                        ></div>
-                      );
-                    })}
-                  </div>
-                  
-                  <div className="mt-10 flex items-center justify-between pt-8 border-t border-white/5">
-                    <div className="flex items-center gap-6">
-                      <div className="text-center">
-                        <div className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-1">Stability</div>
-                        <div className="text-lg font-black text-emerald-400 tabular-nums">99.9%</div>
-                      </div>
-                      <div className="w-px h-8 bg-white/5"></div>
-                      <div className="text-center">
-                        <div className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-1">Throughput</div>
-                        <div className="text-lg font-black text-white tabular-nums">{Math.floor(Math.random() * 500 + 100)} kb/s</div>
-                      </div>
-                    </div>
-                    <div className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em] flex items-center gap-3">
-                      <span className="w-8 h-px bg-white/5"></span>
-                      Sub-orbital Data Stream
-                      <span className="w-8 h-px bg-white/5"></span>
-                    </div>
-                  </div>
-                </div>
-              )}
 
               {/* Timing Analysis */}
               <div className="space-y-10">

@@ -45,8 +45,8 @@
       overflow-x: hidden; 
     }
 
-    /* Smooth transitions */
-    * { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+    /* Smooth transitions - Only apply to specific properties to avoid layout issues */
+    .transition-base { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
 
     .spinner { 
       border: 3px solid rgba(79, 70, 229, 0.1); 
@@ -91,12 +91,34 @@
 
     /* Input styling */
     .input-elegant {
-      @apply w-full bg-white/60 border border-slate-200 rounded-2xl px-5 py-4 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all duration-300 placeholder:text-slate-300 font-medium;
+      width: 100%;
+      background-color: rgba(255, 255, 255, 0.6);
+      border: 1px solid #E2E8F0;
+      border-radius: 1rem;
+      padding: 1rem 1.25rem;
+      outline: none;
+      transition: all 0.3s;
+      font-weight: 500;
+    }
+    .input-elegant:focus {
+      border-color: #4F46E5;
+      box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
     }
 
     /* Card styling */
     .card-modern {
-      @apply bg-white rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-indigo-500/5 hover:-translate-y-1 transition-all duration-500;
+      background-color: white;
+      border-radius: 2.5rem;
+      border: 1px solid #F1F5F9;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      transition: all 0.5s;
+      position: relative;
+      z-index: 1;
+    }
+    .card-modern:hover {
+      box-shadow: 0 20px 25px -5px rgba(79, 70, 229, 0.05);
+      transform: translateY(-0.25rem);
+      z-index: 10;
     }
 
     /* Custom Button Animation */
@@ -229,6 +251,26 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
     auth.useDeviceLanguage();
+
+    // --- Firebase Diagnostics ---
+    async function checkFirebaseStatus() {
+      console.log("DIAG: Checking Firebase status...");
+      try {
+        // Test auth
+        const user = auth.currentUser;
+        console.log("DIAG: Current User:", user ? user.uid : "Not logged in");
+        
+        // Test firestore connection
+        const start = Date.now();
+        await db.collection("surveys").limit(1).get();
+        console.log("DIAG: Firestore connection OK (latency: " + (Date.now() - start) + "ms)");
+        return { ok: true };
+      } catch (err) {
+        console.error("DIAG: Firebase status check FAILED:", err);
+        return { ok: false, error: err.message };
+      }
+    }
+    window.__checkFirebase = checkFirebaseStatus;
 
     // --- UI Primitives ---
     const Button = ({ children, onClick, variant = "primary", className = "", disabled = false, type = "button" }) => {
@@ -513,16 +555,24 @@
       );
     };
 
-    const Dashboard = ({ user, onCreate, onAnalytics }) => {
+    const Dashboard = ({ user, onCreate, onAnalytics, onDelete }) => {
       const [surveys, setSurveys] = useState([]);
       const [totalResponsesCount, setTotalResponsesCount] = useState(0);
       const [loading, setLoading] = useState(true);
       const [cleanupStatus, setCleanupStatus] = useState(null);
       const [toast, setToast] = useState(null);
-      const [deleteTarget, setDeleteTarget] = useState(null);
-      const [isDeleting, setIsDeleting] = useState(false);
       const [searchTerm, setSearchTerm] = useState("");
       const [sortBy, setSortBy] = useState("newest"); // newest, oldest, responses
+
+      // Handle global delete event
+      useEffect(() => {
+        const handleDeleted = (e) => {
+          const id = e.detail;
+          setSurveys(prev => prev.filter(s => s.id !== id));
+        };
+        window.addEventListener('survey-deleted', handleDeleted);
+        return () => window.removeEventListener('survey-deleted', handleDeleted);
+      }, []);
 
       const filteredSurveys = useMemo(() => {
         let list = [...surveys];
@@ -625,42 +675,15 @@
       };
 
       const deleteSurvey = (id) => {
-        console.log("Dashboard: deleteSurvey called for id:", id);
-        if (!id) return;
-        setDeleteTarget(id);
-      };
-
-      const confirmDelete = async (e) => {
-        if (e) {
-          e.preventDefault();
-          e.stopPropagation();
+        console.log("DASHBOARD: deleteSurvey triggered for ID:", id);
+        if (!id) {
+          console.error("DASHBOARD: deleteSurvey called without ID");
+          return;
         }
-        const id = deleteTarget;
-        console.log("Dashboard: confirmDelete starting for id:", id);
-        if (!id || isDeleting) return;
-
-        setIsDeleting(true);
-        try {
-          console.log("Dashboard: Fetching responses for deletion...");
-          const rSnap = await db.collection("responses").where("surveyId", "==", id).get();
-          console.log(`Dashboard: found ${rSnap.size} responses to delete`);
-          
-          const ops = [];
-          rSnap.docs.forEach(d => ops.push((batch) => batch.delete(d.ref)));
-          ops.push((batch) => batch.delete(db.collection("surveys").doc(id)));
-          
-          console.log("Dashboard: Executing batch deletion...");
-          await commitBatches(ops, "delete-survey");
-          
-          setSurveys(prev => prev.filter(s => s.id !== id));
-          setToast({ message: "問卷已成功刪除", type: "success" });
-          setDeleteTarget(null);
-        } catch (err) {
-          console.error("Dashboard: delete failed:", err);
-          setToast({ message: "刪除失敗：" + (err.message || "未知錯誤"), type: "error" });
-        } finally {
-          setIsDeleting(false);
-        }
+        // 使用全域傳進來的 onDelete (即 setDeleteTarget)
+        onDelete(id);
+        // 提供快速反饋
+        setToast({ message: "正在準備刪除問卷...", type: "info" });
       };
 
       const duplicateSurvey = async (survey) => {
@@ -722,43 +745,6 @@
         <div className="max-w-7xl mx-auto p-6 sm:p-12 fade-in pb-32">
           {toast && <Toast message={toast.message} onClose={() => setToast(null)} />}
         
-        {deleteTarget && (
-          <Modal onClose={() => !isDeleting && setDeleteTarget(null)}>
-            <div className="text-center p-8">
-              <div className="w-24 h-24 bg-rose-50 text-rose-500 rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-xl shadow-rose-100 relative">
-                {isDeleting ? (
-                  <div className="spinner w-12 h-12 border-4 border-rose-200 border-l-rose-500"></div>
-                ) : (
-                  <i className="ph ph-trash-fill text-5xl"></i>
-                )}
-              </div>
-              <h2 className="text-3xl font-black text-slate-900 mb-4 tracking-tight">
-                {isDeleting ? "正在刪除問卷..." : "確定要刪除嗎？"}
-              </h2>
-              <p className="text-slate-500 mb-10 text-lg font-medium">
-                {isDeleting ? "請稍候，我們正在清理所有相關數據..." : "這項操作將永久刪除問卷及其所有收集到的回覆數據，且無法復原。"}
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <button 
-                  onClick={() => !isDeleting && setDeleteTarget(null)}
-                  disabled={isDeleting}
-                  className="flex-1 py-5 rounded-2xl bg-slate-100 text-slate-600 font-black hover:bg-slate-200 transition-all disabled:opacity-50"
-                >
-                  取消
-                </button>
-                <button 
-                  onClick={confirmDelete}
-                  disabled={isDeleting}
-                  className="flex-1 py-5 rounded-2xl bg-rose-500 text-white font-black hover:bg-rose-600 shadow-xl shadow-rose-200 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  {isDeleting && <div className="spinner w-5 h-5 border-2 border-white/20 border-l-white"></div>}
-                  {isDeleting ? "處理中..." : "確認刪除"}
-                </button>
-              </div>
-            </div>
-          </Modal>
-        )}
-
         {/* Dashboard Header & Profile */}
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-20 gap-10">
             <div className="space-y-6 flex-1">
@@ -908,62 +894,110 @@
                     <div className="flex-1 relative">
                       <div className="flex flex-col gap-6 mb-8">
                         <div className="flex justify-between items-start">
-                          <div className="relative w-24 h-24 group-hover:scale-110 transition-transform duration-700">
-                            {/* Shadow and glow */}
-                            <div className="absolute inset-2 bg-indigo-600/20 blur-xl group-hover:blur-2xl transition-all"></div>
-                            
-                            {/* Icon Base - Questionnaire Design */}
-                            <div className="relative w-full h-full bg-white rounded-[2rem] shadow-lg border border-slate-100 overflow-hidden flex items-center justify-center group-hover:border-indigo-100 transition-colors">
-                              {/* Survey Paper Header */}
-                              <div className="absolute top-0 left-0 w-full h-2.5 bg-gradient-to-r from-indigo-600 to-indigo-400"></div>
-                              
-                              {/* Mock Questionnaire Content */}
-                              <div className="flex flex-col gap-2.5 w-full px-5 pt-3">
-                                <div className="flex items-center gap-2">
-                                  <div className="w-4 h-4 rounded-md bg-indigo-50 flex items-center justify-center flex-shrink-0 border border-indigo-100 group-hover:bg-indigo-500 group-hover:border-indigo-500 transition-colors duration-500">
-                                    <i className="ph ph-check-bold text-[8px] text-transparent group-hover:text-white transition-colors duration-500"></i>
-                                  </div>
-                                  <div className="w-full h-1.5 bg-slate-100 rounded-full group-hover:bg-slate-200 transition-colors"></div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <div className="w-4 h-4 rounded-md bg-slate-50 flex-shrink-0 border border-slate-100"></div>
-                                  <div className="w-3/4 h-1.5 bg-slate-100 rounded-full"></div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <div className="w-4 h-4 rounded-md bg-indigo-50 flex items-center justify-center flex-shrink-0 border border-indigo-100 group-hover:bg-indigo-500 group-hover:border-indigo-500 transition-colors duration-500 [transition-delay:100ms]">
-                                    <i className="ph ph-check-bold text-[8px] text-transparent group-hover:text-white transition-colors duration-500 [transition-delay:100ms]"></i>
-                                  </div>
-                                  <div className="w-4/5 h-1.5 bg-slate-100 rounded-full group-hover:bg-slate-200 transition-colors"></div>
-                                </div>
-                              </div>
-                              
-                              {/* Pencil / Floating Element */}
-                              <div className="absolute -right-1 -bottom-1 w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center shadow-xl group-hover:bg-indigo-600 transition-all duration-500 rotate-12 group-hover:rotate-0 group-hover:scale-110">
-                                <i className="ph ph-pencil-line-fill text-white text-2xl group-hover:scale-110 transition-transform"></i>
-                              </div>
-                            </div>
-                          </div>
+          <div className="relative w-28 h-28 group-hover:scale-110 transition-all duration-700 perspective-1000">
+            {/* 3D Glow & Shadow Base */}
+            <div className="absolute inset-4 bg-indigo-600/20 blur-2xl group-hover:bg-indigo-600/40 group-hover:blur-3xl transition-all duration-700"></div>
+            
+            {/* Main 3D Container */}
+            <div className="relative w-full h-full preserve-3d group-hover:rotate-y-12 group-hover:rotate-x-12 transition-transform duration-700">
+              
+              {/* Paper Stack - Layer 3 (Bottom) */}
+              <div className="absolute inset-0 bg-slate-200 rounded-[2.2rem] translate-z-[-12px] rotate-6 opacity-40 border border-slate-300"></div>
+              
+              {/* Paper Stack - Layer 2 (Middle) */}
+              <div className="absolute inset-0 bg-slate-100 rounded-[2.2rem] translate-z-[-6px] -rotate-3 opacity-60 border border-slate-200"></div>
+              
+              {/* Top Paper (Main Surface) */}
+              <div className="relative w-full h-full bg-white rounded-[2.2rem] shadow-[0_20px_40px_rgba(0,0,0,0.08)] border border-slate-100 overflow-hidden flex flex-col group-hover:border-indigo-200 transition-all duration-500">
+                
+                {/* Paper Texture / Header */}
+                <div className="w-full h-4 bg-gradient-to-r from-indigo-600 to-indigo-400 flex-shrink-0"></div>
+                
+                {/* Questionnaire Lines & Checkboxes */}
+                <div className="p-5 flex flex-col gap-3.5">
+                  {/* Item 1: Completed */}
+                  <div className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-lg bg-indigo-600 flex items-center justify-center flex-shrink-0 shadow-sm rotate-3 group-hover:rotate-0 transition-transform">
+                      <i className="ph ph-check-bold text-[10px] text-white"></i>
+                    </div>
+                    <div className="flex-1 h-2 bg-slate-50 rounded-full overflow-hidden">
+                      <div className="w-3/4 h-full bg-indigo-100/50 group-hover:w-full transition-all duration-1000"></div>
+                    </div>
+                  </div>
+                  
+                  {/* Item 2: Active */}
+                  <div className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-lg bg-indigo-100 border-2 border-indigo-200 flex items-center justify-center flex-shrink-0 group-hover:bg-indigo-600 group-hover:border-indigo-600 transition-all duration-500">
+                      <i className="ph ph-check-bold text-[10px] text-transparent group-hover:text-white transition-all duration-500"></i>
+                    </div>
+                    <div className="flex-1 h-2 bg-slate-50 rounded-full overflow-hidden">
+                      <div className="w-1/2 h-full bg-indigo-50 group-hover:w-2/3 transition-all duration-1000 delay-100"></div>
+                    </div>
+                  </div>
+                  
+                  {/* Item 3: Empty */}
+                  <div className="flex items-center gap-3 opacity-60">
+                    <div className="w-5 h-5 rounded-lg border-2 border-slate-100 flex-shrink-0"></div>
+                    <div className="w-1/2 h-2 bg-slate-50 rounded-full"></div>
+                  </div>
+                </div>
 
-                          <div className="flex flex-col gap-2 relative z-10">
+                {/* Corner Fold Effect */}
+                <div className="absolute bottom-0 right-0 w-8 h-8 bg-gradient-to-tl from-slate-100 to-transparent"></div>
+              </div>
+
+              {/* Floating Pencil - Real 3D feel */}
+              <div className="absolute -right-3 -bottom-3 w-14 h-14 translate-z-20 group-hover:translate-z-32 transition-all duration-700">
+                <div className="w-full h-full bg-slate-900 rounded-3xl flex items-center justify-center shadow-[0_15px_30px_rgba(0,0,0,0.3)] border-4 border-white rotate-12 group-hover:rotate-0 group-hover:scale-110 transition-all duration-500">
+                  <i className="ph ph-pencil-simple-line-fill text-white text-2xl group-hover:scale-125 transition-transform duration-500"></i>
+                </div>
+                {/* Pencil Tip Shadow */}
+                <div className="absolute -bottom-2 right-2 w-8 h-2 bg-black/10 blur-md rounded-full -rotate-12 group-hover:rotate-0 transition-all"></div>
+              </div>
+            </div>
+          </div>
+
+                          <div className="flex flex-col gap-2 relative z-[70]">
                             <div className="flex gap-2">
                               <button
-                                onClick={(e) => { e.stopPropagation(); console.log("Share clicked for:", s.id); shareSurvey(s); }}
-                                className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-xl transition-all duration-300 font-bold text-xs border border-indigo-100/50 active:scale-95"
+                                onClick={(e) => { 
+                                  e.preventDefault();
+                                  e.stopPropagation(); 
+                                  console.log("ACTION: Share clicked", s.id);
+                                  window.__lastClick = "Share:" + s.id;
+                                  shareSurvey(s); 
+                                }}
+                                className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-xl transition-all duration-300 font-bold text-xs border border-indigo-100/50 active:scale-90 cursor-pointer shadow-sm hover:shadow-indigo-200"
+                                style={{ pointerEvents: 'auto', touchAction: 'manipulation' }}
                               >
                                 <i className="ph ph-share-network-bold text-lg"></i>
                                 <span>分享</span>
                               </button>
                               <button
-                                onClick={(e) => { e.stopPropagation(); console.log("Duplicate clicked for:", s.id); duplicateSurvey(s); }}
-                                className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-xl transition-all duration-300 font-bold text-xs border border-emerald-100/50 active:scale-95"
+                                onClick={(e) => { 
+                                  e.preventDefault();
+                                  e.stopPropagation(); 
+                                  console.log("ACTION: Duplicate clicked", s.id);
+                                  window.__lastClick = "Duplicate:" + s.id;
+                                  duplicateSurvey(s); 
+                                }}
+                                className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-xl transition-all duration-300 font-bold text-xs border border-emerald-100/50 active:scale-90 cursor-pointer shadow-sm hover:shadow-emerald-200"
+                                style={{ pointerEvents: 'auto', touchAction: 'manipulation' }}
                               >
                                 <i className="ph ph-copy-bold text-lg"></i>
                                 <span>複製</span>
                               </button>
                             </div>
                             <button
-                              onClick={(e) => { e.stopPropagation(); console.log("Delete button clicked for:", s.id); deleteSurvey(s.id); }}
-                              className="flex items-center justify-center gap-2 px-4 py-2 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white rounded-xl transition-all duration-300 font-black text-xs border border-rose-100/50 active:scale-95"
+                              onClick={(e) => { 
+                                e.preventDefault();
+                                e.stopPropagation(); 
+                                console.log("ACTION: Delete request", s.id);
+                                window.__lastClick = "Delete:" + s.id;
+                                deleteSurvey(s.id); 
+                              }}
+                              className="flex items-center justify-center gap-2 px-4 py-2 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white rounded-xl transition-all duration-300 font-black text-xs border border-rose-100/50 active:scale-90 cursor-pointer shadow-sm hover:shadow-rose-200"
+                              style={{ pointerEvents: 'auto', touchAction: 'manipulation' }}
                             >
                               <i className="ph ph-trash-bold text-lg"></i>
                               <span>刪除問卷</span>
@@ -1009,10 +1043,12 @@
                       onClick={(e) => { 
                         e.preventDefault();
                         e.stopPropagation();
-                        console.log("Analytics Center button clicked for:", s.id); 
+                        console.log("ACTION: Analytics button clicked for survey:", s.id); 
+                        window.__lastClick = "Analytics:" + s.id;
                         onAnalytics(s.id); 
                       }}
-                      className="w-full bg-slate-900 text-white py-7 rounded-[2.2rem] font-black text-lg flex items-center justify-center gap-4 hover:bg-indigo-600 active:scale-95 transition-all duration-700 shadow-2xl shadow-slate-200 group-hover:shadow-indigo-500/20 hover:-translate-y-2 border-b-4 border-slate-800 hover:border-indigo-700 relative z-10"
+                      className="w-full bg-slate-900 text-white py-7 rounded-[2.2rem] font-black text-lg flex items-center justify-center gap-4 hover:bg-indigo-600 active:scale-95 transition-all duration-700 shadow-2xl shadow-slate-200 group-hover:shadow-indigo-500/20 hover:-translate-y-2 border-b-4 border-slate-800 hover:border-indigo-700 relative z-[100] cursor-pointer pointer-events-auto"
+                      style={{ touchAction: 'manipulation' }}
                     >
                       <i className="ph ph-chart-bar-fill text-2xl"></i> 
                       <span>數據分析中心</span>
@@ -1778,35 +1814,41 @@
 
         const init = async () => {
           setLoading(true);
-          console.log("Analytics init started...");
+          setError(null);
+          console.log("ANALYTICS: init started for surveyId:", surveyId, "publicToken:", publicToken);
           try {
             let sDoc;
             if (publicToken) {
-              console.log("Fetching by publicToken:", publicToken);
+              console.log("ANALYTICS: using publicToken:", publicToken);
               const sSnap = await db.collection("surveys").where("shareToken", "==", publicToken).get();
               if (sSnap.empty) throw new Error("此公開分析連結無效或已關閉");
               sDoc = sSnap.docs[0];
             } else {
-              console.log("Fetching by surveyId:", surveyId);
+              if (!surveyId) throw new Error("缺少問卷 ID，無法進入分析中心");
+              console.log("ANALYTICS: fetching survey by ID:", surveyId);
               sDoc = await db.collection("surveys").doc(surveyId).get();
             }
 
-            if (!sDoc.exists) throw new Error("問卷不存在");
+            if (!sDoc.exists) {
+              console.error("ANALYTICS: survey not found:", surveyId);
+              throw new Error("問卷不存在或已被刪除");
+            }
+            
             const sData = { id: sDoc.id, ...sDoc.data() };
-            console.log("Survey data loaded:", sData.id);
+            console.log("ANALYTICS: survey data loaded:", sData.title);
 
             if (!publicToken && sData.creatorId !== user?.uid) {
-              console.error("Permission denied. Creator:", sData.creatorId, "User:", user?.uid);
+              console.error("ANALYTICS: Permission denied. Creator:", sData.creatorId, "User:", user?.uid);
               throw new Error("權限不足：您不是此問卷的建立者");
             }
+            
             if (!cancelled) setSurvey(sData);
 
-            // Real-time listener for Live Pulse
-            console.log("Listening for responses...");
+            console.log("ANALYTICS: setting up responses listener for:", sData.id);
             unsubscribeResponses = db.collection("responses")
               .where("surveyId", "==", sData.id)
               .onSnapshot(snap => {
-                console.log("Responses snapshot received, count:", snap.size);
+                console.log("ANALYTICS: responses updated, count:", snap.size);
                 const rData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 if (!cancelled) {
                   setResponses(rData);
@@ -1837,12 +1879,12 @@
                   }
                 }
               }, err => {
-                console.error("Responses snapshot error:", err);
-                if (!cancelled) setError(err.message);
+                console.error("ANALYTICS: responses snapshot error:", err);
+                if (!cancelled) setError("獲取回覆數據失敗：" + err.message);
               });
 
           } catch (err) {
-            console.error("Analytics init error:", err);
+            console.error("ANALYTICS: init error", err);
             if (!cancelled) setError(err.message);
           } finally {
             if (!cancelled) setLoading(false);
@@ -1851,7 +1893,7 @@
 
         init();
         return () => { 
-          console.log("Analytics unmounting, cancelling...");
+          console.log("ANALYTICS: unmounting, cancelling...");
           cancelled = true; 
           unsubscribeSurvey();
           unsubscribeResponses();
@@ -2282,19 +2324,139 @@
 
     const DebugStatus = () => {
       const [online, setOnline] = useState(navigator.onLine ? "Online" : "Offline");
+      const [dbStatus, setDbStatus] = useState("Checking...");
+      const [showInfo, setShowInfo] = useState(false);
+      const [lastClick, setLastClick] = useState(window.__lastClick || "None");
+      const [dbLatency, setDbLatency] = useState(null);
+      
       useEffect(() => {
         const on = () => setOnline("Online");
         const off = () => setOnline("Offline");
         window.addEventListener("online", on);
         window.addEventListener("offline", off);
+        
+        const check = async () => {
+          const start = Date.now();
+          try {
+            // Using a simple query to test connection
+            await db.collection("surveys").limit(1).get();
+            setDbStatus("Connected");
+            setDbLatency(Date.now() - start);
+          } catch (e) {
+            console.error("DEBUG: DB Check Failed", e);
+            setDbStatus("Error: " + (e.code || e.message));
+            setDbLatency(null);
+          }
+        };
+
+        check();
+        const interval = setInterval(() => {
+          check();
+          setLastClick(window.__lastClick || "None");
+        }, 15000); // Check every 15s
+        
         return () => {
           window.removeEventListener("online", on);
           window.removeEventListener("offline", off);
+          clearInterval(interval);
         };
       }, []);
+
+      const user = auth.currentUser;
+
       return (
-        <div className="fixed bottom-2 right-2 text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded opacity-50 hover:opacity-100 pointer-events-none">
-          Network: {online} | Domain: {window.location.hostname}
+        <div className="fixed bottom-4 right-4 z-[9999] flex flex-col items-end gap-2">
+          {showInfo && (
+            <div className="bg-white/95 backdrop-blur-xl border border-slate-200 p-6 rounded-[2rem] shadow-2xl mb-2 text-[11px] font-medium text-slate-600 min-w-[300px] fade-in animate-slide-up">
+              <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-100">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></div>
+                  <span className="font-black text-slate-900 uppercase tracking-tighter">Diagnostic Panel</span>
+                </div>
+                <button onClick={() => setShowInfo(false)} className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-rose-50 text-slate-400 hover:text-rose-500 transition-colors">
+                  <i className="ph ph-x-bold text-xs"></i>
+                </button>
+              </div>
+              
+              <div className="space-y-3.5">
+                <div className="group flex justify-between items-center">
+                  <span className="text-slate-400">User UID</span>
+                  <span className="font-mono text-[9px] bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200/50 max-w-[140px] truncate select-all">{user?.uid || "Anonymous"}</span>
+                </div>
+                
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400">DB Status</span>
+                  <div className="flex items-center gap-2">
+                    {dbLatency && <span className="text-[9px] text-slate-300 font-mono">{dbLatency}ms</span>}
+                    <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${dbStatus === "Connected" ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"}`}>
+                      {dbStatus}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400">Last Action</span>
+                  <span className="font-mono text-[10px] text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100/50">
+                    {lastClick}
+                  </span>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400">Current Route</span>
+                  <span className="text-slate-900 font-bold bg-slate-50 px-2 py-0.5 rounded border border-slate-100">
+                    {window.location.hash || "/"}
+                  </span>
+                </div>
+
+                <div className="pt-2 mt-2 border-t border-slate-100 flex gap-2">
+                  <button 
+                    onClick={() => window.location.reload()}
+                    className="flex-1 py-2 bg-slate-900 text-white rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-indigo-600 transition-colors active:scale-95 flex items-center justify-center gap-1.5"
+                  >
+                    <i className="ph ph-arrows-clockwise-bold"></i>
+                    Force Refresh
+                  </button>
+                  <button 
+                    onClick={() => {
+                      navigator.clipboard.writeText(JSON.stringify({
+                        uid: user?.uid,
+                        db: dbStatus,
+                        latency: dbLatency,
+                        route: window.location.hash,
+                        lastAction: lastClick,
+                        ua: navigator.userAgent
+                      }, null, 2));
+                      alert("Diagnostic data copied to clipboard!");
+                    }}
+                    className="px-3 py-2 bg-slate-100 text-slate-600 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-slate-200 transition-colors active:scale-95"
+                    title="Copy Logs"
+                  >
+                    <i className="ph ph-copy-bold"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <button 
+            onClick={() => setShowInfo(!showInfo)}
+            className="group flex items-center gap-3 bg-white/80 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-indigo-500/10 hover:border-indigo-200 transition-all active:scale-95"
+          >
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <span className={`block w-2 h-2 rounded-full ${online === "Online" ? "bg-emerald-500" : "bg-rose-500"}`}></span>
+                {online === "Online" && <span className="absolute inset-0 rounded-full bg-emerald-500 animate-ping opacity-40"></span>}
+              </div>
+              <span className="text-[10px] font-black text-slate-400 group-hover:text-slate-600 uppercase tracking-tighter">v1.2.7</span>
+            </div>
+            <div className="w-px h-3 bg-slate-200"></div>
+            <div className="flex items-center gap-1.5">
+              <i className={`ph ph-database-bold ${dbStatus === "Connected" ? "text-emerald-500" : "text-rose-400"}`}></i>
+              <span className={`text-[10px] font-bold ${dbStatus === "Connected" ? "text-emerald-600" : "text-rose-500"}`}>
+                {dbStatus === "Connected" ? "Live" : "Offline"}
+              </span>
+            </div>
+          </button>
         </div>
       );
     };
@@ -2314,6 +2476,40 @@
       const [authLoading, setAuthLoading] = useState(true);
       const [isInAppBrowser, setIsInAppBrowser] = useState(false);
       const [globalToast, setGlobalToast] = useState(null);
+      
+      // Global Deletion State
+      const [deleteTarget, setDeleteTarget] = useState(null);
+      const [isDeleting, setIsDeleting] = useState(false);
+
+      const confirmDeleteGlobal = async () => {
+        const id = deleteTarget;
+        if (!id || isDeleting) return;
+        setIsDeleting(true);
+        console.log("GLOBAL: Deleting survey:", id);
+        try {
+          const rSnap = await db.collection("responses").where("surveyId", "==", id).get();
+          const ops = rSnap.docs.map(d => (batch => batch.delete(d.ref)));
+          ops.push(batch => batch.delete(db.collection("surveys").doc(id)));
+          await commitBatches(ops, "global-delete-" + id);
+          setGlobalToast({ message: "問卷及其數據已成功移除", type: "success" });
+          setDeleteTarget(null);
+          // Notify dashboard to refresh
+          window.dispatchEvent(new CustomEvent('survey-deleted', { detail: id }));
+        } catch (err) {
+          console.error("GLOBAL: Delete failed", err);
+          setGlobalToast({ message: "刪除失敗：" + (err.message || "權限不足"), type: "error" });
+        } finally {
+          setIsDeleting(false);
+        }
+      };
+
+      // --- Lifecycle Logs ---
+      useEffect(() => {
+        console.log("APP: Component mounted. Current route:", getHashRoute());
+        checkFirebaseStatus().then(status => {
+          console.log("APP: Firebase diagnostic result:", status);
+        });
+      }, []);
 
       // 檢測是否為 App 內建瀏覽器 (LINE, FB, Messenger, etc.)
       useEffect(() => {
@@ -2412,84 +2608,20 @@
 
       if (booting || (authLoading && !publicSurveyId && !publicToken)) return <Loading text="正在確認身分..." />;
 
-      if (publicSurveyId) {
-        return (
-          <React.Fragment>
-            {globalToast && <Toast message={globalToast.message} type={globalToast.type} onClose={() => setGlobalToast(null)} />}
-            <TakeSurvey surveyId={publicSurveyId} />
-            <Footer />
-            <DebugStatus />
-          </React.Fragment>
-        );
-      }
-
-      if (publicToken) {
-        return (
-          <React.Fragment>
-            {globalToast && <Toast message={globalToast.message} type={globalToast.type} onClose={() => setGlobalToast(null)} />}
-            <Analytics surveyId={null} user={null} onBack={null} publicToken={publicToken} />
-            <Footer />
-            <DebugStatus />
-          </React.Fragment>
-        );
-      }
-
-      // Protected SPA routes via hash
-      const isAuthed = !!user;
-      const current = route;
-
-      if (isInAppBrowser && !publicSurveyId) {
-        return (
-          <React.Fragment>
-            {globalToast && <Toast message={globalToast.message} type={globalToast.type} onClose={() => setGlobalToast(null)} />}
-            <InAppBrowserNotice />
-            <Footer />
-            <DebugStatus />
-          </React.Fragment>
-        );
-      }
-
-      if (!isAuthed) {
-        return (
-          <React.Fragment>
-            {globalToast && <Toast message={globalToast.message} type={globalToast.type} onClose={() => setGlobalToast(null)} />}
-            <LoginView />
-            <Footer />
-            <DebugStatus />
-          </React.Fragment>
-        );
-      }
-
-      if (current === "/create") {
-        return (
-          <React.Fragment>
-            {globalToast && <Toast message={globalToast.message} type={globalToast.type} onClose={() => setGlobalToast(null)} />}
-            <CreateSurvey user={user} onBack={() => navigateHash("/dashboard")} />
-            <Footer />
-            <DebugStatus />
-          </React.Fragment>
-        );
-      }
-
-      if (current.startsWith("/analytics")) {
-        console.log("App component detected /analytics route:", current);
-        // /analytics?s= is public param; 我們用 hash query 的方式：#/analytics/{id}
-        const parts = current.split("/");
-        // 優先從 URL 中取得 ID，如果沒有則從 activeSurveyId 取得
-        let sid = null;
-        if (parts.length >= 3 && parts[2]) {
-          sid = parts[2];
-        } else if (activeSurveyId) {
-          sid = activeSurveyId;
-        }
+      const renderContent = () => {
+        if (publicSurveyId) return <TakeSurvey surveyId={publicSurveyId} />;
+        if (publicToken) return <Analytics surveyId={null} user={null} onBack={null} publicToken={publicToken} />;
+        if (isInAppBrowser && !publicSurveyId) return <InAppBrowserNotice />;
+        if (!user) return <LoginView />;
         
-        console.log("Resolved sid for Analytics:", sid);
+        const current = route;
+        if (current === "/create") return <CreateSurvey user={user} onBack={() => navigateHash("/dashboard")} />;
         
-        if (!sid) {
-          console.warn("No sid found for /analytics route, redirecting to dashboard...");
-          return (
-            <React.Fragment>
-              {globalToast && <Toast message={globalToast.message} type={globalToast.type} onClose={() => setGlobalToast(null)} />}
+        if (current.startsWith("/analytics")) {
+          const parts = current.split("/");
+          let sid = parts.length >= 3 && parts[2] ? parts[2] : activeSurveyId;
+          if (!sid) {
+            return (
               <div className="max-w-xl mx-auto p-12 text-center">
                 <div className="w-20 h-20 bg-rose-50 text-rose-500 rounded-3xl flex items-center justify-center mx-auto mb-6">
                   <i className="ph ph-warning-bold text-4xl"></i>
@@ -2498,55 +2630,71 @@
                 <p className="text-slate-500 mb-8 font-medium">請從儀表板點擊「數據分析中心」進入。</p>
                 <Button onClick={() => navigateHash("/dashboard")}>返回儀表板</Button>
               </div>
-              <Footer />
-              <DebugStatus />
-            </React.Fragment>
-          );
-        }
-        return (
-          <React.Fragment>
-            {globalToast && <Toast message={globalToast.message} type={globalToast.type} onClose={() => setGlobalToast(null)} />}
-            <Analytics surveyId={sid} user={user} onBack={() => navigateHash("/dashboard")} />
-            <Footer />
-            <DebugStatus />
-          </React.Fragment>
-        );
-      }
-
-      const onAnalytics = (sid) => {
-        console.log("App.onAnalytics called with sid:", sid);
-        if (!sid) {
-          console.error("onAnalytics called with empty sid");
-          return;
-        }
-        setActiveSurveyId(sid);
-        // 強制更新 hash 並觸發頁面渲染
-        const targetHash = "#/analytics/" + sid;
-        console.log("Setting window.location.hash to:", targetHash);
-        window.location.hash = targetHash;
-        
-        // 額外保險：如果 hashchange 沒觸發，手動更新 route
-        setTimeout(() => {
-          const currentHash = getHashRoute();
-          console.log("Current hash after navigation:", currentHash);
-          if (currentHash !== "/analytics/" + sid) {
-            console.warn("Hash mismatch, manually setting route...");
-            setRoute("/analytics/" + sid);
+            );
           }
-        }, 100);
+          return <Analytics surveyId={sid} user={user} onBack={() => navigateHash("/dashboard")} />;
+        }
+        
+        return <Dashboard user={user} onCreate={() => navigateHash("/create")} onAnalytics={onAnalytics} onDelete={setDeleteTarget} />;
       };
 
-      // default dashboard
+      const onAnalytics = (sid) => {
+        console.log("APP: onAnalytics requested for sid:", sid);
+        if (!sid) {
+          setGlobalToast({ message: "錯誤：無效的問卷 ID", type: "error" });
+          return;
+        }
+        // 僅修改 Hash，讓 hashchange 監聽器統一處理路由狀態更新
+        const targetHash = "#/analytics/" + sid;
+        console.log("APP: Navigating to hash:", targetHash);
+        window.location.hash = targetHash;
+        // 備用：確保 activeSurveyId 也更新
+        setActiveSurveyId(sid);
+      };
+
       return (
         <React.Fragment>
+          {/* Global Deletion Modal */}
+          {deleteTarget && (
+            <Modal
+              title="確認刪除問卷？"
+              onClose={() => !isDeleting && setDeleteTarget(null)}
+              footer={
+                <div className="flex gap-4 w-full">
+                  <Button variant="ghost" className="flex-1 py-4" onClick={() => setDeleteTarget(null)} disabled={isDeleting}>
+                    取消
+                  </Button>
+                  <button
+                    onClick={confirmDeleteGlobal}
+                    disabled={isDeleting}
+                    className="flex-1 py-4 bg-rose-600 text-white rounded-2xl font-black hover:bg-rose-700 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {isDeleting ? <span className="spinner w-5 h-5 border-white/20 border-l-white"></span> : <i className="ph ph-trash-bold text-xl"></i>}
+                    {isDeleting ? "正在刪除..." : "確認永久刪除"}
+                  </button>
+                </div>
+              }
+            >
+              <div className="text-center p-4">
+                <div className="w-20 h-20 bg-rose-50 text-rose-500 rounded-[2rem] flex items-center justify-center mx-auto mb-6">
+                  <i className="ph ph-warning-bold text-4xl"></i>
+                </div>
+                <h4 className="text-xl font-black text-slate-900 mb-2">這項操作無法復原</h4>
+                <p className="text-slate-500 font-medium leading-relaxed">
+                  刪除問卷後，所有收集到的回覆數據也將一併被永久移除。
+                </p>
+              </div>
+            </Modal>
+          )}
+
           {globalToast && <Toast message={globalToast.message} type={globalToast.type} onClose={() => setGlobalToast(null)} />}
-          <Dashboard
-            user={user}
-            onCreate={() => navigateHash("/create")}
-            onAnalytics={onAnalytics}
-          />
+          
+          <main className="min-h-screen">
+            {renderContent()}
+          </main>
+          
           <Footer />
-          <DebugStatus />
+          <DebugStatus user={user} lastClick={window.__lastClick} />
         </React.Fragment>
       );
     };

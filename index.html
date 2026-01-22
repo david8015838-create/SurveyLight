@@ -1840,9 +1840,9 @@
                         <p className="text-xs text-slate-500 font-bold leading-relaxed mb-6">
                           使用者將會看到 1 到 10 的評分圓圈，可以用於滿意度調查、符合程度評估等場景。
                         </p>
-                        <div className="flex justify-between items-center gap-2">
+                        <div className="grid grid-cols-5 md:grid-cols-10 gap-2">
                           {[...Array(10)].map((_, i) => (
-                            <div key={i} className="w-8 h-8 rounded-full border-2 border-indigo-200 flex items-center justify-center text-[10px] font-black text-indigo-300 bg-white">
+                            <div key={i} className="aspect-square w-full rounded-full border-2 border-indigo-200 flex items-center justify-center text-[10px] font-black text-indigo-300 bg-white">
                               {i + 1}
                             </div>
                           ))}
@@ -2377,7 +2377,7 @@
                   </div>
                 ) : q.type === "rating" ? (
                   <div className="flex flex-col gap-10">
-                    <div className="flex flex-wrap justify-between items-center gap-3">
+                    <div className="grid grid-cols-5 md:grid-cols-10 gap-3 md:gap-2">
                       {[...Array(10)].map((_, i) => {
                         const val = i + 1;
                         const isSelected = Number(answers[q.id]) === val;
@@ -2385,7 +2385,7 @@
                           <button
                             key={val}
                             onClick={() => setAnswers({ ...answers, [q.id]: val })}
-                            className={`w-12 h-12 md:w-14 md:h-14 rounded-full border-4 font-black text-xl transition-all duration-500 flex items-center justify-center shadow-lg active:scale-90 ${
+                            className={`aspect-square w-full rounded-full border-4 font-black text-xl transition-all duration-500 flex items-center justify-center shadow-lg active:scale-90 ${
                               isSelected 
                                 ? (focusMode 
                                     ? 'bg-indigo-500 border-white text-white shadow-indigo-500/50 scale-110' 

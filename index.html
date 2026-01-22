@@ -801,6 +801,58 @@
       );
     };
 
+    const optimizeFile = async (file) => {
+      // 只針對圖片進行壓縮優化
+      if (!file.type.startsWith('image/')) return file;
+      
+      console.log(`OPTIMIZING FILE: ${file.name} (${(file.size / 1024).toFixed(2)} KB)`);
+      
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (e) => {
+          const img = new Image();
+          img.src = e.target.result;
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+            
+            // 設定最大維度為 1600px，超過則等比例縮小
+            const MAX_DIM = 1600;
+            if (width > height) {
+              if (width > MAX_DIM) {
+                height *= MAX_DIM / width;
+                width = MAX_DIM;
+              }
+            } else {
+              if (height > MAX_DIM) {
+                width *= MAX_DIM / height;
+                height = MAX_DIM;
+              }
+            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            
+            // 轉為 JPEG 格式，品質設定為 0.8 (兼顧清晰度與檔案大小)
+            canvas.toBlob((blob) => {
+              const optimizedFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", {
+                type: 'image/jpeg',
+                lastModified: Date.now()
+              });
+              console.log(`OPTIMIZED RESULT: ${optimizedFile.name} (${(optimizedFile.size / 1024).toFixed(2)} KB)`);
+              resolve(optimizedFile);
+            }, 'image/jpeg', 0.8);
+          };
+          img.onerror = () => resolve(file);
+        };
+        reader.onerror = () => resolve(file);
+      });
+    };
+
     const Dashboard = ({ user, onCreate, onAnalytics, onDelete }) => {
       const [surveys, setSurveys] = useState([]);
       const [totalResponsesCount, setTotalResponsesCount] = useState(0);
@@ -900,23 +952,13 @@
 
       const shareSurvey = async (survey) => {
         const url = getPublicSurveyUrl(survey.id, survey.title);
-        const title = `SurveyLight｜${survey.title || "問卷"}`;
-        const text = `我想邀請你填寫問卷：${survey.title || "（未命名）"}\n點此開啟：${url}`;
-
-        if (navigator.share) {
-          try {
-            await navigator.share({ title, text, url });
-            return;
-          } catch (e) {
-            console.warn("share cancelled or failed:", e);
-          }
-        }
-
+        
         try {
           await navigator.clipboard.writeText(url);
-          setToast({ message: "已複製問卷連結", type: "success" });
+          setToast({ message: "問卷網址已複製到剪貼簿！✨", type: "success" });
         } catch (e) {
-          setToast({ message: "複製失敗，請手動複製", type: "error" });
+          console.error("Clipboard copy failed:", e);
+          setToast({ message: "複製失敗，請手動複製網址", type: "error" });
         }
       };
 
@@ -1998,14 +2040,17 @@
             const f = localFiles[qId];
             if (f) {
               try {
+                // 執行自動優化與壓縮
+                const optimizedFile = await optimizeFile(f);
+                
                 const storageRef = firebase.storage().ref();
-                const fileName = `${safeNow()}_${f.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
+                const fileName = `${safeNow()}_${optimizedFile.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
                 const fileRef = storageRef.child(`uploads/${survey.id}/${fileName}`);
                 
-                console.log("UPLOADING FILE:", f.name, "to", fileRef.fullPath);
+                console.log("UPLOADING FILE:", optimizedFile.name, "to", fileRef.fullPath);
                 
                 // Use blob for more reliable upload
-                const blob = new Blob([f], { type: f.type });
+                const blob = new Blob([optimizedFile], { type: optimizedFile.type });
                 await fileRef.put(blob);
                 const downloadURL = await fileRef.getDownloadURL();
                 finalAnswers[qId] = downloadURL;

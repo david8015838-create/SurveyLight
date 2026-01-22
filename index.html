@@ -117,6 +117,12 @@
       animation: scanline 6s linear infinite;
       z-index: 5;
     }
+    /* Disable scanline on mobile for better performance */
+    @media (max-width: 639px) {
+      .war-room-scanline {
+        display: none;
+      }
+    }
     @keyframes scanline {
         0% { top: -10%; }
         100% { top: 110%; }
@@ -158,8 +164,17 @@
   .war-room-card {
         background: rgba(15, 23, 42, 0.7);
         backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
         border: 1px solid rgba(99, 102, 241, 0.3);
         box-shadow: 0 0 40px rgba(0, 0, 0, 0.4), inset 0 0 20px rgba(99, 102, 241, 0.05);
+      }
+      /* Simplify on mobile to save battery and performance */
+      @media (max-width: 639px) {
+        .war-room-card {
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+          background: rgba(15, 23, 42, 0.85);
+        }
       }
       .war-room-glow {
         filter: drop-shadow(0 0 12px rgba(99, 102, 241, 0.4));
@@ -253,19 +268,28 @@
         100% { clip: rect(0px, 9999px, 20px, 0); }
       }
 
-    /* 3D Micro-interactions */
+    /* 3D Micro-interactions - Disabled on mobile for performance */
     .btn-3d {
       transform: perspective(1000px) rotateX(0deg) rotateY(0deg);
       transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       transform-style: preserve-3d;
     }
-    .btn-3d:hover {
-      transform: perspective(1000px) rotateX(5deg) rotateY(-5deg) translateY(-4px);
-      box-shadow: 10px 15px 30px rgba(79, 70, 229, 0.2);
+    @media (min-width: 640px) {
+      .btn-3d:hover {
+        transform: perspective(1000px) rotateX(5deg) rotateY(-5deg) translateY(-4px);
+        box-shadow: 10px 15px 30px rgba(79, 70, 229, 0.2);
+      }
+      .btn-3d:active {
+        transform: perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px) scale(0.95);
+        box-shadow: 2px 5px 10px rgba(79, 70, 229, 0.1);
+      }
     }
-    .btn-3d:active {
-      transform: perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px) scale(0.95);
-      box-shadow: 2px 5px 10px rgba(79, 70, 229, 0.1);
+    /* Simple active state for mobile */
+    @media (max-width: 639px) {
+      .btn-3d:active {
+        transform: scale(0.98);
+        opacity: 0.9;
+      }
     }
     
     .floating-bg {
@@ -1080,87 +1104,87 @@
           {toast && <Toast message={toast.message} onClose={() => setToast(null)} />}
         
         {/* Dashboard Header & Profile */}
-          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-20 gap-10">
-            <div className="space-y-6 flex-1">
-              <div className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-indigo-50 text-indigo-600 text-[10px] font-black uppercase tracking-[0.3em] border border-indigo-100/50">
-                <span className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse"></span>
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-12 sm:mb-20 gap-8 sm:gap-10">
+            <div className="space-y-4 sm:space-y-6 flex-1 w-full">
+              <div className="inline-flex items-center gap-3 px-4 py-1.5 sm:px-5 sm:py-2 rounded-full bg-indigo-50 text-indigo-600 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] sm:tracking-[0.3em] border border-indigo-100/50">
+                <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-indigo-600 animate-pulse"></span>
                 Creator Dashboard
               </div>
-              <h1 className="text-7xl font-black text-slate-900 tracking-tighter leading-none">
+              <h1 className="text-4xl sm:text-7xl font-black text-slate-900 tracking-tighter leading-none">
                 我的問卷庫<span className="text-indigo-600">.</span>
               </h1>
-              <div className="flex items-center gap-5 p-2 pr-8 rounded-[2.5rem] bg-white border border-slate-100 w-fit shadow-xl shadow-slate-200/50 hover:shadow-indigo-500/5 transition-all duration-500 group">
-                <div className="w-16 h-16 rounded-3xl bg-slate-50 flex items-center justify-center overflow-hidden border-4 border-white shadow-inner group-hover:border-indigo-100 transition-all duration-500">
+              <div className="flex items-center gap-4 sm:gap-5 p-1.5 sm:p-2 pr-6 sm:pr-8 rounded-3xl sm:rounded-[2.5rem] bg-white border border-slate-100 w-full sm:w-fit shadow-xl shadow-slate-200/50 hover:shadow-indigo-500/5 transition-all duration-500 group">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl sm:rounded-3xl bg-slate-50 flex items-center justify-center overflow-hidden border-2 sm:border-4 border-white shadow-inner group-hover:border-indigo-100 transition-all duration-500">
                   {user.photoURL ? (
                     <img src={user.photoURL} alt={user.displayName} className="w-full h-full object-cover" />
                   ) : (
-                    <i className="ph ph-user-circle-fill text-5xl text-slate-200 group-hover:text-indigo-600 transition-colors"></i>
+                    <i className="ph ph-user-circle-fill text-3xl sm:text-5xl text-slate-200 group-hover:text-indigo-600 transition-colors"></i>
                   )}
                 </div>
-                <div>
-                  <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Authenticated Account</p>
-                  <div className="flex items-center gap-4">
-                    <p className="text-slate-900 font-black text-2xl tracking-tight">{user.displayName || "使用者"}</p>
-                    <button onClick={() => auth.signOut()} className="w-9 h-9 rounded-2xl bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white flex items-center justify-center transition-all shadow-sm hover:shadow-rose-200" title="登出">
-                      <i className="ph ph-sign-out-bold"></i>
+                <div className="flex-1 min-w-0">
+                  <p className="text-slate-400 text-[8px] sm:text-[10px] font-black uppercase tracking-widest mb-0.5 sm:mb-1 truncate">Authenticated Account</p>
+                  <div className="flex items-center justify-between sm:justify-start gap-4">
+                    <p className="text-slate-900 font-black text-lg sm:text-2xl tracking-tight truncate">{user.displayName || "使用者"}</p>
+                    <button onClick={() => auth.signOut()} className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl sm:rounded-2xl bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white flex items-center justify-center transition-all shadow-sm hover:shadow-rose-200 shrink-0" title="登出">
+                      <i className="ph ph-sign-out-bold text-sm sm:text-base"></i>
                     </button>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="flex flex-col md:flex-row items-stretch md:items-center gap-8 w-full lg:w-auto">
-              <div className="grid grid-cols-3 gap-6 flex-1 md:flex-none">
-                <div className="glass px-8 py-6 rounded-[2.5rem] border-2 border-white flex flex-col items-center justify-center min-w-[120px] shadow-2xl shadow-indigo-500/5 group hover:border-indigo-200 transition-all relative overflow-hidden">
+            <div className="flex flex-col md:flex-row items-stretch md:items-center gap-6 sm:gap-8 w-full lg:w-auto">
+              <div className="grid grid-cols-3 gap-3 sm:gap-6 flex-1 md:flex-none">
+                <div className="glass px-4 py-4 sm:px-8 sm:py-6 rounded-3xl sm:rounded-[2.5rem] border-2 border-white flex flex-col items-center justify-center min-w-[80px] sm:min-w-[120px] shadow-2xl shadow-indigo-500/5 group hover:border-indigo-200 transition-all relative overflow-hidden">
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500/20 to-transparent"></div>
-                  <div className="relative w-14 h-14 mb-3 flex items-center justify-center">
-                    <div className="absolute inset-0 bg-indigo-50 rounded-2xl rotate-6 group-hover:rotate-45 transition-transform duration-500"></div>
-                    <div className="relative w-full h-full bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-all duration-500 shadow-inner border border-indigo-100/50">
-                      <i className="ph ph-stack-bold text-2xl"></i>
+                  <div className="relative w-10 h-10 sm:w-14 sm:h-14 mb-2 sm:mb-3 flex items-center justify-center">
+                    <div className="absolute inset-0 bg-indigo-50 rounded-xl sm:rounded-2xl rotate-6 group-hover:rotate-45 transition-transform duration-500"></div>
+                    <div className="relative w-full h-full bg-indigo-50 text-indigo-600 rounded-xl sm:rounded-2xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-all duration-500 shadow-inner border border-indigo-100/50">
+                      <i className="ph ph-stack-bold text-xl sm:text-2xl"></i>
                     </div>
                   </div>
-                  <span className="text-4xl font-black text-slate-900 leading-none mb-2">{totalSurveys}</span>
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">問卷總數</span>
+                  <span className="text-2xl sm:text-4xl font-black text-slate-900 leading-none mb-1 sm:mb-2">{totalSurveys}</span>
+                  <span className="text-[8px] sm:text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] sm:tracking-[0.2em]">問卷總數</span>
                 </div>
-                <div className="glass px-8 py-6 rounded-[2.5rem] border-2 border-white flex flex-col items-center justify-center min-w-[120px] shadow-2xl shadow-emerald-500/5 group hover:border-emerald-200 transition-all relative overflow-hidden">
+                <div className="glass px-4 py-4 sm:px-8 sm:py-6 rounded-3xl sm:rounded-[2.5rem] border-2 border-white flex flex-col items-center justify-center min-w-[80px] sm:min-w-[120px] shadow-2xl shadow-emerald-500/5 group hover:border-emerald-200 transition-all relative overflow-hidden">
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-emerald-500/20 to-transparent"></div>
-                  <div className="relative w-14 h-14 mb-3 flex items-center justify-center">
-                    <div className="absolute inset-0 bg-emerald-50 rounded-2xl rotate-6 group-hover:rotate-45 transition-transform duration-500"></div>
-                    <div className="relative w-full h-full bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition-all duration-500 shadow-inner border border-emerald-100/50">
-                      <i className="ph ph-trend-up-bold text-2xl"></i>
+                  <div className="relative w-10 h-10 sm:w-14 sm:h-14 mb-2 sm:mb-3 flex items-center justify-center">
+                    <div className="absolute inset-0 bg-emerald-50 rounded-xl sm:rounded-2xl rotate-6 group-hover:rotate-45 transition-transform duration-500"></div>
+                    <div className="relative w-full h-full bg-emerald-50 text-emerald-500 rounded-xl sm:rounded-2xl flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition-all duration-500 shadow-inner border border-emerald-100/50">
+                      <i className="ph ph-trend-up-bold text-xl sm:text-2xl"></i>
                     </div>
                   </div>
-                  <span className="text-4xl font-black text-slate-900 leading-none mb-2">{totalActive}</span>
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">進行中</span>
+                  <span className="text-2xl sm:text-4xl font-black text-slate-900 leading-none mb-1 sm:mb-2">{totalActive}</span>
+                  <span className="text-[8px] sm:text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] sm:tracking-[0.2em]">進行中</span>
                 </div>
-                <div className="glass px-8 py-6 rounded-[2.5rem] border-2 border-white flex flex-col items-center justify-center min-w-[120px] shadow-2xl shadow-blue-500/5 group hover:border-blue-200 transition-all relative overflow-hidden">
+                <div className="glass px-4 py-4 sm:px-8 sm:py-6 rounded-3xl sm:rounded-[2.5rem] border-2 border-white flex flex-col items-center justify-center min-w-[80px] sm:min-w-[120px] shadow-2xl shadow-blue-500/5 group hover:border-blue-200 transition-all relative overflow-hidden">
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-blue-500/20 to-transparent"></div>
-                  <div className="relative w-14 h-14 mb-3 flex items-center justify-center">
-                    <div className="absolute inset-0 bg-blue-50 rounded-2xl rotate-6 group-hover:rotate-45 transition-transform duration-500"></div>
-                    <div className="relative w-full h-full bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all duration-500 shadow-inner border border-blue-100/50">
-                      <i className="ph ph-chat-circle-dots-bold text-2xl"></i>
+                  <div className="relative w-10 h-10 sm:w-14 sm:h-14 mb-2 sm:mb-3 flex items-center justify-center">
+                    <div className="absolute inset-0 bg-blue-50 rounded-xl sm:rounded-2xl rotate-6 group-hover:rotate-45 transition-transform duration-500"></div>
+                    <div className="relative w-full h-full bg-blue-50 text-blue-500 rounded-xl sm:rounded-2xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all duration-500 shadow-inner border border-blue-100/50">
+                      <i className="ph ph-chat-circle-dots-bold text-xl sm:text-2xl"></i>
                     </div>
                   </div>
-                  <span className="text-4xl font-black text-slate-900 leading-none mb-2">{totalResponsesCount}</span>
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">總回覆數</span>
+                  <span className="text-2xl sm:text-4xl font-black text-slate-900 leading-none mb-1 sm:mb-2">{totalResponsesCount}</span>
+                  <span className="text-[8px] sm:text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] sm:tracking-[0.2em]">總回覆數</span>
                 </div>
               </div>
-              <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
-                <Button onClick={onCreate} className="px-12 py-8 text-2xl shadow-2xl shadow-indigo-500/20 hover:-translate-y-2 rounded-[2.5rem] bg-slate-900 hover:bg-indigo-600 group">
-                  <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center mr-4 group-hover:rotate-90 transition-transform duration-500">
-                    <i className="ph ph-plus-bold text-2xl"></i>
+              <div className="flex flex-col sm:flex-row md:flex-row gap-3 sm:gap-4 w-full md:w-auto">
+                <Button onClick={onCreate} className="flex-1 sm:flex-none px-6 sm:px-12 py-6 sm:py-8 text-lg sm:text-2xl shadow-2xl shadow-indigo-500/20 hover:-translate-y-2 rounded-3xl sm:rounded-[2.5rem] bg-slate-900 hover:bg-indigo-600 group">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/10 rounded-lg sm:rounded-xl flex items-center justify-center mr-3 sm:mr-4 group-hover:rotate-90 transition-transform duration-500">
+                    <i className="ph ph-plus-bold text-lg sm:text-2xl"></i>
                   </div>
                   建立新問卷
                 </Button>
-                <label className="cursor-pointer">
+                <label className="cursor-pointer flex-1 sm:flex-none">
                   <input 
                     type="file" 
                     accept=".json" 
                     className="hidden" 
                     onChange={handleImport}
                   />
-                  <div className="h-full flex items-center justify-center px-10 py-8 text-xl shadow-xl shadow-slate-100 hover:-translate-y-2 rounded-[2.5rem] bg-white border-4 border-slate-50 text-slate-600 hover:border-indigo-100 hover:text-indigo-600 transition-all font-black group">
-                    <i className="ph ph-upload-simple-bold text-2xl mr-4 group-hover:bounce transition-all"></i>
+                  <div className="h-full flex items-center justify-center px-6 sm:px-10 py-6 sm:py-8 text-base sm:text-xl shadow-xl shadow-slate-100 hover:-translate-y-2 rounded-3xl sm:rounded-[2.5rem] bg-white border-2 sm:border-4 border-slate-50 text-slate-600 hover:border-indigo-100 hover:text-indigo-600 transition-all font-black group">
+                    <i className="ph ph-upload-simple-bold text-xl sm:text-2xl mr-3 sm:mr-4 group-hover:bounce transition-all"></i>
                     上傳問卷
                   </div>
                 </label>
@@ -1168,45 +1192,45 @@
             </div>
           </div>
 
-          {cleanupStatus && <div className="mb-10"><Notice variant="info">{cleanupStatus}</Notice></div>}
+          {cleanupStatus && <div className="mb-8 sm:mb-10"><Notice variant="info">{cleanupStatus}</Notice></div>}
 
-          <div className="mb-12 flex flex-col md:flex-row gap-6 items-center justify-between">
-            <div className="flex flex-col md:flex-row items-stretch md:items-center gap-6 w-full md:max-w-3xl">
+          <div className="mb-8 sm:mb-12 flex flex-col lg:flex-row gap-4 sm:gap-6 items-center justify-between">
+            <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4 sm:gap-6 w-full lg:max-w-4xl">
               <div className="relative flex-1 group">
-                <i className="ph ph-magnifying-glass-bold absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors text-xl"></i>
+                <i className="ph ph-magnifying-glass-bold absolute left-5 sm:left-6 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors text-lg sm:text-xl"></i>
                 <input 
                   type="text"
                   placeholder="搜尋問卷標題或內容..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-14 pr-8 py-5 bg-white border-2 border-slate-100 rounded-[2rem] focus:outline-none focus:border-indigo-600 focus:shadow-2xl focus:shadow-indigo-500/10 transition-all font-medium text-slate-900 placeholder:text-slate-300 shadow-sm"
+                  className="w-full pl-12 sm:pl-14 pr-6 sm:pr-8 py-4 sm:py-5 bg-white border-2 border-slate-100 rounded-2xl sm:rounded-[2rem] focus:outline-none focus:border-indigo-600 focus:shadow-2xl focus:shadow-indigo-500/10 transition-all font-medium text-slate-900 placeholder:text-slate-300 shadow-sm text-sm sm:text-base"
                 />
               </div>
               
-              <div className="flex items-center bg-white p-2 rounded-[2rem] border-2 border-slate-100 shadow-sm">
+              <div className="flex items-center bg-white p-1.5 sm:p-2 rounded-2xl sm:rounded-[2rem] border-2 border-slate-100 shadow-sm overflow-x-auto no-scrollbar">
                 <button 
                   onClick={() => setSortBy("newest")}
-                  className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${sortBy === "newest" ? "bg-slate-900 text-white shadow-lg" : "text-slate-400 hover:bg-slate-50"}`}
+                  className={`flex-1 sm:flex-none whitespace-nowrap px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all ${sortBy === "newest" ? "bg-slate-900 text-white shadow-lg" : "text-slate-400 hover:bg-slate-50"}`}
                 >
                   最新
                 </button>
                 <button 
                   onClick={() => setSortBy("oldest")}
-                  className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${sortBy === "oldest" ? "bg-slate-900 text-white shadow-lg" : "text-slate-400 hover:bg-slate-50"}`}
+                  className={`flex-1 sm:flex-none whitespace-nowrap px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all ${sortBy === "oldest" ? "bg-slate-900 text-white shadow-lg" : "text-slate-400 hover:bg-slate-50"}`}
                 >
                   最舊
                 </button>
                 <button 
                   onClick={() => setSortBy("alphabetical")}
-                  className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${sortBy === "alphabetical" ? "bg-slate-900 text-white shadow-lg" : "text-slate-400 hover:bg-slate-50"}`}
+                  className={`flex-1 sm:flex-none whitespace-nowrap px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all ${sortBy === "alphabetical" ? "bg-slate-900 text-white shadow-lg" : "text-slate-400 hover:bg-slate-50"}`}
                 >
                   名稱
                 </button>
               </div>
             </div>
             
-            <div className="flex items-center gap-4 text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] bg-slate-50 px-6 py-3 rounded-2xl border border-slate-100">
-              <i className="ph ph-list-numbers-bold text-lg"></i>
+            <div className="flex items-center gap-3 sm:gap-4 text-slate-400 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.1em] sm:tracking-[0.2em] bg-slate-50 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl border border-slate-100 w-full lg:w-auto justify-center sm:justify-start">
+              <i className="ph ph-list-numbers-bold text-base sm:text-lg"></i>
               <span>共 {filteredSurveys.length} 份問卷</span>
             </div>
           </div>
@@ -1233,77 +1257,45 @@
                 <p className="text-slate-400 font-medium">請嘗試更換搜尋關鍵字</p>
               </div>
             ) : (
-              <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-6 sm:gap-12 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                 {filteredSurveys.map(s => (
-                  <div key={s.id} className="group card-modern p-10 flex flex-col hover:border-indigo-600/30 relative overflow-hidden bg-white/60 backdrop-blur-xl border-2 border-white shadow-2xl shadow-slate-200/50 transition-all duration-700">
+                  <div key={s.id} className="group card-modern p-6 sm:p-10 flex flex-col hover:border-indigo-600/30 relative overflow-hidden bg-white/60 backdrop-blur-xl border-2 border-white shadow-xl sm:shadow-2xl shadow-slate-200/50 transition-all duration-700 rounded-[2.5rem]">
                     {/* Decorative card background */}
                     <div className="absolute top-0 right-0 w-56 h-56 bg-indigo-50/50 rounded-full -mr-28 -mt-28 group-hover:scale-150 transition-transform duration-1000 pointer-events-none blur-3xl opacity-50"></div>
                     
                     <div className="flex-1 relative">
-                      <div className="flex flex-col gap-6 mb-8">
+                      <div className="flex flex-col gap-4 sm:gap-6 mb-6 sm:mb-8">
                         <div className="flex justify-between items-start">
-          <div className="relative w-28 h-28 group-hover:scale-110 transition-all duration-700 perspective-1000">
-            {/* 3D Glow & Shadow Base */}
-            <div className="absolute inset-4 bg-indigo-600/20 blur-2xl group-hover:bg-indigo-600/40 group-hover:blur-3xl transition-all duration-700"></div>
-            
-            {/* Main 3D Container */}
-            <div className="relative w-full h-full preserve-3d group-hover:rotate-y-12 group-hover:rotate-x-12 transition-transform duration-700">
-              
-              {/* Paper Stack - Layer 3 (Bottom) */}
-              <div className="absolute inset-0 bg-slate-200 rounded-[2.2rem] translate-z-[-12px] rotate-6 opacity-40 border border-slate-300"></div>
-              
-              {/* Paper Stack - Layer 2 (Middle) */}
-              <div className="absolute inset-0 bg-slate-100 rounded-[2.2rem] translate-z-[-6px] -rotate-3 opacity-60 border border-slate-200"></div>
-              
-              {/* Top Paper (Main Surface) */}
-              <div className="relative w-full h-full bg-white rounded-[2.2rem] shadow-[0_20px_40px_rgba(0,0,0,0.08)] border border-slate-100 overflow-hidden flex flex-col group-hover:border-indigo-200 transition-all duration-500">
-                
-                {/* Paper Texture / Header */}
-                <div className="w-full h-4 bg-gradient-to-r from-indigo-600 to-indigo-400 flex-shrink-0"></div>
-                
-                {/* Questionnaire Lines & Checkboxes */}
-                <div className="p-5 flex flex-col gap-3.5">
-                  {/* Item 1: Completed */}
-                  <div className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-lg bg-indigo-600 flex items-center justify-center flex-shrink-0 shadow-sm rotate-3 group-hover:rotate-0 transition-transform">
-                      <i className="ph ph-check-bold text-[10px] text-white"></i>
-                    </div>
-                    <div className="flex-1 h-2 bg-slate-50 rounded-full overflow-hidden">
-                      <div className="w-3/4 h-full bg-indigo-100/50 group-hover:w-full transition-all duration-1000"></div>
-                    </div>
-                  </div>
-                  
-                  {/* Item 2: Active */}
-                  <div className="flex items-center gap-3">
-                    <div className="w-5 h-5 rounded-lg bg-indigo-100 border-2 border-indigo-200 flex items-center justify-center flex-shrink-0 group-hover:bg-indigo-600 group-hover:border-indigo-600 transition-all duration-500">
-                      <i className="ph ph-check-bold text-[10px] text-transparent group-hover:text-white transition-all duration-500"></i>
-                    </div>
-                    <div className="flex-1 h-2 bg-slate-50 rounded-full overflow-hidden">
-                      <div className="w-1/2 h-full bg-indigo-50 group-hover:w-2/3 transition-all duration-1000 delay-100"></div>
-                    </div>
-                  </div>
-                  
-                  {/* Item 3: Empty */}
-                  <div className="flex items-center gap-3 opacity-60">
-                    <div className="w-5 h-5 rounded-lg border-2 border-slate-100 flex-shrink-0"></div>
-                    <div className="w-1/2 h-2 bg-slate-50 rounded-full"></div>
-                  </div>
-                </div>
-
-                {/* Corner Fold Effect */}
-                <div className="absolute bottom-0 right-0 w-8 h-8 bg-gradient-to-tl from-slate-100 to-transparent"></div>
-              </div>
-
-              {/* Floating Pencil - Real 3D feel */}
-              <div className="absolute -right-3 -bottom-3 w-14 h-14 translate-z-20 group-hover:translate-z-32 transition-all duration-700">
-                <div className="w-full h-full bg-slate-900 rounded-3xl flex items-center justify-center shadow-[0_15px_30px_rgba(0,0,0,0.3)] border-4 border-white rotate-12 group-hover:rotate-0 group-hover:scale-110 transition-all duration-500">
-                  <i className="ph ph-pencil-simple-line-fill text-white text-2xl group-hover:scale-125 transition-transform duration-500"></i>
-                </div>
-                {/* Pencil Tip Shadow */}
-                <div className="absolute -bottom-2 right-2 w-8 h-2 bg-black/10 blur-md rounded-full -rotate-12 group-hover:rotate-0 transition-all"></div>
-              </div>
-            </div>
-          </div>
+                          <div className="relative w-20 h-20 sm:w-28 sm:h-28 group-hover:scale-105 transition-all duration-700 perspective-1000">
+                            {/* 3D Glow & Shadow Base */}
+                            <div className="absolute inset-4 bg-indigo-600/10 blur-xl group-hover:bg-indigo-600/20 transition-all duration-700"></div>
+                            
+                            {/* Main 3D Container */}
+                            <div className="relative w-full h-full preserve-3d transition-transform duration-700">
+                              <div className="relative w-full h-full bg-white rounded-[1.8rem] sm:rounded-[2.2rem] shadow-[0_15px_30px_rgba(0,0,0,0.06)] border border-slate-100 overflow-hidden flex flex-col group-hover:border-indigo-200 transition-all duration-500">
+                                <div className="w-full h-3 bg-gradient-to-r from-indigo-600 to-indigo-400 flex-shrink-0"></div>
+                                <div className="p-3 sm:p-5 flex flex-col gap-2 sm:gap-3.5">
+                                  <div className="flex items-center gap-2 sm:gap-3">
+                                    <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-md sm:rounded-lg bg-indigo-600 flex items-center justify-center flex-shrink-0">
+                                      <i className="ph ph-check-bold text-[8px] sm:text-[10px] text-white"></i>
+                                    </div>
+                                    <div className="flex-1 h-1.5 sm:h-2 bg-slate-50 rounded-full overflow-hidden">
+                                      <div className="w-3/4 h-full bg-indigo-100/50"></div>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-2 sm:gap-3">
+                                    <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-md sm:rounded-lg bg-indigo-50 border-2 border-indigo-100"></div>
+                                    <div className="flex-1 h-1.5 sm:h-2 bg-slate-50 rounded-full overflow-hidden">
+                                      <div className="w-1/2 h-full bg-indigo-50"></div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="absolute -right-2 -bottom-2 w-10 h-10 sm:w-14 sm:h-14 bg-slate-900 rounded-2xl sm:rounded-3xl flex items-center justify-center shadow-lg border-2 sm:border-4 border-white rotate-12 group-hover:rotate-0 transition-all duration-500">
+                                <i className="ph ph-pencil-simple-line-fill text-white text-lg sm:text-2xl"></i>
+                              </div>
+                            </div>
+                          </div>
 
                           <div className="flex flex-col gap-2 relative z-[70]">
                             <div className="flex gap-2">
@@ -1313,111 +1305,77 @@
                                   e.stopPropagation(); 
                                   window.location.hash = `#/preview/${s.id}`;
                                 }}
-                                className="flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-600 hover:bg-amber-600 hover:text-white rounded-xl transition-all duration-300 font-bold text-xs border border-amber-100/50 active:scale-90 cursor-pointer shadow-sm hover:shadow-amber-200"
-                                style={{ pointerEvents: 'auto', touchAction: 'manipulation' }}
+                                className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-amber-50 text-amber-600 hover:bg-amber-600 hover:text-white rounded-xl transition-all duration-300 font-bold text-[10px] sm:text-xs border border-amber-100/50 active:scale-90 shadow-sm"
                               >
-                                <i className="ph ph-eye-bold text-lg"></i>
+                                <i className="ph ph-eye-bold text-base sm:text-lg"></i>
                                 <span>模擬</span>
                               </button>
                               <button
                                 onClick={(e) => { 
                                   e.preventDefault();
                                   e.stopPropagation(); 
-                                  console.log("ACTION: Share clicked", s.id);
-                                  window.__lastClick = "Share:" + s.id;
                                   shareSurvey(s); 
                                 }}
-                                className="flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-xl transition-all duration-300 font-bold text-xs border border-indigo-100/50 active:scale-90 cursor-pointer shadow-sm hover:shadow-indigo-200"
-                                style={{ pointerEvents: 'auto', touchAction: 'manipulation' }}
+                                className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-xl transition-all duration-300 border border-emerald-100/50 active:scale-90 shadow-sm"
                               >
-                                <i className="ph ph-share-network-bold text-lg"></i>
-                                <span>分享</span>
+                                <i className="ph ph-share-network-bold text-lg sm:text-xl"></i>
                               </button>
                             </div>
-                            <div className="flex gap-2">
-                              <button
-                                onClick={(e) => { 
-                                  e.preventDefault();
-                                  e.stopPropagation(); 
-                                  const blob = new Blob([JSON.stringify(s, null, 2)], { type: "application/json" });
-                                  const url = URL.createObjectURL(blob);
-                                  const a = document.createElement("a");
-                                  a.href = url;
-                                  a.download = `${s.title || "survey"}.json`;
-                                  a.click();
-                                }}
-                                className="flex items-center gap-2 px-4 py-2 bg-slate-50 text-slate-600 hover:bg-slate-600 hover:text-white rounded-xl transition-all duration-300 font-bold text-xs border border-slate-100 active:scale-90 cursor-pointer shadow-sm"
-                                style={{ pointerEvents: 'auto', touchAction: 'manipulation' }}
-                              >
-                                <i className="ph ph-download-simple-bold text-lg"></i>
-                                <span>導出</span>
-                              </button>
-                            </div>
-                            <button
-                              onClick={(e) => { 
-                                e.preventDefault();
-                                e.stopPropagation(); 
-                                console.log("ACTION: Delete request", s.id);
-                                window.__lastClick = "Delete:" + s.id;
-                                deleteSurvey(s.id); 
-                              }}
-                              className="flex items-center justify-center gap-2 px-4 py-2 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white rounded-xl transition-all duration-300 font-black text-xs border border-rose-100/50 active:scale-90 cursor-pointer shadow-sm hover:shadow-rose-200"
-                              style={{ pointerEvents: 'auto', touchAction: 'manipulation' }}
-                            >
-                              <i className="ph ph-trash-bold text-lg"></i>
-                              <span>刪除問卷</span>
-                            </button>
                           </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <h3 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-tight group-hover:text-indigo-600 transition-colors truncate">
+                            {s.title}
+                          </h3>
+                          <p className="text-slate-400 text-sm sm:text-base font-medium line-clamp-2 h-10 sm:h-12">
+                            {s.description || "尚未設定問卷描述..."}
+                          </p>
                         </div>
                       </div>
-                      
-                      <h3 className="font-black text-4xl text-slate-900 line-clamp-2 mb-4 group-hover:text-indigo-600 transition-colors tracking-tight leading-tight min-h-[5rem]">{s.title || "未命名問卷"}</h3>
-                      <div className="flex flex-wrap items-center gap-3 text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] mb-12">
-                        <div className="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center gap-2">
-                          <i className="ph ph-calendar-blank-bold text-sm"></i>
-                          {new Date(s.createdAt || 0).toLocaleDateString()}
-                        </div>
-                        {s.active ? (
-                          <div className="px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                            進行中
-                          </div>
-                        ) : (
-                          <div className="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-400 border border-slate-200">
-                            已關閉
-                          </div>
-                        )}
 
-                        {/* Ephemeral Mode Badges */}
-                        {s.expireAt && (
-                          <div className={`px-3 py-1.5 rounded-xl border flex items-center gap-2 ${safeNow() > s.expireAt ? 'bg-rose-50 text-rose-600 border-rose-100' : 'bg-indigo-50 text-indigo-600 border-indigo-100'}`}>
-                            <i className="ph ph-clock-countdown-bold"></i>
-                            {safeNow() > s.expireAt ? '已過期' : `截止：${new Date(s.expireAt).toLocaleDateString()}`}
+                      <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-8">
+                        <div className="bg-slate-50/50 p-4 rounded-3xl border border-slate-100/50 group-hover:bg-indigo-50/30 transition-colors">
+                          <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">問題數</div>
+                          <div className="text-2xl font-black text-slate-900">{(s.questions || []).length}</div>
+                        </div>
+                        <div className="bg-slate-50/50 p-4 rounded-3xl border border-slate-100/50 group-hover:bg-emerald-50/30 transition-colors">
+                          <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">狀態</div>
+                          <div className={`text-sm font-black flex items-center gap-1.5 ${s.active ? 'text-emerald-500' : 'text-rose-500'}`}>
+                            <span className={`w-2 h-2 rounded-full ${s.active ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`}></span>
+                            {s.active ? '進行中' : '已關閉'}
                           </div>
-                        )}
-                        {s.limitCount && (
-                          <div className="px-3 py-1.5 rounded-xl bg-amber-50 text-amber-600 border border-amber-100 flex items-center gap-2">
-                            <i className="ph ph-users-four-bold"></i>
-                            上限：{s.limitCount}人
-                          </div>
-                        )}
+                        </div>
                       </div>
                     </div>
 
-                    <button
-                      onClick={(e) => { 
-                        e.preventDefault();
-                        e.stopPropagation();
-                        console.log("ACTION: Analytics button clicked for survey:", s.id); 
-                        window.__lastClick = "Analytics:" + s.id;
-                        onAnalytics(s.id); 
-                      }}
-                      className="w-full bg-slate-900 text-white py-7 rounded-[2.2rem] font-black text-lg flex items-center justify-center gap-4 hover:bg-indigo-600 active:scale-95 transition-all duration-700 shadow-2xl shadow-slate-200 group-hover:shadow-indigo-500/20 hover:-translate-y-2 border-b-4 border-slate-800 hover:border-indigo-700 relative z-[100] cursor-pointer pointer-events-auto"
-                      style={{ touchAction: 'manipulation' }}
-                    >
-                      <i className="ph ph-chart-bar-fill text-2xl"></i> 
-                      <span>數據分析中心</span>
-                    </button>
+                    <div className="flex gap-3 sm:gap-4 relative z-[70]">
+                      <button
+                        onClick={() => onEdit(s)}
+                        className="flex-1 flex items-center justify-center gap-2 py-4 bg-white border-2 border-slate-100 text-slate-600 font-black rounded-2xl hover:border-indigo-600 hover:text-indigo-600 transition-all active:scale-95 text-sm"
+                      >
+                        <i className="ph ph-pencil-simple-line-bold text-lg"></i>
+                        編輯
+                      </button>
+                      <button
+                        onClick={() => onAnalytics(s.id)}
+                        className="flex-[2] flex items-center justify-center gap-2 py-4 bg-slate-900 text-white font-black rounded-2xl hover:bg-indigo-600 shadow-lg shadow-slate-200 hover:shadow-indigo-500/20 transition-all active:scale-95 text-sm"
+                      >
+                        <i className="ph ph-chart-pie-slice-bold text-lg"></i>
+                        分析中心
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (confirm("確定要刪除這份問卷嗎？此動作無法復原。")) {
+                            onDelete(s.id);
+                          }
+                        }}
+                        className="w-14 flex items-center justify-center bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white rounded-2xl transition-all active:scale-95 border border-rose-100/50"
+                      >
+                        <i className="ph ph-trash-bold text-lg"></i>
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -2599,9 +2557,6 @@
       const [currentTime, setCurrentTime] = useState(new Date());
       const [filters, setFilters] = useState([]); // Array of { id, questionId, value, operator }
 
-      // Customizable analysis config
-      const [showConfig, setShowConfig] = useState(false);
-
       useEffect(() => {
         const timer = setInterval(() => setCurrentTime(new Date()), 1000);
         return () => clearInterval(timer);
@@ -2716,6 +2671,7 @@
         let totalTime = 0;
         const qTimings = {};
         const qRatings = {};
+        const qChoices = {}; // { qid: { option: count } }
         const geoCounts = {};
         const timeHeatmap = {}; // "day-hour": count
 
@@ -2748,7 +2704,7 @@
             timeHeatmap[key] = (timeHeatmap[key] || 0) + 1;
           }
 
-          // Rating stats
+          // Answers stats
           Object.entries(r.answers || {}).forEach(([qid, ans]) => {
             const question = (survey?.questions || []).find(q => q.id === qid);
             if (question) {
@@ -2759,6 +2715,9 @@
                   qRatings[qid].sum += score;
                   qRatings[qid].count += 1;
                 }
+              } else if (question.type === 'choice') {
+                if (!qChoices[qid]) qChoices[qid] = {};
+                qChoices[qid][ans] = (qChoices[qid][ans] || 0) + 1;
               }
             }
           });
@@ -2775,6 +2734,7 @@
           avgCompletionTime: rData.length > 0 ? totalTime / rData.length : 0,
           questionStats: qTimings,
           ratingStats: qRatings,
+          choiceStats: qChoices,
           geoStats: sortedGeo,
           heatmap: timeHeatmap
         };
@@ -2853,7 +2813,7 @@
           {/* War Room Data Streams */}
           {warRoom && (
             <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-              {[...Array(15)].map((_, i) => (
+              {[...Array(window.innerWidth < 640 ? 8 : 15)].map((_, i) => (
                 <div 
                   key={i} 
                   className="data-stream" 
@@ -2866,29 +2826,29 @@
                 ></div>
               ))}
               {/* Added Real-time Grid & Radar lines */}
-              <div className="absolute inset-0 war-room-grid opacity-10"></div>
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] border border-indigo-500/20 rounded-full animate-ping opacity-20"></div>
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] border border-indigo-500/10 rounded-full opacity-30"></div>
+              <div className="absolute inset-0 war-room-grid opacity-5 sm:opacity-10"></div>
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] sm:w-[800px] sm:h-[800px] border border-indigo-500/20 rounded-full animate-ping opacity-20"></div>
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200px] h-[200px] sm:w-[400px] sm:h-[400px] border border-indigo-500/10 rounded-full opacity-30"></div>
               
-              {/* Strategic Command Labels */}
-              <div className="absolute top-1/4 left-10 text-[9px] font-black text-indigo-500/30 uppercase tracking-[0.5em] rotate-90 origin-left">Sector 7G-Alpha</div>
-              <div className="absolute bottom-1/4 right-10 text-[9px] font-black text-indigo-500/30 uppercase tracking-[0.5em] -rotate-90 origin-right">Encrypted Link Active</div>
+              {/* Strategic Command Labels - Hidden on small mobile */}
+              <div className="absolute top-1/4 left-4 sm:left-10 text-[7px] sm:text-[9px] font-black text-indigo-500/30 uppercase tracking-[0.5em] rotate-90 origin-left hidden xs:block">Sector 7G-Alpha</div>
+              <div className="absolute bottom-1/4 right-4 sm:right-10 text-[7px] sm:text-[9px] font-black text-indigo-500/30 uppercase tracking-[0.5em] -rotate-90 origin-right hidden xs:block">Encrypted Link Active</div>
             </div>
           )}
 
           {warRoom && <div className="war-room-scanline"></div>}
           {warRoom && (
-            <div className="fixed top-0 left-0 w-full z-[100] bg-indigo-950/40 backdrop-blur-xl border-b border-white/10 py-3 px-8 flex items-center justify-between overflow-hidden shadow-[0_10px_40px_rgba(0,0,0,0.5)]">
-              <div className="flex items-center gap-8">
-                <div className="flex items-center gap-3">
+            <div className="fixed top-0 left-0 w-full z-[100] bg-indigo-950/40 backdrop-blur-xl border-b border-white/10 py-2 sm:py-3 px-4 sm:px-8 flex items-center justify-between overflow-hidden shadow-[0_10px_40px_rgba(0,0,0,0.5)]">
+              <div className="flex items-center gap-3 sm:gap-8">
+                <div className="flex items-center gap-2 sm:gap-3">
                   <div className="relative">
-                    <span className="block w-3 h-3 rounded-full bg-emerald-500"></span>
-                    <span className="absolute inset-0 w-3 h-3 rounded-full bg-emerald-500 animate-ping"></span>
+                    <span className="block w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-emerald-500"></span>
+                    <span className="absolute inset-0 w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-emerald-500 animate-ping"></span>
                   </div>
-                  <span className="text-[12px] font-black text-white uppercase tracking-[0.2em] war-room-text-glow">Strategic Command</span>
+                  <span className="text-[10px] sm:text-[12px] font-black text-white uppercase tracking-[0.1em] sm:tracking-[0.2em] war-room-text-glow whitespace-nowrap">Strategic Command</span>
                 </div>
-                <div className="h-6 w-[1px] bg-white/10"></div>
-                <div className="flex items-center gap-6 text-[11px] font-bold text-indigo-400 uppercase tracking-widest">
+                <div className="h-4 sm:h-6 w-[1px] bg-white/10 hidden xs:block"></div>
+                <div className="hidden md:flex items-center gap-6 text-[11px] font-bold text-indigo-400 uppercase tracking-widest">
                   <div className="flex items-center gap-2">
                     <span className="text-white/40">SENSORS:</span>
                     <span className="text-emerald-400">ACTIVE</span>
@@ -2903,7 +2863,7 @@
                   </div>
                 </div>
               </div>
-              <div className="flex-1 max-w-2xl mx-12 overflow-hidden relative">
+              <div className="flex-1 max-w-2xl mx-4 sm:mx-12 overflow-hidden relative hidden sm:block">
                 <div className="flex items-center gap-12 animate-marquee whitespace-nowrap">
                   {(responses || []).slice(-5).reverse().map((r, i) => (
                     <div key={i} className="flex items-center gap-3 text-[11px] font-bold text-white/40 uppercase">
@@ -2924,14 +2884,14 @@
                 <div className="absolute inset-y-0 left-0 w-12 bg-gradient-to-r from-indigo-950/40 to-transparent z-10"></div>
                 <div className="absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-indigo-950/40 to-transparent z-10"></div>
               </div>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 sm:gap-4">
                 <button 
                   onClick={() => setWarRoom(!warRoom)}
-                  className={`px-6 py-2 rounded-xl border-2 transition-all active:scale-95 text-xs font-black ${
+                  className={`px-3 sm:px-6 py-1.5 sm:py-2 rounded-lg sm:rounded-xl border-2 transition-all active:scale-95 text-[10px] sm:text-xs font-black whitespace-nowrap ${
                     warRoom ? 'bg-indigo-500 border-indigo-400 text-white' : 'bg-slate-900 border-slate-900 text-white'
                   }`}
                 >
-                  {warRoom ? 'EXIT WAR ROOM' : 'ENTER WAR ROOM'}
+                  {warRoom ? 'EXIT' : 'ENTER'}
                 </button>
               </div>
             </div>
@@ -2939,40 +2899,40 @@
           <div className={`max-w-6xl mx-auto p-6 sm:p-12 fade-in pb-32 relative z-10 ${warRoom ? 'text-white pt-24' : ''}`}>
             {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-16">
-              <div className="flex items-center gap-8">
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 sm:mb-20 gap-8 sm:gap-10">
+              <div className="flex items-center gap-4 sm:gap-10 w-full lg:w-auto">
                 {!publicToken && (
                   <button 
                     onClick={onBack} 
-                    className={`group w-14 h-14 flex items-center justify-center rounded-2xl shadow-sm transition-all border ${
+                    className={`group w-12 h-12 sm:w-20 sm:h-20 flex items-center justify-center rounded-xl sm:rounded-[2.5rem] shadow-sm transition-all border flex-shrink-0 ${
                       warRoom 
                         ? 'bg-slate-900/50 text-white/40 border-white/10 hover:text-white hover:border-indigo-500' 
                         : 'bg-white text-slate-400 hover:text-indigo-600 border-slate-100 hover:border-indigo-100 hover:bg-indigo-50'
                     }`}
                   >
-                    <i className="ph ph-arrow-left text-2xl group-hover:-translate-x-1 transition-transform"></i>
+                    <i className="ph ph-arrow-left text-xl sm:text-2xl group-hover:-translate-x-1 transition-transform"></i>
                   </button>
                 )}
-                <div className="min-w-0">
-                  <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-white text-[10px] font-black uppercase tracking-[0.2em] mb-4 transition-all duration-500 ${pulse ? 'bg-rose-500 scale-110 shadow-lg shadow-rose-200' : 'bg-indigo-600'}`}>
+                <div className="min-w-0 flex-1">
+                  <div className={`inline-flex items-center gap-2 px-3 py-1 sm:px-4 sm:py-1.5 rounded-full text-white text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] mb-3 sm:mb-4 transition-all duration-500 ${pulse ? 'bg-rose-500 scale-110 shadow-lg shadow-rose-200' : 'bg-indigo-600'}`}>
                     <i className={`ph ${pulse ? 'ph-broadcast-fill animate-pulse' : 'ph-chart-line-up-fill'}`}></i>
                     {pulse ? 'Live Update Incoming!' : (warRoom ? 'Strategic Insight Center' : 'Insight Analytics')}
                   </div>
-                  <h1 className={`text-4xl font-black truncate tracking-tight leading-tight ${warRoom ? 'text-white glitch-text' : 'text-slate-900'}`} data-text={survey?.title}>{survey?.title}</h1>
-                  <div className="flex items-center gap-4 mt-2">
-                    <span className={`${warRoom ? 'text-white/40' : 'text-slate-400'} text-sm font-bold flex items-center gap-1.5`}>
+                  <h1 className={`text-2xl sm:text-4xl font-black truncate tracking-tight leading-tight ${warRoom ? 'text-white glitch-text' : 'text-slate-900'}`} data-text={survey?.title}>{survey?.title}</h1>
+                  <div className="flex flex-wrap items-center gap-3 sm:gap-4 mt-2">
+                    <span className={`${warRoom ? 'text-white/40' : 'text-slate-400'} text-[10px] sm:text-sm font-bold flex items-center gap-1 sm:gap-1.5`}>
                       <i className="ph ph-calendar-blank-bold"></i>
                       建立於：{new Date((survey?.createdAt || 0)).toLocaleDateString()}
                     </span>
-                    <span className={`w-1 h-1 rounded-full ${warRoom ? 'bg-white/10' : 'bg-slate-200'}`}></span>
-                    <span className={`${warRoom ? 'text-white/40' : 'text-slate-400'} text-sm font-bold flex items-center gap-1.5`}>
+                    <span className={`w-1 h-1 rounded-full ${warRoom ? 'bg-white/10' : 'bg-slate-200'} hidden sm:block`}></span>
+                    <span className={`${warRoom ? 'text-white/40' : 'text-slate-400'} text-[10px] sm:text-sm font-bold flex items-center gap-1 sm:gap-1.5`}>
                       <i className="ph ph-hash-bold"></i>
                       ID: {(surveyId || survey?.id || '').slice(0, 8)}...
                     </span>
                     {publicToken && (
                       <>
                         <span className={`w-1 h-1 rounded-full ${warRoom ? 'bg-white/10' : 'bg-slate-200'}`}></span>
-                        <span className="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded text-[10px] font-black uppercase tracking-widest border border-emerald-100">Public View</span>
+                        <span className="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded text-[9px] sm:text-[10px] font-black uppercase tracking-widest border border-emerald-100">Public View</span>
                       </>
                     )}
                   </div>
@@ -2980,38 +2940,31 @@
               </div>
 
               {responses.length > 0 && !publicToken && (
-                <div className="flex items-center gap-4">
-                  <button
-                    onClick={() => setShowConfig(true)}
-                    className={`px-8 py-4 rounded-2xl flex items-center gap-3 font-black transition-all border ${
-                      warRoom 
-                        ? 'bg-white/5 text-white/40 hover:bg-white/10 border-white/10' 
-                        : 'bg-white text-slate-400 hover:text-indigo-600 border-slate-100'
-                    }`}
-                  >
-                    <i className="ph ph-gear-fill text-2xl"></i>
-                    分析設定
-                  </button>
+                <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-3 sm:gap-4 w-full lg:w-auto">
                   <button
                     onClick={() => setWarRoom(!warRoom)}
-                    className={`px-8 py-4 rounded-2xl flex items-center gap-3 font-black transition-all duration-500 shadow-xl ${
+                    className={`px-4 sm:px-8 py-3 sm:py-4 rounded-2xl flex items-center justify-center gap-2 sm:gap-3 font-black transition-all duration-500 shadow-xl text-xs sm:text-base ${
                       warRoom 
                         ? 'bg-indigo-600 text-white shadow-indigo-500/40 ring-4 ring-indigo-500/20' 
                         : 'bg-white text-slate-400 hover:text-indigo-600 border border-slate-100 shadow-slate-100'
                     }`}
                   >
-                    <i className={`ph ${warRoom ? 'ph-broadcast-fill animate-pulse' : 'ph-monitor-play-fill'} text-2xl`}></i>
-                    {warRoom ? 'WAR ROOM ON' : 'WAR ROOM'}
+                    <i className={`ph ${warRoom ? 'ph-broadcast-fill animate-pulse' : 'ph-monitor-play-fill'} text-lg sm:text-2xl`}></i>
+                    <span className="whitespace-nowrap">{warRoom ? 'WAR ROOM ON' : 'WAR ROOM'}</span>
                   </button>
-                  <Button 
+                  
+                  <button 
                     onClick={downloadCSV}
-                    className={`${warRoom ? 'bg-slate-900 border border-white/10' : 'bg-slate-900'} hover:bg-slate-800 shadow-xl shadow-slate-100/50 px-8 py-4 rounded-2xl flex items-center gap-3`}
+                    className={`px-4 sm:px-8 py-3 sm:py-4 rounded-2xl flex items-center justify-center gap-2 sm:gap-3 font-black transition-all text-xs sm:text-base ${
+                      warRoom ? 'bg-white/10 text-white border border-white/10' : 'bg-slate-900 text-white shadow-xl shadow-slate-100/50'
+                    } hover:opacity-90`}
                   >
-                    <i className="ph ph-file-csv-fill text-2xl"></i>
-                    匯出 (CSV)
-                  </Button>
+                    <i className="ph ph-file-csv-fill text-lg sm:text-2xl"></i>
+                    <span className="whitespace-nowrap">匯出</span>
+                  </button>
+
                   {survey?.shareToken && (
-                    <Button 
+                    <button 
                       onClick={() => {
                         const url = new URL(window.location.href.split('?')[0].split('#')[0]);
                         url.hash = `#/analytics/public/${survey.shareToken}`;
@@ -3027,11 +2980,11 @@
                           setToast({ message: "已複製分析報告連結", type: "success" });
                         }
                       }}
-                      className="bg-indigo-600 hover:bg-indigo-700 shadow-xl shadow-indigo-100/50 px-8 py-4 rounded-2xl flex items-center gap-3"
+                      className="col-span-2 sm:col-span-1 bg-indigo-600 hover:bg-indigo-700 text-white shadow-xl shadow-indigo-100/50 px-4 sm:px-8 py-3 sm:py-4 rounded-2xl flex items-center justify-center gap-2 sm:gap-3 font-black text-xs sm:text-base"
                     >
-                      <i className="ph ph-share-network-fill text-2xl"></i>
-                      分享報告
-                    </Button>
+                      <i className="ph ph-share-network-fill text-lg sm:text-2xl"></i>
+                      <span className="whitespace-nowrap">分享報告連結</span>
+                    </button>
                   )}
                 </div>
               )}
@@ -3053,14 +3006,14 @@
           ) : (
             <div className="space-y-20 fade-in">
               {/* Advanced Filter UI */}
-              <div className={`p-8 rounded-[2.5rem] border-2 transition-all mb-12 ${
+              <div className={`p-5 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] border-2 transition-all mb-8 sm:mb-12 ${
                 warRoom 
                   ? 'war-room-card border-white/5 bg-indigo-500/5 shadow-2xl' 
                   : 'glass border-white shadow-xl shadow-indigo-100/20 bg-white/60 backdrop-blur-xl'
               }`}>
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <label className={`flex items-center gap-2 text-[10px] font-black uppercase tracking-widest ${warRoom ? 'text-indigo-400' : 'text-slate-400'}`}>
+                <div className="space-y-4 sm:space-y-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <label className={`flex items-center gap-2 text-[9px] sm:text-[10px] font-black uppercase tracking-widest ${warRoom ? 'text-indigo-400' : 'text-slate-400'}`}>
                       <i className="ph ph-funnel-fill text-lg"></i>
                       數據交叉篩選器 (Advanced Filter)
                     </label>
@@ -3076,7 +3029,7 @@
                           }]);
                         }
                       }}
-                      className={`px-4 py-2 rounded-xl text-xs font-black flex items-center gap-2 transition-all active:scale-95 ${
+                      className={`w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-black flex items-center justify-center gap-2 transition-all active:scale-95 ${
                         warRoom ? 'bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500 hover:text-white' : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white'
                       }`}
                     >
@@ -3084,12 +3037,12 @@
                     </button>
                   </div>
 
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                     {filters.map((f, idx) => (
-                      <div key={f.id} className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
+                      <div key={f.id} className="flex flex-col sm:grid sm:grid-cols-12 gap-3 sm:gap-4 items-stretch sm:items-center p-4 sm:p-0 rounded-2xl bg-slate-50/50 sm:bg-transparent border border-slate-100 sm:border-0">
                         <div className="sm:col-span-4 relative">
                           <select 
-                            className={`w-full appearance-none rounded-2xl px-6 py-4 text-sm font-black transition-all border-2 cursor-pointer ${
+                            className={`w-full appearance-none rounded-xl sm:rounded-2xl px-4 py-3 sm:px-6 sm:py-4 text-xs sm:text-sm font-black transition-all border-2 cursor-pointer ${
                               warRoom 
                                 ? 'bg-white/5 border-white/10 text-white focus:border-indigo-500' 
                                 : 'bg-white border-slate-100 text-slate-700 focus:border-indigo-600'
@@ -3115,7 +3068,7 @@
                               </option>
                             ))}
                           </select>
-                          <i className="ph ph-caret-down-bold absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                          <i className="ph ph-caret-down-bold absolute right-4 sm:right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
                         </div>
 
                         <div className="sm:col-span-3 relative">
@@ -3125,7 +3078,7 @@
                               return (
                                 <div className="relative">
                                   <select 
-                                    className={`w-full appearance-none rounded-2xl px-6 py-4 text-sm font-black transition-all border-2 cursor-pointer ${
+                                    className={`w-full appearance-none rounded-xl sm:rounded-2xl px-4 py-3 sm:px-6 sm:py-4 text-xs sm:text-sm font-black transition-all border-2 cursor-pointer ${
                                       warRoom ? 'bg-white/5 border-white/10 text-white focus:border-indigo-500' : 'bg-white border-slate-100 text-slate-700 focus:border-indigo-600'
                                     }`}
                                     value={f.operator}
@@ -3139,12 +3092,12 @@
                                     <option value="lt">小於</option>
                                     <option value="equals">等於</option>
                                   </select>
-                                  <i className="ph ph-caret-down-bold absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                                  <i className="ph ph-caret-down-bold absolute right-4 sm:right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
                                 </div>
                               );
                             }
                             return (
-                              <div className={`w-full rounded-2xl px-6 py-4 text-sm font-black border-2 text-center opacity-50 ${
+                              <div className={`w-full rounded-xl sm:rounded-2xl px-4 py-3 sm:px-6 sm:py-4 text-xs sm:text-sm font-black border-2 text-center opacity-50 ${
                                 warRoom ? 'bg-white/5 border-white/10 text-white' : 'bg-slate-50 border-slate-100 text-slate-400'
                               }`}>
                                 等於
@@ -3160,7 +3113,7 @@
                               return (
                                 <div className="relative">
                                   <select 
-                                    className={`w-full appearance-none rounded-2xl px-6 py-4 text-sm font-black transition-all border-2 cursor-pointer ${
+                                    className={`w-full appearance-none rounded-xl sm:rounded-2xl px-4 py-3 sm:px-6 sm:py-4 text-xs sm:text-sm font-black transition-all border-2 cursor-pointer ${
                                       warRoom ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-slate-100 text-slate-700'
                                     }`}
                                     value={f.value}
@@ -3174,7 +3127,7 @@
                                       <option key={opt} value={opt}>{opt}</option>
                                     ))}
                                   </select>
-                                  <i className="ph ph-caret-down-bold absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                                  <i className="ph ph-caret-down-bold absolute right-4 sm:right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
                                 </div>
                               );
                             }
@@ -3182,7 +3135,7 @@
                               <input 
                                 type="number"
                                 min="1" max="10"
-                                className={`w-full rounded-2xl px-6 py-4 text-sm font-black transition-all border-2 ${
+                                className={`w-full rounded-xl sm:rounded-2xl px-4 py-3 sm:px-6 sm:py-4 text-xs sm:text-sm font-black transition-all border-2 ${
                                   warRoom ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-slate-100 text-slate-700'
                                 }`}
                                 value={f.value}
@@ -3196,10 +3149,10 @@
                           })()}
                         </div>
 
-                        <div className="sm:col-span-1 flex justify-center">
+                        <div className="sm:col-span-1 flex justify-end sm:justify-center mt-2 sm:mt-0">
                           <button 
                             onClick={() => setFilters(filters.filter(item => item.id !== f.id))}
-                            className="w-10 h-10 rounded-xl flex items-center justify-center text-rose-500 hover:bg-rose-500 hover:text-white transition-all"
+                            className="w-10 h-10 rounded-xl flex items-center justify-center text-rose-500 hover:bg-rose-500 hover:text-white transition-all bg-rose-50 sm:bg-transparent"
                           >
                             <i className="ph ph-trash-bold"></i>
                           </button>
@@ -3209,18 +3162,18 @@
                   </div>
 
                   {filters.length > 0 && (
-                    <div className={`pt-6 border-t flex items-center justify-between ${warRoom ? 'border-white/5' : 'border-slate-100'}`}>
+                    <div className={`pt-4 sm:pt-6 border-t flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${warRoom ? 'border-white/5' : 'border-slate-100'}`}>
                       <div className="flex items-center gap-3">
                         <div className={`w-2 h-2 rounded-full animate-pulse ${warRoom ? 'bg-indigo-400 shadow-[0_0_10px_rgba(129,140,248,0.8)]' : 'bg-indigo-600'}`}></div>
-                        <p className={`text-xs font-bold ${warRoom ? 'text-white/60' : 'text-slate-500'}`}>
-                          已篩選出 <span className={`text-lg font-black tabular-nums ${warRoom ? 'text-white' : 'text-indigo-600'}`}>{filteredResponses.length}</span> 筆符合條件的回覆
+                        <p className={`text-[10px] sm:text-xs font-bold ${warRoom ? 'text-white/60' : 'text-slate-500'}`}>
+                          已篩選出 <span className={`text-base sm:text-lg font-black tabular-nums ${warRoom ? 'text-white' : 'text-indigo-600'}`}>{filteredResponses.length}</span> 筆符合條件的回覆
                           <span className="mx-2 opacity-30">|</span>
-                          佔總數據的 {Math.round((filteredResponses.length / responses.length) * 100)}%
+                          佔 {Math.round((filteredResponses.length / responses.length) * 100)}%
                         </p>
                       </div>
                       <button 
                         onClick={() => setFilters([])}
-                        className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${
+                        className={`w-full sm:w-auto px-4 py-2 rounded-xl text-[10px] sm:text-xs font-black transition-all ${
                           warRoom ? 'text-rose-400 hover:bg-rose-500/10' : 'text-rose-500 hover:bg-rose-50'
                         }`}
                       >
@@ -3232,85 +3185,85 @@
               </div>
 
               {/* Stats Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-                <div className={`p-6 sm:p-12 rounded-[2.5rem] sm:rounded-[4rem] border-4 shadow-2xl relative overflow-hidden group hover:-translate-y-2 transition-all duration-500 ${
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-10">
+                <div className={`p-8 sm:p-12 rounded-[3rem] sm:rounded-[4rem] border-4 shadow-2xl relative overflow-hidden group hover:-translate-y-2 transition-all duration-500 ${
                   warRoom 
                     ? 'war-room-card border-white/10 war-room-glow war-room-cyber-border' 
                     : 'glass border-white shadow-indigo-100/30'
                 } ${pulse ? 'ring-8 ring-indigo-500/20 scale-[1.02]' : ''}`}>
-                  <div className={`absolute top-0 right-0 w-40 h-40 rounded-full -mr-20 -mt-20 group-hover:scale-150 transition-transform duration-1000 ${warRoom ? 'bg-indigo-500/10' : 'bg-indigo-50/50'}`}></div>
-                  {pulse && <div className="absolute top-8 right-8 w-4 h-4 bg-rose-500 rounded-full animate-ping z-20"></div>}
+                  <div className={`absolute top-0 right-0 w-32 sm:w-40 h-32 sm:h-40 rounded-full -mr-16 -mt-16 sm:-mr-20 sm:-mt-20 group-hover:scale-150 transition-transform duration-1000 ${warRoom ? 'bg-indigo-500/10' : 'bg-indigo-50/50'}`}></div>
+                  {pulse && <div className="absolute top-6 right-6 sm:top-8 sm:right-8 w-3 h-3 sm:w-4 sm:h-4 bg-rose-500 rounded-full animate-ping z-20"></div>}
                   <div className="relative">
-                    <div className={`w-16 h-16 rounded-[1.5rem] flex items-center justify-center mb-10 shadow-2xl transition-colors ${
+                    <div className={`w-12 h-12 sm:w-16 sm:h-16 rounded-2xl sm:rounded-[1.5rem] flex items-center justify-center mb-6 sm:mb-10 shadow-2xl transition-colors ${
                       warRoom ? 'bg-indigo-600 text-white shadow-indigo-500/20' : 'bg-slate-900 text-white shadow-slate-200 group-hover:bg-indigo-600'
                     }`}>
-                      <i className={`ph ph-users-fill text-3xl ${pulse ? 'animate-bounce' : (warRoom ? 'war-room-pulse' : '')}`}></i>
+                      <i className={`ph ph-users-fill text-2xl sm:text-3xl ${pulse ? 'animate-bounce' : (warRoom ? 'war-room-pulse' : '')}`}></i>
                     </div>
-                    <p className={`text-[10px] font-black uppercase tracking-[0.3em] mb-3 ${warRoom ? 'text-indigo-400' : 'text-indigo-600'}`}>Total Responses</p>
-                    <div className="flex items-baseline gap-4">
-                      <p className={`text-5xl sm:text-7xl font-black tracking-tighter ${warRoom ? 'text-white war-room-text-glow' : 'text-slate-900'}`}>{stats?.totalCount || 0}</p>
-                      <p className={`font-black text-xl ${warRoom ? 'text-white/40' : 'text-slate-400'}`}>回覆</p>
+                    <p className={`text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] sm:tracking-[0.3em] mb-2 sm:mb-3 ${warRoom ? 'text-indigo-400' : 'text-indigo-600'}`}>Total Responses</p>
+                    <div className="flex items-baseline gap-2 sm:gap-4">
+                      <p className={`text-4xl sm:text-7xl font-black tracking-tighter ${warRoom ? 'text-white war-room-text-glow' : 'text-slate-900'}`}>{stats?.totalCount || 0}</p>
+                      <p className={`font-black text-lg sm:text-xl ${warRoom ? 'text-white/40' : 'text-slate-400'}`}>回覆</p>
                     </div>
                   </div>
                 </div>
 
-                <div className={`p-6 sm:p-12 rounded-[2.5rem] sm:rounded-[4rem] border-4 shadow-2xl relative overflow-hidden group hover:-translate-y-2 transition-all duration-500 ${
+                <div className={`p-8 sm:p-12 rounded-[3rem] sm:rounded-[4rem] border-4 shadow-2xl relative overflow-hidden group hover:-translate-y-2 transition-all duration-500 ${
                   warRoom 
                     ? 'war-room-card border-white/10 war-room-glow war-room-cyber-border' 
                     : 'glass border-white shadow-emerald-100/30'
                 } ${pulse ? 'ring-8 ring-emerald-500/20 scale-[1.02]' : ''}`}>
-                  <div className={`absolute top-0 right-0 w-40 h-40 rounded-full -mr-20 -mt-20 group-hover:scale-150 transition-transform duration-1000 ${warRoom ? 'bg-emerald-500/10' : 'bg-emerald-50/50'}`}></div>
+                  <div className={`absolute top-0 right-0 w-32 sm:w-40 h-32 sm:h-40 rounded-full -mr-16 -mt-16 sm:-mr-20 sm:-mt-20 group-hover:scale-150 transition-transform duration-1000 ${warRoom ? 'bg-emerald-500/10' : 'bg-emerald-50/50'}`}></div>
                   <div className="relative">
-                    <div className={`w-16 h-16 rounded-[1.5rem] flex items-center justify-center mb-10 shadow-2xl transition-colors ${
+                    <div className={`w-12 h-12 sm:w-16 sm:h-16 rounded-2xl sm:rounded-[1.5rem] flex items-center justify-center mb-6 sm:mb-10 shadow-2xl transition-colors ${
                       warRoom ? 'bg-emerald-600 text-white shadow-emerald-500/20' : 'bg-emerald-500 text-white shadow-emerald-100 group-hover:bg-emerald-600'
                     }`}>
-                      <i className={`ph ph-clock-fill text-3xl ${warRoom ? 'war-room-pulse' : ''}`}></i>
+                      <i className={`ph ph-clock-fill text-2xl sm:text-3xl ${warRoom ? 'war-room-pulse' : ''}`}></i>
                     </div>
-                    <p className={`text-[10px] font-black uppercase tracking-[0.3em] mb-3 ${warRoom ? 'text-emerald-400' : 'text-emerald-600'}`}>Avg. Time</p>
-                    <div className="flex items-baseline gap-4">
-                      <p className={`text-5xl sm:text-7xl font-black tracking-tighter ${warRoom ? 'text-white war-room-text-glow' : 'text-slate-900'}`}>{formatTime(stats?.avgCompletionTime || 0)}</p>
+                    <p className={`text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] sm:tracking-[0.3em] mb-2 sm:mb-3 ${warRoom ? 'text-emerald-400' : 'text-emerald-600'}`}>Avg. Time</p>
+                    <div className="flex items-baseline gap-2 sm:gap-4">
+                      <p className={`text-4xl sm:text-7xl font-black tracking-tighter ${warRoom ? 'text-white war-room-text-glow' : 'text-slate-900'}`}>{formatTime(stats?.avgCompletionTime || 0)}</p>
                     </div>
                   </div>
                 </div>
 
-                <div className={`p-6 sm:p-12 rounded-[2.5rem] sm:rounded-[4rem] border-4 shadow-2xl relative overflow-hidden group hover:-translate-y-2 transition-all duration-500 hidden lg:block ${
+                <div className={`p-8 sm:p-12 rounded-[3rem] sm:rounded-[4rem] border-4 shadow-2xl relative overflow-hidden group hover:-translate-y-2 transition-all duration-500 ${
                   warRoom 
                     ? 'war-room-card border-white/10 war-room-glow war-room-cyber-border' 
                     : 'glass border-white shadow-amber-100/30'
                 } ${pulse ? 'ring-8 ring-amber-500/20 scale-[1.02]' : ''}`}>
-                  <div className={`absolute top-0 right-0 w-40 h-40 rounded-full -mr-20 -mt-20 group-hover:scale-150 transition-transform duration-1000 ${warRoom ? 'bg-amber-500/10' : 'bg-amber-50/50'}`}></div>
+                  <div className={`absolute top-0 right-0 w-32 sm:w-40 h-32 sm:h-40 rounded-full -mr-16 -mt-16 sm:-mr-20 sm:-mt-20 group-hover:scale-150 transition-transform duration-1000 ${warRoom ? 'bg-amber-500/10' : 'bg-amber-50/50'}`}></div>
                   <div className="relative">
-                    <div className={`w-16 h-16 rounded-[1.5rem] flex items-center justify-center mb-10 shadow-2xl transition-colors ${
+                    <div className={`w-12 h-12 sm:w-16 sm:h-16 rounded-2xl sm:rounded-[1.5rem] flex items-center justify-center mb-6 sm:mb-10 shadow-2xl transition-colors ${
                       warRoom ? 'bg-amber-600 text-white shadow-amber-500/20' : 'bg-amber-500 text-white shadow-amber-100 group-hover:bg-amber-600'
                     }`}>
-                      <i className={`ph ${pulse ? 'ph-lightning-fill text-rose-500 animate-pulse' : 'ph-trend-up-fill'} text-3xl ${warRoom ? 'war-room-pulse' : ''}`}></i>
+                      <i className={`ph ${pulse ? 'ph-lightning-fill text-rose-500 animate-pulse' : 'ph-trend-up-fill'} text-2xl sm:text-3xl ${warRoom ? 'war-room-pulse' : ''}`}></i>
                     </div>
-                    <p className={`text-[10px] font-black uppercase tracking-[0.3em] mb-3 ${warRoom ? 'text-amber-400' : 'text-amber-600'}`}>{pulse ? 'LIVE PULSE ACTIVE' : 'Status Monitoring'}</p>
-                    <div className="flex items-center gap-3">
-                      <div className={`w-4 h-4 rounded-full ${pulse ? 'bg-rose-500 animate-ping' : 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]'}`}></div>
-                      <p className={`text-3xl font-black tracking-tighter uppercase ${warRoom ? 'text-white war-room-text-glow' : 'text-slate-900'}`}>{pulse ? 'Receiving...' : 'Connected'}</p>
+                    <p className={`text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] sm:tracking-[0.3em] mb-2 sm:mb-3 ${warRoom ? 'text-amber-400' : 'text-amber-600'}`}>{pulse ? 'LIVE PULSE ACTIVE' : 'Status Monitoring'}</p>
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <div className={`w-3 h-3 sm:w-4 sm:h-4 rounded-full ${pulse ? 'bg-rose-500 animate-ping' : 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]'}`}></div>
+                      <p className={`text-2xl sm:text-3xl font-black tracking-tighter uppercase ${warRoom ? 'text-white war-room-text-glow' : 'text-slate-900'}`}>{pulse ? 'Receiving...' : 'Connected'}</p>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Strategic Data Summary (Replacing Charts) */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 fade-in-up">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-10 fade-in-up">
                 {/* Time Analysis Card */}
-                <div className={`rounded-[2.5rem] sm:rounded-[4rem] p-6 sm:p-12 border-4 shadow-2xl overflow-hidden relative group ${
+                <div className={`rounded-2xl sm:rounded-[4rem] p-4 sm:p-12 border-4 shadow-2xl overflow-hidden relative group ${
                   warRoom ? 'war-room-card border-white/10 war-room-cyber-border' : 'glass border-white shadow-indigo-100/30'
                 }`}>
-                  <div className="flex items-center justify-between mb-10">
+                  <div className="flex items-center justify-between mb-6 sm:mb-10">
                     <div>
-                      <h3 className={`text-xl sm:text-2xl font-black tracking-tight mb-2 ${warRoom ? 'text-white' : 'text-slate-900'}`}>互動時間分佈</h3>
-                      <p className={`text-[10px] sm:text-xs font-black uppercase tracking-widest ${warRoom ? 'text-indigo-400' : 'text-indigo-600'}`}>Interaction Time Distribution</p>
+                      <h3 className={`text-lg sm:text-2xl font-black tracking-tight mb-1 sm:mb-2 ${warRoom ? 'text-white' : 'text-slate-900'}`}>互動時間分佈</h3>
+                      <p className={`text-[8px] sm:text-xs font-black uppercase tracking-widest ${warRoom ? 'text-indigo-400' : 'text-indigo-600'}`}>Interaction Time Distribution</p>
                     </div>
-                    <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center ${warRoom ? 'bg-indigo-500/20 text-indigo-400' : 'bg-indigo-50 text-indigo-600'}`}>
-                      <i className="ph ph-clock-countdown-fill text-xl sm:text-2xl"></i>
+                    <div className={`w-8 h-8 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center ${warRoom ? 'bg-indigo-500/20 text-indigo-400' : 'bg-indigo-50 text-indigo-600'}`}>
+                      <i className="ph ph-clock-countdown-fill text-lg sm:text-2xl"></i>
                     </div>
                   </div>
 
-                  <div className="space-y-6">
+                  <div className="space-y-3 sm:space-y-6">
                     {(() => {
                       const hourlyData = Array(24).fill(0);
                       Object.entries(stats?.heatmap || {}).forEach(([key, count]) => {
@@ -3328,19 +3281,19 @@
                         const count = hourlyData.slice(p.range[0], p.range[1]).reduce((a, b) => a + b, 0);
                         const percentage = stats.totalCount > 0 ? Math.round((count / stats.totalCount) * 100) : 0;
                         return (
-                          <div key={p.label} className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-indigo-500/30 transition-all group/period">
-                            <div className="flex items-center gap-4">
-                              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${warRoom ? 'bg-white/5 text-indigo-400' : 'bg-slate-50 text-indigo-600'}`}>
-                                <i className={`ph ${p.icon} text-xl`}></i>
+                          <div key={p.label} className="flex items-center justify-between p-2.5 sm:p-4 rounded-xl sm:rounded-2xl bg-white/5 border border-white/5 hover:border-indigo-500/30 transition-all group/period">
+                            <div className="flex items-center gap-2.5 sm:gap-4">
+                              <div className={`w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center ${warRoom ? 'bg-white/5 text-indigo-400' : 'bg-slate-50 text-indigo-600'}`}>
+                                <i className={`ph ${p.icon} text-base sm:text-xl`}></i>
                               </div>
                               <div>
-                                <div className={`font-black ${warRoom ? 'text-white' : 'text-slate-700'}`}>{p.label}</div>
-                                <div className={`text-[10px] font-bold ${warRoom ? 'text-white/40' : 'text-slate-400'}`}>{p.range[0]}:00 - {p.range[1]}:00</div>
+                                <div className={`text-xs sm:text-base font-black ${warRoom ? 'text-white' : 'text-slate-700'}`}>{p.label}</div>
+                                <div className={`text-[7px] sm:text-[10px] font-bold ${warRoom ? 'text-white/40' : 'text-slate-400'}`}>{p.range[0]}:00 - {p.range[1]}:00</div>
                               </div>
                             </div>
                             <div className="text-right">
-                              <div className={`text-xl font-black ${warRoom ? 'text-white' : 'text-slate-900'}`}>{percentage}%</div>
-                              <div className={`text-[10px] font-black uppercase tracking-widest ${warRoom ? 'text-white/20' : 'text-slate-300'}`}>{count} 筆回覆</div>
+                              <div className={`text-sm sm:text-xl font-black ${warRoom ? 'text-white' : 'text-slate-900'}`}>{percentage}%</div>
+                              <div className={`text-[7px] sm:text-[10px] font-black uppercase tracking-widest ${warRoom ? 'text-white/20' : 'text-slate-300'}`}>{count} 筆</div>
                             </div>
                           </div>
                         );
@@ -3350,35 +3303,35 @@
                 </div>
 
                 {/* Geo Analysis Card */}
-                <div className={`rounded-[2.5rem] sm:rounded-[4rem] p-6 sm:p-12 border-4 shadow-2xl overflow-hidden group ${
+                <div className={`rounded-2xl sm:rounded-[4rem] p-4 sm:p-12 border-4 shadow-2xl overflow-hidden group ${
                   warRoom ? 'war-room-card border-white/10 war-room-cyber-border' : 'glass border-white shadow-emerald-100/30'
                 }`}>
-                  <div className="flex items-center justify-between mb-10">
+                  <div className="flex items-center justify-between mb-6 sm:mb-10">
                     <div>
-                      <h3 className={`text-xl sm:text-2xl font-black tracking-tight mb-2 ${warRoom ? 'text-white' : 'text-slate-900'}`}>地理分佈數據</h3>
-                      <p className={`text-[10px] sm:text-xs font-black uppercase tracking-widest ${warRoom ? 'text-emerald-400' : 'text-emerald-600'}`}>Geographic Data Analysis</p>
+                      <h3 className={`text-lg sm:text-2xl font-black tracking-tight mb-1 sm:mb-2 ${warRoom ? 'text-white' : 'text-slate-900'}`}>地理分佈數據</h3>
+                      <p className={`text-[8px] sm:text-xs font-black uppercase tracking-widest ${warRoom ? 'text-emerald-400' : 'text-emerald-600'}`}>Geographic Data Analysis</p>
                     </div>
-                    <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center ${warRoom ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-50 text-emerald-600'}`}>
-                      <i className="ph ph-map-pin-fill text-xl sm:text-2xl"></i>
+                    <div className={`w-8 h-8 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center ${warRoom ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-50 text-emerald-600'}`}>
+                      <i className="ph ph-map-pin-fill text-lg sm:text-2xl"></i>
                     </div>
                   </div>
                   
-                  <div className="space-y-4">
+                  <div className="space-y-2.5 sm:space-y-4">
                     {(stats?.geoStats || []).length > 0 ? (
-                      <div className="grid grid-cols-1 gap-3">
+                      <div className="grid grid-cols-1 gap-2 sm:gap-3">
                         {stats.geoStats.map(([city, count]) => (
-                          <div key={city} className={`flex items-center justify-between p-5 rounded-2xl border-2 transition-all ${
+                          <div key={city} className={`flex items-center justify-between p-2.5 sm:p-5 rounded-xl sm:rounded-2xl border-2 transition-all ${
                             warRoom ? 'bg-white/5 border-white/5 hover:border-emerald-500/30' : 'bg-slate-50 border-slate-100 hover:border-emerald-200'
                           }`}>
-                            <div className="flex items-center gap-4">
-                              <div className={`w-3 h-3 rounded-full ${warRoom ? 'bg-emerald-500' : 'bg-emerald-600'}`}></div>
-                              <span className={`text-lg font-black ${warRoom ? 'text-white' : 'text-slate-700'}`}>{city}</span>
+                            <div className="flex items-center gap-2.5 sm:gap-4">
+                              <div className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full ${warRoom ? 'bg-emerald-500' : 'bg-emerald-600'}`}></div>
+                              <span className={`text-xs sm:text-lg font-black ${warRoom ? 'text-white' : 'text-slate-700'}`}>{city}</span>
                             </div>
-                            <div className="flex items-baseline gap-2">
-                              <span className={`text-2xl font-black ${warRoom ? 'text-white' : 'text-slate-900'}`}>
+                            <div className="flex items-baseline gap-1 sm:gap-2">
+                              <span className={`text-sm sm:text-2xl font-black ${warRoom ? 'text-white' : 'text-slate-900'}`}>
                                 {Math.round((count / stats.totalCount) * 100)}%
                               </span>
-                              <span className={`text-[10px] font-black uppercase tracking-widest ${warRoom ? 'text-white/20' : 'text-slate-400'}`}>
+                              <span className={`text-[7px] sm:text-[10px] font-black uppercase tracking-widest ${warRoom ? 'text-white/20' : 'text-slate-400'}`}>
                                 ({count} 筆)
                               </span>
                             </div>
@@ -3386,8 +3339,8 @@
                         ))}
                       </div>
                     ) : (
-                      <div className="text-center py-20">
-                        <p className={warRoom ? 'text-white/20' : 'text-slate-300'}>尚未有足夠地理數據</p>
+                      <div className="text-center py-10 sm:py-20">
+                        <p className={`text-xs sm:text-base ${warRoom ? 'text-white/20' : 'text-slate-300'}`}>尚未有足夠地理數據</p>
                       </div>
                     )}
                   </div>
@@ -3396,32 +3349,32 @@
 
               {/* War Room Specific Metrics (Replacing War Room Charts) */}
               {warRoom && (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 fade-in-up">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-10 fade-in-up">
                   {/* Weekly Trend Analysis */}
-                  <div className="war-room-card rounded-[2.5rem] sm:rounded-[4rem] p-6 sm:p-12 border-white/10 war-room-cyber-border overflow-hidden group">
-                    <div className="flex items-center justify-between mb-10">
+                  <div className="war-room-card rounded-[2rem] sm:rounded-[4rem] p-5 sm:p-12 border-white/10 war-room-cyber-border overflow-hidden group">
+                    <div className="flex items-center justify-between mb-6 sm:mb-10">
                       <div>
-                        <h3 className="text-2xl font-black text-white tracking-tight mb-2">週填答趨勢</h3>
-                        <p className="text-indigo-400 text-[10px] font-black uppercase tracking-[0.3em] font-black">Weekly Interaction Trend</p>
+                        <h3 className="text-lg sm:text-2xl font-black text-white tracking-tight mb-1 sm:mb-2">週填答趨勢</h3>
+                        <p className="text-indigo-400 text-[8px] sm:text-[10px] font-black uppercase tracking-[0.3em]">Weekly Interaction Trend</p>
                       </div>
-                      <div className="w-12 h-12 bg-indigo-500/20 rounded-2xl flex items-center justify-center border border-indigo-500/30">
-                        <i className="ph ph-calendar-bold text-indigo-400 text-xl"></i>
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-indigo-500/20 rounded-xl sm:rounded-2xl flex items-center justify-center border border-indigo-500/30">
+                        <i className="ph ph-calendar-bold text-indigo-400 text-lg sm:text-xl"></i>
                       </div>
                     </div>
-                    <div className="space-y-4">
+                    <div className="space-y-3 sm:space-y-4">
                       {['週日', '週一', '週二', '週三', '週四', '週五', '週六'].map((dayName, dayIdx) => {
                         const dayCount = Object.entries(stats?.heatmap || {})
                           .filter(([key]) => key.startsWith(`${dayIdx}-`))
                           .reduce((sum, [_, count]) => sum + count, 0);
                         const percentage = stats.totalCount > 0 ? Math.round((dayCount / stats.totalCount) * 100) : 0;
                         return (
-                          <div key={dayName} className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/5 group/day transition-all hover:bg-white/10">
-                            <span className="text-white/60 font-black">{dayName}</span>
-                            <div className="flex items-center gap-4">
-                              <div className="w-32 sm:w-48 h-2 bg-white/5 rounded-full overflow-hidden">
+                          <div key={dayName} className="flex items-center justify-between p-3 sm:p-4 rounded-xl bg-white/5 border border-white/5 group/day transition-all hover:bg-white/10">
+                            <span className="text-white/60 font-black text-xs sm:text-base">{dayName}</span>
+                            <div className="flex items-center gap-3 sm:gap-4">
+                              <div className="w-24 sm:w-48 h-1.5 sm:h-2 bg-white/5 rounded-full overflow-hidden">
                                 <div className="h-full bg-indigo-500 war-room-glow transition-all duration-1000" style={{ width: `${percentage}%` }}></div>
                               </div>
-                              <span className="text-white font-black w-10 text-right tabular-nums">{percentage}%</span>
+                              <span className="text-white font-black text-xs sm:text-base w-8 sm:w-10 text-right tabular-nums">{percentage}%</span>
                             </div>
                           </div>
                         );
@@ -3430,37 +3383,37 @@
                   </div>
 
                   {/* Data Integrity & Strategic Analysis */}
-                  <div className="war-room-card rounded-[2.5rem] sm:rounded-[4rem] p-6 sm:p-12 border-white/10 war-room-cyber-border overflow-hidden group">
-                    <div className="flex items-center justify-between mb-10">
+                  <div className="war-room-card rounded-[2rem] sm:rounded-[4rem] p-5 sm:p-12 border-white/10 war-room-cyber-border overflow-hidden group">
+                    <div className="flex items-center justify-between mb-6 sm:mb-10">
                       <div>
-                        <h3 className="text-2xl font-black text-white tracking-tight mb-2">數據完整度與戰略分析</h3>
-                        <p className="text-emerald-400 text-[10px] font-black uppercase tracking-[0.3em] font-black">Data Integrity & Strategic Analysis</p>
+                        <h3 className="text-lg sm:text-2xl font-black text-white tracking-tight mb-1 sm:mb-2">數據完整度與戰略分析</h3>
+                        <p className="text-emerald-400 text-[8px] sm:text-[10px] font-black uppercase tracking-[0.3em]">Data Integrity & Strategic Analysis</p>
                       </div>
-                      <div className="w-12 h-12 bg-emerald-500/20 rounded-2xl flex items-center justify-center border border-emerald-500/30">
-                        <i className="ph ph-shield-check-fill text-emerald-400 text-xl"></i>
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-emerald-500/20 rounded-xl sm:rounded-2xl flex items-center justify-center border border-emerald-500/30">
+                        <i className="ph ph-shield-check-fill text-emerald-400 text-lg sm:text-xl"></i>
                       </div>
                     </div>
-                    <div className="space-y-8">
-                      <div className="p-8 rounded-3xl bg-white/5 border border-white/5 hover:border-emerald-500/30 transition-all">
-                        <div className="flex items-center gap-3 mb-4">
-                          <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
-                            <i className="ph ph-chart-line-up-bold text-emerald-400"></i>
+                    <div className="space-y-6 sm:space-y-8">
+                      <div className="p-6 sm:p-8 rounded-2xl sm:rounded-3xl bg-white/5 border border-white/5 hover:border-emerald-500/30 transition-all">
+                        <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-emerald-500/20 flex items-center justify-center">
+                            <i className="ph ph-chart-line-up-bold text-emerald-400 text-sm sm:text-base"></i>
                           </div>
-                          <div className="text-[10px] font-black text-white/40 uppercase tracking-widest">平均填答深度</div>
+                          <div className="text-[8px] sm:text-[10px] font-black text-white/40 uppercase tracking-widest">平均填答深度</div>
                         </div>
-                        <div className="text-5xl font-black text-white mb-2 war-room-text-glow">100%</div>
-                        <p className="text-xs text-white/40 font-bold leading-relaxed">所有題目皆已獲得有效回覆，數據結構完整且具備統計意義。</p>
+                        <div className="text-3xl sm:text-5xl font-black text-white mb-1 sm:mb-2 war-room-text-glow">100%</div>
+                        <p className="text-[10px] sm:text-xs text-white/40 font-bold leading-relaxed">所有題目皆已獲得有效回覆，數據結構完整且具備統計意義。</p>
                       </div>
                       
-                      <div className="p-8 rounded-3xl bg-white/5 border border-white/5 hover:border-emerald-500/30 transition-all">
-                        <div className="flex items-center gap-3 mb-4">
-                          <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
-                            <i className="ph ph-fingerprint-bold text-emerald-400"></i>
+                      <div className="p-6 sm:p-8 rounded-2xl sm:rounded-3xl bg-white/5 border border-white/5 hover:border-emerald-500/30 transition-all">
+                        <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-emerald-500/20 flex items-center justify-center">
+                            <i className="ph ph-fingerprint-bold text-emerald-400 text-sm sm:text-base"></i>
                           </div>
-                          <div className="text-[10px] font-black text-white/40 uppercase tracking-widest">數據可信度評級</div>
+                          <div className="text-[8px] sm:text-[10px] font-black text-white/40 uppercase tracking-widest">數據可信度評級</div>
                         </div>
-                        <div className="text-5xl font-black text-emerald-400 mb-2 war-room-text-glow">A+ HIGH</div>
-                        <p className="text-xs text-white/40 font-bold leading-relaxed">根據填答時間與來源地理分佈分析，未發現異常自動化填答行為。</p>
+                        <div className="text-3xl sm:text-5xl font-black text-emerald-400 mb-1 sm:mb-2 war-room-text-glow">A+ HIGH</div>
+                        <p className="text-[10px] sm:text-xs text-white/40 font-bold leading-relaxed">根據填答時間與來源地理分佈分析，未發現異常自動化填答行為。</p>
                       </div>
                     </div>
                   </div>
@@ -3470,74 +3423,102 @@
                )}
 
               {/* Timing Analysis */}
-              <div className="space-y-10">
+              <div className="space-y-6 sm:space-y-10">
                 <div className="flex items-center justify-between px-2 sm:px-4">
                   <div>
-                    <h3 className={`text-2xl sm:text-3xl font-black tracking-tight ${warRoom ? 'text-white' : 'text-slate-900'}`}>題目耗時分析</h3>
-                    <p className={`${warRoom ? 'text-white/40' : 'text-slate-400'} font-bold mt-1 text-xs sm:text-base`}>
+                    <h3 className={`text-xl sm:text-3xl font-black tracking-tight ${warRoom ? 'text-white' : 'text-slate-900'}`}>題目耗時分析</h3>
+                    <p className={`${warRoom ? 'text-white/40' : 'text-slate-400'} font-bold mt-1 text-[10px] sm:text-base`}>
                       {filters.length > 0 ? '篩選後的題目停留時間分布' : '了解填答者在哪些題目停留最久'}
                     </p>
                   </div>
-                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center ${warRoom ? 'bg-white/5 text-white/20' : 'bg-slate-50 text-slate-300'}`}>
-                    <i className="ph ph-timer-bold text-xl sm:text-2xl"></i>
+                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center ${warRoom ? 'bg-white/5 text-white/20' : 'bg-slate-50 text-slate-300'}`}>
+                    <i className="ph ph-timer-bold text-lg sm:text-2xl"></i>
                   </div>
                 </div>
                 
-                <div className="grid gap-6">
+                <div className="grid gap-4 sm:gap-8">
                   {(survey?.questions || []).map((q, idx) => {
                     const currentStats = stats;
                     const qs = (currentStats?.questionStats || {})[q.id];
                     const avg = qs?.count > 0 ? (qs.sum / qs.count) : 0;
-                    // Calculate relative width for a mini bar chart
                     const maxTime = Math.max(...Object.values(currentStats?.questionStats || {}).map(s => s.count > 0 ? s.sum / s.count : 0), 1);
                     const widthPercent = Math.max(5, (avg / maxTime) * 100);
+                    const choiceData = q.type === 'choice' ? (currentStats?.choiceStats?.[q.id] || {}) : null;
 
                     return (
-                      <div key={q.id} className={`group p-6 sm:p-8 rounded-[1.5rem] sm:rounded-[2.5rem] border-2 transition-all backdrop-blur-md ${
+                      <div key={q.id} className={`group p-4 sm:p-10 rounded-2xl sm:rounded-[3rem] border-2 transition-all backdrop-blur-md ${
                         warRoom 
                           ? 'war-room-card border-white/5 hover:border-indigo-500/30' 
-                          : 'glass border-white hover:border-indigo-100 bg-white/40'
+                          : 'glass border-white hover:border-indigo-100 bg-white/40 shadow-xl shadow-indigo-100/10'
                       }`}>
-                        <div className="flex flex-col md:flex-row md:items-center gap-8">
-                          <div className={`w-16 h-16 rounded-2xl flex items-center justify-center font-black text-xl flex-shrink-0 transition-colors shadow-lg ${
-                            warRoom ? 'bg-indigo-600 text-white' : 'bg-slate-900 text-white group-hover:bg-indigo-600'
+                        <div className="flex flex-col sm:flex-row sm:items-start gap-4 sm:gap-10">
+                          <div className={`w-10 h-10 sm:w-20 sm:h-20 rounded-xl sm:rounded-[2rem] flex items-center justify-center font-black text-sm sm:text-2xl flex-shrink-0 transition-all shadow-lg ${
+                            warRoom ? 'bg-indigo-600 text-white' : 'bg-slate-900 text-white group-hover:bg-indigo-600 group-hover:scale-105'
                           }`}>
                             {idx + 1}
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-3 mb-2">
-                              <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-lg ${
-                                warRoom ? 'bg-white/5 text-white/40' : 'bg-slate-100 text-slate-400'
-                              }`}>
-                                {q.type === 'choice' ? '🔘 Choice' : q.type === 'rating' ? '⭐ Rating' : '💬 Text'}
-                              </span>
-                              <span className={`text-sm font-black tabular-nums ${warRoom ? 'text-indigo-400' : 'text-indigo-600'}`}>
-                                平均 {formatTime(avg)}
-                              </span>
-                              {q.type === 'rating' && currentStats?.ratingStats?.[q.id] && currentStats.ratingStats[q.id].count > 0 && (
-                                <>
-                                  <span className={`w-1 h-1 rounded-full ${warRoom ? 'bg-white/10' : 'bg-slate-200'}`}></span>
-                                  <span className={`text-sm font-black tabular-nums text-emerald-500`}>
-                                    平均評分 {(currentStats.ratingStats[q.id].sum / currentStats.ratingStats[q.id].count).toFixed(1)} / 10
-                                  </span>
-                                </>
-                              )}
-                            </div>
-                            <h4 className={`text-xl font-black truncate mb-4 ${warRoom ? 'text-white' : 'text-slate-900'}`}>{q.title}</h4>
-                            
-                            {/* Relative Time Impact Indicator (Replacing Mini Bar Chart) */}
-                            <div className="flex items-center gap-3">
-                              <div className={`text-[10px] font-black uppercase tracking-widest ${warRoom ? 'text-white/20' : 'text-slate-300'}`}>
-                                時間佔比
+                          
+                          <div className="flex-1 min-w-0 space-y-4 sm:space-y-6">
+                            <div>
+                              <div className="flex flex-wrap items-center gap-2 sm:gap-4 mb-2 sm:mb-4">
+                                <span className={`text-[8px] sm:text-[11px] font-black uppercase tracking-widest px-2 py-1 sm:px-4 sm:py-1.5 rounded-lg ${
+                                  warRoom ? 'bg-white/5 text-white/40' : 'bg-slate-100 text-slate-400'
+                                }`}>
+                                  {q.type === 'choice' ? '🔘 Choice' : q.type === 'rating' ? '⭐ Rating' : '💬 Text'}
+                                </span>
+                                <span className={`text-[10px] sm:text-base font-black tabular-nums ${warRoom ? 'text-indigo-400' : 'text-indigo-600'}`}>
+                                  平均耗時 {formatTime(avg)}
+                                </span>
+                                {q.type === 'rating' && currentStats?.ratingStats?.[q.id] && currentStats.ratingStats[q.id].count > 0 && (
+                                  <>
+                                    <span className={`w-1 h-1 rounded-full ${warRoom ? 'bg-white/10' : 'bg-slate-200'} hidden sm:block`}></span>
+                                    <span className={`text-[10px] sm:text-base font-black tabular-nums text-emerald-500`}>
+                                      平均評分 {(currentStats.ratingStats[q.id].sum / currentStats.ratingStats[q.id].count).toFixed(1)} / 10
+                                    </span>
+                                  </>
+                                )}
                               </div>
-                              <div className="flex-1 flex items-center gap-2">
-                                <div className={`flex-1 h-1.5 rounded-full overflow-hidden ${warRoom ? 'bg-white/5' : 'bg-slate-100'}`}>
+                              <h4 className={`text-base sm:text-2xl font-black leading-tight mb-2 sm:mb-4 ${warRoom ? 'text-white' : 'text-slate-900'}`}>{q.title}</h4>
+                            </div>
+
+                            {/* Choice Distribution Visualization */}
+                            {q.type === 'choice' && choiceData && (
+                              <div className="space-y-2 sm:space-y-3 py-2 sm:py-4 border-y border-white/5">
+                                {(q.options || []).map(opt => {
+                                  const count = choiceData[opt] || 0;
+                                  const total = Object.values(choiceData).reduce((a, b) => a + b, 0) || 1;
+                                  const percent = Math.round((count / total) * 100);
+                                  return (
+                                    <div key={opt} className="space-y-1 sm:space-y-1.5">
+                                      <div className="flex justify-between items-end">
+                                        <span className={`text-[10px] sm:text-sm font-bold truncate pr-4 ${warRoom ? 'text-white/60' : 'text-slate-600'}`}>{opt}</span>
+                                        <span className={`text-[10px] sm:text-sm font-black tabular-nums ${warRoom ? 'text-white' : 'text-slate-900'}`}>{percent}%</span>
+                                      </div>
+                                      <div className={`h-1.5 sm:h-2 rounded-full overflow-hidden ${warRoom ? 'bg-white/5' : 'bg-slate-50'}`}>
+                                        <div 
+                                          className={`h-full transition-all duration-1000 ease-out ${warRoom ? 'bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)]' : 'bg-indigo-600'}`}
+                                          style={{ width: `${percent}%` }}
+                                        ></div>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+
+                            {/* Time Impact Indicator */}
+                            <div className="flex items-center gap-3 sm:gap-6">
+                              <div className={`text-[8px] sm:text-[11px] font-black uppercase tracking-[0.2em] whitespace-nowrap ${warRoom ? 'text-white/20' : 'text-slate-300'}`}>
+                                時間影響力
+                              </div>
+                              <div className="flex-1 flex items-center gap-2 sm:gap-4">
+                                <div className={`flex-1 h-1 sm:h-2 rounded-full overflow-hidden ${warRoom ? 'bg-white/5' : 'bg-slate-100'}`}>
                                   <div 
-                                    className="h-full bg-indigo-500 rounded-full transition-all duration-1000 ease-out"
+                                    className={`h-full transition-all duration-1000 ease-out ${warRoom ? 'bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.5)]' : 'bg-rose-500'}`}
                                     style={{ width: `${widthPercent}%` }}
                                   ></div>
                                 </div>
-                                <span className={`text-[10px] font-black tabular-nums ${warRoom ? 'text-indigo-400' : 'text-indigo-600'}`}>
+                                <span className={`text-[10px] sm:text-base font-black tabular-nums ${warRoom ? 'text-rose-500' : 'text-rose-600'}`}>
                                   {Math.round(widthPercent)}%
                                 </span>
                               </div>
@@ -3551,15 +3532,15 @@
               </div>
 
               {/* Respondent List */}
-              <div className="space-y-10">
-                <div className="flex items-center justify-between px-4">
+              <div className="space-y-6 sm:space-y-10">
+                <div className="flex items-center justify-between px-2 sm:px-4">
                   <div>
-                    <h3 className={`text-3xl font-black tracking-tight ${warRoom ? 'text-white' : 'text-slate-900'}`}>詳細填答名單</h3>
-                    <p className={`${warRoom ? 'text-white/40' : 'text-slate-400'} font-bold mt-1`}>
+                    <h3 className={`text-xl sm:text-3xl font-black tracking-tight ${warRoom ? 'text-white' : 'text-slate-900'}`}>詳細填答名單</h3>
+                    <p className={`${warRoom ? 'text-white/40' : 'text-slate-400'} font-bold mt-1 text-[10px] sm:text-base`}>
                       {filters.length > 0 ? (
                         <>
-                          篩選出 <span className={warRoom ? 'text-white' : 'text-indigo-600'}>{filteredResponses.length}</span> 筆符合條件的回覆
-                          <span className="mx-2 opacity-30">/</span>
+                          篩選出 <span className={warRoom ? 'text-white' : 'text-indigo-600'}>{filteredResponses.length}</span> 筆
+                          <span className="mx-1 opacity-30">/</span>
                           總計 {responses.length} 筆
                         </>
                       ) : (
@@ -3567,24 +3548,24 @@
                       )}
                     </p>
                   </div>
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${warRoom ? 'bg-white/5 text-white/20' : 'bg-slate-50 text-slate-300'}`}>
-                    <i className="ph ph-users-bold text-2xl"></i>
+                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center ${warRoom ? 'bg-white/5 text-white/20' : 'bg-slate-50 text-slate-300'}`}>
+                    <i className="ph ph-users-bold text-lg sm:text-2xl"></i>
                   </div>
                 </div>
 
-                <div className={`overflow-hidden border-2 transition-all ${
+                <div className={`overflow-hidden border-2 transition-all rounded-2xl sm:rounded-[3rem] ${
                   warRoom 
                     ? 'war-room-card border-white/5 shadow-2xl' 
-                    : 'card-modern bg-white/70 backdrop-blur-xl border-white'
+                    : 'card-modern bg-white/70 backdrop-blur-xl border-white shadow-xl shadow-indigo-100/10'
                 }`}>
-                  <div className="overflow-x-auto">
+                  <div className="overflow-x-auto scrollbar-hide">
                     <table className="w-full text-left border-collapse whitespace-nowrap">
                       <thead>
-                        <tr className={`${warRoom ? 'bg-white/5 text-white/20' : 'bg-slate-50/50 text-slate-400'} text-[10px] font-black uppercase tracking-[0.3em]`}>
-                          <th className="p-4 sm:p-10">填答者資訊</th>
-                          <th className="p-4 sm:p-10">作答總時長</th>
-                          <th className="p-4 sm:p-10">提交時間</th>
-                          <th className="p-4 sm:p-10 text-right">操作</th>
+                        <tr className={`${warRoom ? 'bg-white/5 text-white/20' : 'bg-slate-50/50 text-slate-400'} text-[8px] sm:text-[10px] font-black uppercase tracking-[0.2em] sm:tracking-[0.3em]`}>
+                          <th className="px-4 py-4 sm:px-10 sm:py-8">填答者資訊</th>
+                          <th className="px-4 py-4 sm:px-10 sm:py-8">作答總時長</th>
+                          <th className="px-4 py-4 sm:px-10 sm:py-8">提交時間</th>
+                          <th className="px-4 py-4 sm:px-10 sm:py-8 text-right">操作</th>
                         </tr>
                       </thead>
                       <tbody className={`divide-y ${warRoom ? 'divide-white/5' : 'divide-slate-50'}`}>
@@ -3598,45 +3579,45 @@
                                 onClick={() => setSelected(r)}
                                 className={`group transition-all duration-300 cursor-pointer ${warRoom ? 'hover:bg-white/5' : 'hover:bg-white'}`}
                               >
-                                <td className="p-4 sm:p-10">
-                                   <div className="flex items-center gap-6">
-                                    <div className={`w-16 h-16 rounded-[1.5rem] flex items-center justify-center transition-all duration-500 shadow-inner ${
+                                <td className="px-4 py-4 sm:px-10 sm:py-8">
+                                   <div className="flex items-center gap-3 sm:gap-6">
+                                    <div className={`w-10 h-10 sm:w-16 sm:h-16 rounded-xl sm:rounded-[1.5rem] flex items-center justify-center transition-all duration-500 shadow-inner flex-shrink-0 ${
                                       warRoom ? 'bg-white/5 text-white/20 group-hover:bg-indigo-600 group-hover:text-white' : 'bg-slate-50 text-slate-300 group-hover:bg-indigo-600 group-hover:text-white'
                                     }`}>
-                                      <i className="ph ph-user-fill text-2xl"></i>
+                                      <i className="ph ph-user-fill text-base sm:text-2xl"></i>
                                     </div>
-                                    <div>
-                                      <div className={`font-black text-xl mb-1 ${warRoom ? 'text-white' : 'text-slate-900'}`}>{r.respondent?.name || "匿名"}</div>
-                                      <div className={`text-sm font-bold tracking-tight ${warRoom ? 'text-white/30' : 'text-slate-400'}`}>{r.respondent?.email || "無信箱資訊"}</div>
+                                    <div className="min-w-0">
+                                      <div className={`font-black text-xs sm:text-xl mb-0.5 sm:mb-1 truncate ${warRoom ? 'text-white' : 'text-slate-900'}`}>{r.respondent?.name || "匿名"}</div>
+                                      <div className={`text-[9px] sm:text-sm font-bold tracking-tight truncate ${warRoom ? 'text-white/30' : 'text-slate-400'}`}>{r.respondent?.email || "無信箱資訊"}</div>
                                     </div>
                                   </div>
                                 </td>
-                                <td className="p-4 sm:p-10">
-                                  <div className={`inline-flex items-center gap-3 px-5 py-2.5 rounded-2xl font-black text-lg ${
+                                <td className="px-4 py-4 sm:px-10 sm:py-8">
+                                  <div className={`inline-flex items-center gap-2 sm:gap-3 px-3 py-1.5 sm:px-5 sm:py-2.5 rounded-xl sm:rounded-2xl font-black text-[11px] sm:text-lg ${
                                     warRoom ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-50 text-indigo-600'
                                   }`}>
                                     <i className="ph ph-clock-fill"></i>
                                     {formatTime(totalTime)}
                                   </div>
                                 </td>
-                                <td className="p-4 sm:p-10">
-                                  <div className="space-y-1">
-                                    <div className={`font-black text-lg ${warRoom ? 'text-white' : 'text-slate-900'}`}>{new Date(r.submittedAt || 0).toLocaleDateString()}</div>
-                                    <div className={`font-bold text-xs uppercase tracking-widest ${warRoom ? 'text-white/20' : 'text-slate-400'}`}>
+                                <td className="px-4 py-4 sm:px-10 sm:py-8">
+                                  <div className="space-y-0.5 sm:space-y-1">
+                                    <div className={`font-black text-[11px] sm:text-lg ${warRoom ? 'text-white' : 'text-slate-900'}`}>{new Date(r.submittedAt || 0).toLocaleDateString()}</div>
+                                    <div className={`font-bold text-[8px] sm:text-xs uppercase tracking-widest ${warRoom ? 'text-white/20' : 'text-slate-400'}`}>
                                       {new Date(r.submittedAt || 0).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                     </div>
                                   </div>
                                 </td>
-                                <td className="p-4 sm:p-10 text-right">
+                                <td className="px-4 py-4 sm:px-10 sm:py-8 text-right">
                                   <button
                                     onClick={() => setSelected(r)}
-                                    className={`inline-flex items-center gap-3 px-10 py-5 rounded-2xl font-black text-sm transition-all active:scale-95 shadow-2xl ${
+                                    className={`inline-flex items-center gap-2 sm:gap-3 px-3 py-2 sm:px-10 sm:py-5 rounded-xl sm:rounded-2xl font-black text-[10px] sm:text-sm transition-all active:scale-95 shadow-lg sm:shadow-2xl ${
                                       warRoom 
                                         ? 'bg-indigo-600 text-white hover:bg-indigo-500 shadow-indigo-500/20' 
                                         : 'bg-slate-900 text-white hover:bg-indigo-600 shadow-slate-200 group-hover:shadow-indigo-500/20'
                                     }`}
                                   >
-                                    查看詳情 <i className="ph ph-eye-fill text-xl"></i>
+                                    <span className="hidden xs:inline">詳情</span> <i className="ph ph-eye-fill text-sm sm:text-xl"></i>
                                   </button>
                                 </td>
                               </tr>
@@ -3669,34 +3650,34 @@
                 </div>
               }
             >
-              <div className="space-y-12">
+              <div className="space-y-6 sm:space-y-12">
                 {/* User Profile Header */}
-                <div className={`relative overflow-hidden p-6 sm:p-10 rounded-[2.5rem] sm:rounded-[3.5rem] border-4 shadow-2xl group transition-all duration-500 ${
+                <div className={`relative overflow-hidden p-5 sm:p-10 rounded-[2rem] sm:rounded-[3.5rem] border-4 shadow-2xl group transition-all duration-500 ${
                   warRoom 
                     ? 'war-room-card border-white/10 war-room-glow' 
                     : 'glass border-white shadow-indigo-100/20 bg-white/50 backdrop-blur-md'
                 }`}>
-                  <div className={`absolute top-0 right-0 w-40 h-40 rounded-full -mr-20 -mt-20 group-hover:scale-110 transition-transform duration-1000 ${
+                  <div className={`absolute top-0 right-0 w-24 sm:w-40 h-24 sm:h-40 rounded-full -mr-12 -mt-12 sm:-mr-20 sm:-mt-20 group-hover:scale-110 transition-transform duration-1000 ${
                     warRoom ? 'bg-indigo-500/10' : 'bg-indigo-50'
                   }`}></div>
-                  <div className="relative flex flex-col sm:flex-row items-center justify-between gap-8">
-                    <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-8">
-                      <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-[1.5rem] sm:rounded-[2rem] flex items-center justify-center shadow-2xl transition-all ${
+                  <div className="relative flex flex-col sm:flex-row items-center justify-between gap-6 sm:gap-8">
+                    <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-8">
+                      <div className={`w-14 h-14 sm:w-20 sm:h-20 rounded-2xl sm:rounded-[2rem] flex items-center justify-center shadow-2xl transition-all ${
                         warRoom ? 'bg-indigo-600 text-white shadow-indigo-500/20' : 'bg-slate-900 text-white shadow-slate-200 group-hover:bg-indigo-600'
                       }`}>
-                        <i className={`ph ph-user-circle-fill text-4xl sm:text-5xl ${warRoom ? 'war-room-pulse' : ''}`}></i>
+                        <i className={`ph ph-user-circle-fill text-3xl sm:text-5xl ${warRoom ? 'war-room-pulse' : ''}`}></i>
                       </div>
                       <div className="text-center sm:text-left">
-                        <div className={`font-black text-2xl sm:text-3xl mb-2 ${warRoom ? 'text-white war-room-text-glow' : 'text-slate-900'}`}>{selected.respondent?.name || "匿名"}</div>
+                        <div className={`font-black text-xl sm:text-3xl mb-1 sm:mb-2 ${warRoom ? 'text-white war-room-text-glow' : 'text-slate-900'}`}>{selected.respondent?.name || "匿名"}</div>
                         <div className={`flex items-center justify-center sm:justify-start gap-2 font-bold ${warRoom ? 'text-white/40' : 'text-slate-500'}`}>
                           <i className={`ph ph-envelope-simple-fill ${warRoom ? 'text-indigo-400' : 'text-indigo-400'}`}></i>
-                          <span className="text-sm sm:text-base">{selected.respondent?.email || "未提供信箱"}</span>
+                          <span className="text-xs sm:text-base">{selected.respondent?.email || "未提供信箱"}</span>
                         </div>
                       </div>
                     </div>
-                    <div className="flex flex-col items-center sm:items-end gap-2 w-full sm:w-auto">
-                      <div className={`text-[10px] font-black uppercase tracking-[0.2em] ${warRoom ? 'text-indigo-400' : 'text-slate-300'}`}>Total Time Spent</div>
-                      <div className={`w-full sm:w-auto text-center px-8 py-4 rounded-2xl shadow-sm border text-2xl sm:text-3xl font-black tabular-nums transition-all ${
+                    <div className="flex flex-col items-center sm:items-end gap-1 sm:gap-2 w-full sm:w-auto">
+                      <div className={`text-[8px] sm:text-[10px] font-black uppercase tracking-[0.2em] ${warRoom ? 'text-indigo-400' : 'text-slate-300'}`}>Total Time Spent</div>
+                      <div className={`w-full sm:w-auto text-center px-4 py-2 sm:px-8 sm:py-4 rounded-xl sm:rounded-2xl shadow-sm border text-xl sm:text-3xl font-black tabular-nums transition-all ${
                         warRoom 
                           ? 'bg-white/5 border-white/10 text-white war-room-text-glow' 
                           : 'bg-white border-slate-100 text-indigo-600'
@@ -3709,127 +3690,127 @@
 
                 {/* Data Insights Summary for War Room */}
                 {warRoom && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div className="p-6 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] bg-emerald-500/5 border border-emerald-500/20 flex flex-col gap-2">
-                      <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Efficiency Rating</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                    <div className="p-5 sm:p-8 rounded-[1.5rem] sm:rounded-[2.5rem] bg-emerald-500/5 border border-emerald-500/20 flex flex-col gap-1 sm:gap-2">
+                      <span className="text-[8px] sm:text-[10px] font-black text-emerald-400 uppercase tracking-widest">Efficiency Rating</span>
                       <div className="flex items-baseline gap-2">
-                        <span className="text-3xl sm:text-4xl font-black text-white">Optimal</span>
-                        <span className="text-xs text-emerald-400">94%</span>
+                        <span className="text-2xl sm:text-4xl font-black text-white">Optimal</span>
+                        <span className="text-[10px] sm:text-xs text-emerald-400">94%</span>
                       </div>
                     </div>
-                    <div className="p-6 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] bg-indigo-500/5 border border-indigo-500/20 flex flex-col gap-2">
-                      <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Consistency Score</span>
+                    <div className="p-5 sm:p-8 rounded-[1.5rem] sm:rounded-[2.5rem] bg-indigo-500/5 border border-indigo-500/20 flex flex-col gap-1 sm:gap-2">
+                      <span className="text-[8px] sm:text-[10px] font-black text-indigo-400 uppercase tracking-widest">Consistency Score</span>
                       <div className="flex items-baseline gap-2">
-                        <span className="text-3xl sm:text-4xl font-black text-white">High</span>
-                        <span className="text-xs text-indigo-400">0.82σ</span>
+                        <span className="text-2xl sm:text-4xl font-black text-white">High</span>
+                        <span className="text-[10px] sm:text-xs text-indigo-400">0.82σ</span>
                       </div>
                     </div>
                   </div>
                 )}
 
                 {/* Question Responses */}
-                <div className="space-y-8">
-                  <div className="flex items-center gap-4 px-4">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
+                <div className="space-y-6 sm:space-y-8">
+                  <div className="flex items-center gap-3 sm:gap-4 px-2 sm:px-4">
+                    <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center transition-colors ${
                       warRoom ? 'bg-indigo-600 text-white shadow-indigo-500/20' : 'bg-slate-900 text-white'
                     }`}>
-                      <i className="ph ph-list-checks-bold text-xl"></i>
+                      <i className="ph ph-list-checks-bold text-lg sm:text-xl"></i>
                     </div>
-                    <h4 className={`text-2xl font-black tracking-tight ${warRoom ? 'text-white' : 'text-slate-900'}`}>逐題回答詳情</h4>
+                    <h4 className={`text-xl sm:text-2xl font-black tracking-tight ${warRoom ? 'text-white' : 'text-slate-900'}`}>逐題回答詳情</h4>
                   </div>
                   
-                  <div className="space-y-8">
+                  <div className="space-y-6 sm:space-y-8">
                     {(survey?.questions || []).map((q, idx) => {
                       const ans = (selected.answers || {})[q.id];
                       const t = (selected.timings || {})[q.id];
                       return (
-                        <div key={q.id} className={`group p-6 sm:p-10 rounded-3xl sm:rounded-[3.5rem] border-2 transition-all backdrop-blur-md ${
+                        <div key={q.id} className={`group p-5 sm:p-10 rounded-[2rem] sm:rounded-[3.5rem] border-2 transition-all backdrop-blur-md ${
                           warRoom 
                             ? 'war-room-card border-white/5 hover:border-indigo-500/30' 
                             : 'glass border-white hover:border-indigo-100 bg-white/50'
                         }`}>
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6 mb-6 sm:mb-8">
-                            <div className="flex items-center gap-4 sm:gap-5">
-                              <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center font-black transition-all ${
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6 mb-5 sm:mb-8">
+                            <div className="flex items-center gap-3 sm:gap-5">
+                              <div className={`w-8 h-8 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center font-black transition-all text-sm sm:text-base ${
                                 warRoom 
                                   ? 'bg-indigo-600 text-white shadow-indigo-500/20' 
                                   : 'bg-slate-100 text-slate-400 group-hover:bg-indigo-600 group-hover:text-white'
                               }`}>
                                 {idx + 1}
                               </div>
-                              <div className={`inline-flex items-center gap-2 px-3 py-1 sm:px-4 sm:py-1.5 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all ${
+                              <div className={`inline-flex items-center gap-2 px-3 py-1 sm:px-4 sm:py-1.5 rounded-xl border text-[8px] sm:text-[10px] font-black uppercase tracking-widest transition-all ${
                                 warRoom 
                                   ? 'bg-white/5 border-white/5 text-white/40' 
                                   : 'bg-slate-50 border-slate-100 text-slate-400'
                               }`}>
-                                {q.type === 'choice' ? '🔘 Choice Question' : q.type === 'rating' ? '⭐ Rating Question' : q.type === 'file' ? '📁 File Question' : '💬 Text Question'}
+                                {q.type === 'choice' ? '🔘 Choice' : q.type === 'rating' ? '⭐ Rating' : q.type === 'file' ? '📁 File' : '💬 Text'}
                               </div>
                             </div>
-                            <div className={`inline-flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-2xl border shadow-sm text-xs font-black uppercase tracking-widest tabular-nums transition-all ${
+                            <div className={`inline-flex items-center gap-2 px-3 py-1.5 sm:px-5 sm:py-2.5 rounded-xl sm:rounded-2xl border shadow-sm text-[10px] sm:text-xs font-black uppercase tracking-widest tabular-nums transition-all ${
                               warRoom 
                                 ? 'bg-white/5 border-white/5 text-indigo-400' 
                                 : 'bg-white border-slate-100 text-indigo-600'
                             }`}>
-                              <i className="ph ph-timer-bold text-base sm:text-lg"></i>
+                              <i className="ph ph-timer-bold text-sm sm:text-lg"></i>
                               {formatTime(t || 0)}
                             </div>
                           </div>
-                          <h5 className={`font-black mb-6 sm:mb-8 text-xl sm:text-2xl tracking-tight leading-tight transition-colors ${
+                          <h5 className={`font-black mb-4 sm:mb-8 text-lg sm:text-2xl tracking-tight leading-tight transition-colors ${
                             warRoom ? 'text-white group-hover:text-indigo-400' : 'text-slate-900 group-hover:text-indigo-600'
                           }`}>{q.title}</h5>
-                          <div className={`rounded-2xl sm:rounded-[2rem] p-6 sm:p-8 border-2 font-bold text-lg sm:text-xl leading-relaxed shadow-inner transition-all ${
+                          <div className={`rounded-xl sm:rounded-[2rem] p-5 sm:p-8 border-2 font-bold text-base sm:text-xl leading-relaxed shadow-inner transition-all ${
                             warRoom 
                               ? 'bg-white/5 border-white/5 text-white/80' 
                               : 'bg-white/80 border-slate-50 text-slate-700'
                           }`}>
                             {ans ? (
-                              <div className="flex items-start gap-4 sm:gap-5">
-                                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${
+                              <div className="flex items-start gap-3 sm:gap-5">
+                                <div className={`w-7 h-7 sm:w-10 sm:h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${
                                   warRoom ? 'bg-indigo-500/20' : 'bg-indigo-50'
                                 }`}>
-                                  <i className={`ph ${q.type === 'rating' ? 'ph-star-fill' : q.type === 'file' ? 'ph-file-cloud-fill' : 'ph-chat-centered-dots-fill'} text-xl sm:text-2xl ${warRoom ? 'text-indigo-400' : 'text-indigo-400'}`}></i>
+                                  <i className={`ph ${q.type === 'rating' ? 'ph-star-fill' : q.type === 'file' ? 'ph-file-cloud-fill' : 'ph-chat-centered-dots-fill'} text-lg sm:text-2xl ${warRoom ? 'text-indigo-400' : 'text-indigo-400'}`}></i>
                                 </div>
                                 <div className="pt-0.5 sm:pt-1 min-w-0 flex-1">
                                   {q.type === 'rating' ? (
                                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
                                       <div className="flex items-baseline gap-1">
-                                        <span className="text-2xl sm:text-3xl font-black text-indigo-600">{ans}</span>
-                                        <span className="text-xs sm:text-sm text-slate-400">/ 10</span>
+                                        <span className="text-xl sm:text-3xl font-black text-indigo-600">{ans}</span>
+                                        <span className="text-[10px] sm:text-sm text-slate-400">/ 10</span>
                                       </div>
                                       <div className="flex gap-1 overflow-x-auto pb-1 sm:pb-0">
                                         {[...Array(10)].map((_, i) => (
-                                          <div key={i} className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full flex-shrink-0 ${i < Number(ans) ? 'bg-indigo-500' : 'bg-slate-200'}`}></div>
+                                          <div key={i} className={`w-1 h-1 sm:w-2 sm:h-2 rounded-full flex-shrink-0 ${i < Number(ans) ? 'bg-indigo-500' : 'bg-slate-200'}`}></div>
                                         ))}
                                       </div>
                                     </div>
                                   ) : q.type === 'file' ? (
-                                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                                       <a 
                                         href={ans} 
                                         target="_blank" 
                                         rel="noopener noreferrer"
-                                        className={`inline-flex items-center justify-center gap-2 sm:gap-3 px-6 py-3 sm:px-8 sm:py-4 rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm transition-all active:scale-95 ${
+                                        className={`inline-flex items-center justify-center gap-2 sm:gap-3 px-5 py-2.5 sm:px-8 sm:py-4 rounded-xl sm:rounded-2xl font-black text-[10px] sm:text-sm transition-all active:scale-95 ${
                                           warRoom ? 'bg-indigo-600 text-white hover:bg-indigo-500' : 'bg-slate-900 text-white hover:bg-indigo-600'
                                         }`}
                                       >
-                                        <i className="ph ph-download-simple-bold text-lg sm:text-xl"></i>
+                                        <i className="ph ph-download-simple-bold text-base sm:text-xl"></i>
                                         下載 / 查看檔案
                                       </a>
-                                      <div className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest ${warRoom ? 'text-white/20' : 'text-slate-300'}`}>
-                                        Uploaded via Firebase Storage
+                                      <div className={`text-[8px] sm:text-[10px] font-black uppercase tracking-widest ${warRoom ? 'text-white/20' : 'text-slate-300'}`}>
+                                        Uploaded via Storage
                                       </div>
                                     </div>
-                                  ) : <span className="break-words">{String(ans)}</span>}
+                                  ) : <span className="break-words text-sm sm:text-xl">{String(ans)}</span>}
                                 </div>
                               </div>
                             ) : (
-                              <div className="flex items-center gap-4 sm:gap-5 italic transition-colors">
-                                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+                              <div className="flex items-center gap-3 sm:gap-5 italic transition-colors">
+                                <div className={`w-7 h-7 sm:w-10 sm:h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
                                   warRoom ? 'bg-white/5 text-white/10' : 'bg-slate-50 text-slate-300'
                                 }`}>
-                                  <i className="ph ph-prohibit-bold text-xl sm:text-2xl"></i>
+                                  <i className="ph ph-prohibit-bold text-lg sm:text-2xl"></i>
                                 </div>
-                                <span className={`text-sm sm:text-base ${warRoom ? 'text-white/20' : 'text-slate-300'}`}>填答者跳過了此題</span>
+                                <span className={`text-xs sm:text-base ${warRoom ? 'text-white/20' : 'text-slate-300'}`}>填答者跳過了此題</span>
                               </div>
                             )}
                           </div>

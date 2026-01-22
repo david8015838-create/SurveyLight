@@ -1845,11 +1845,11 @@
             if (!cancelled) setSurvey(sData);
 
             console.log("ANALYTICS: setting up responses listener for:", sData.id);
-            // 增加對 creatorId 的過濾，確保符合安全規則 (security rules)
+            // 增加對 surveyCreatorId 的過濾，確保符合安全規則 (security rules)
             let q = db.collection("responses").where("surveyId", "==", sData.id);
             if (!publicToken && user?.uid) {
-              console.log("ANALYTICS: adding creatorId filter for responses query");
-              q = q.where("creatorId", "==", user.uid);
+              console.log("ANALYTICS: adding surveyCreatorId filter for responses query");
+              q = q.where("surveyCreatorId", "==", user.uid);
             }
 
             unsubscribeResponses = q.onSnapshot(snap => {
@@ -2492,7 +2492,10 @@
         setIsDeleting(true);
         console.log("GLOBAL: Deleting survey:", id);
         try {
-          const rSnap = await db.collection("responses").where("surveyId", "==", id).get();
+          const rSnap = await db.collection("responses")
+            .where("surveyId", "==", id)
+            .where("surveyCreatorId", "==", user.uid)
+            .get();
           const ops = rSnap.docs.map(d => (batch => batch.delete(d.ref)));
           ops.push(batch => batch.delete(db.collection("surveys").doc(id)));
           await commitBatches(ops, "global-delete-" + id);

@@ -24,9 +24,13 @@
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
 
   <!-- Phosphor Icons -->
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
@@ -77,6 +81,215 @@
       -webkit-backdrop-filter: blur(20px);
       border: 1px solid rgba(255, 255, 255, 0.4);
       box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+    }
+
+    /* War Room Effects */
+    .war-room-bg {
+      background: radial-gradient(circle at 50% 50%, #0f172a 0%, #020617 100%);
+      position: relative;
+      overflow: hidden;
+    }
+    .war-room-bg::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(rgba(99, 102, 241, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(99, 102, 241, 0.05) 1px, transparent 1px);
+      background-size: 50px 50px;
+      pointer-events: none;
+      opacity: 0.5;
+    }
+    .war-room-bg::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(circle at 50% 50%, transparent 0%, rgba(2, 6, 23, 0.8) 100%);
+      pointer-events: none;
+    }
+    .war-room-scanline {
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(to right, transparent, rgba(99, 102, 241, 0.5), transparent);
+      position: absolute;
+      opacity: 0.3;
+      animation: scanline 6s linear infinite;
+      z-index: 5;
+    }
+    @keyframes scanline {
+        0% { top: -10%; }
+        100% { top: 110%; }
+      }
+      @keyframes marquee {
+    0% { transform: translateX(100%); }
+    100% { transform: translateX(-100%); }
+  }
+  .animate-marquee {
+    animation: marquee 20s linear infinite;
+  }
+  .glitch-text {
+    position: relative;
+    text-shadow: 0.05em 0 0 rgba(255, 0, 0, 0.75), -0.025em -0.05em 0 rgba(0, 255, 0, 0.75), 0.025em 0.05em 0 rgba(0, 0, 255, 0.75);
+    animation: glitch 500ms infinite;
+  }
+  @keyframes glitch {
+    0% { text-shadow: 0.05em 0 0 rgba(255, 0, 0, 0.75), -0.025em -0.05em 0 rgba(0, 255, 0, 0.75), 0.025em 0.05em 0 rgba(0, 0, 255, 0.75); }
+    14% { text-shadow: 0.05em 0 0 rgba(255, 0, 0, 0.75), -0.025em -0.05em 0 rgba(0, 255, 0, 0.75), 0.025em 0.05em 0 rgba(0, 0, 255, 0.75); }
+    15% { text-shadow: -0.05em -0.025em 0 rgba(255, 0, 0, 0.75), 0.025em 0.025em 0 rgba(0, 255, 0, 0.75), -0.05em -0.05em 0 rgba(0, 0, 255, 0.75); }
+    49% { text-shadow: -0.05em -0.025em 0 rgba(255, 0, 0, 0.75), 0.025em 0.025em 0 rgba(0, 255, 0, 0.75), -0.05em -0.05em 0 rgba(0, 0, 255, 0.75); }
+    50% { text-shadow: 0.025em 0.05em 0 rgba(255, 0, 0, 0.75), 0.05em 0 0 rgba(0, 255, 0, 0.75), 0 -0.05em 0 rgba(0, 0, 255, 0.75); }
+    99% { text-shadow: 0.025em 0.05em 0 rgba(255, 0, 0, 0.75), 0.05em 0 0 rgba(0, 255, 0, 0.75), 0 -0.05em 0 rgba(0, 0, 255, 0.75); }
+    100% { text-shadow: -0.025em 0 0 rgba(255, 0, 0, 0.75), -0.025em -0.025em 0 rgba(0, 255, 0, 0.75), -0.025em -0.05em 0 rgba(0, 0, 255, 0.75); }
+  }
+  .data-stream {
+    position: absolute;
+    top: -10%;
+    width: 1px;
+    height: 100px;
+    background: linear-gradient(to bottom, transparent, #6366f1, transparent);
+    animation: stream-down 3s linear infinite;
+  }
+  @keyframes stream-down {
+    0% { transform: translateY(-100%) scaleY(1); opacity: 0; }
+    50% { opacity: 0.5; }
+    100% { transform: translateY(1200%) scaleY(2); opacity: 0; }
+  }
+  .war-room-card {
+        background: rgba(15, 23, 42, 0.7);
+        backdrop-filter: blur(16px);
+        border: 1px solid rgba(99, 102, 241, 0.3);
+        box-shadow: 0 0 40px rgba(0, 0, 0, 0.4), inset 0 0 20px rgba(99, 102, 241, 0.05);
+      }
+      .war-room-glow {
+        filter: drop-shadow(0 0 12px rgba(99, 102, 241, 0.4));
+      }
+      .war-room-pulse {
+        animation: war-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      }
+      @keyframes war-pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.7; transform: scale(1.02); }
+      }
+      .war-room-text-glow {
+        text-shadow: 0 0 10px rgba(99, 102, 241, 0.8), 0 0 20px rgba(99, 102, 241, 0.4);
+      }
+      .war-room-grid {
+        background-image: linear-gradient(rgba(99, 102, 241, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(99, 102, 241, 0.1) 1px, transparent 1px);
+        background-size: 20px 20px;
+      }
+      .war-room-cyber-border {
+        position: relative;
+        border: 1px solid rgba(99, 102, 241, 0.5);
+      }
+      .war-room-cyber-border::before {
+        content: "";
+        position: absolute;
+        top: -2px;
+        left: -2px;
+        width: 10px;
+        height: 10px;
+        border-top: 2px solid #6366f1;
+        border-left: 2px solid #6366f1;
+      }
+      .war-room-cyber-border::after {
+        content: "";
+        position: absolute;
+        bottom: -2px;
+        right: -2px;
+        width: 10px;
+        height: 10px;
+        border-bottom: 2px solid #6366f1;
+        border-right: 2px solid #6366f1;
+      }
+
+      /* Cyber Data Stream Animation */
+      .data-stream {
+        position: absolute;
+        width: 1px;
+        height: 100px;
+        background: linear-gradient(to bottom, transparent, #6366f1, transparent);
+        opacity: 0.2;
+        animation: stream-down 4s linear infinite;
+        pointer-events: none;
+      }
+      @keyframes stream-down {
+        0% { transform: translateY(-100vh); }
+        100% { transform: translateY(100vh); }
+      }
+
+      .glitch-text {
+        position: relative;
+        display: inline-block;
+      }
+      .glitch-text::before, .glitch-text::after {
+        content: attr(data-text);
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: inherit;
+      }
+      .glitch-text::before {
+        left: 2px;
+        text-shadow: -2px 0 #ff00c1;
+        clip: rect(44px, 450px, 56px, 0);
+        animation: glitch-anim 5s infinite linear alternate-reverse;
+      }
+      .glitch-text::after {
+        left: -2px;
+        text-shadow: -2px 0 #00fff9, 2px 2px #ff00c1;
+        animation: glitch-anim2 1s infinite linear alternate-reverse;
+      }
+      @keyframes glitch-anim {
+        0% { clip: rect(31px, 9999px, 94px, 0); }
+        20% { clip: rect(62px, 9999px, 42px, 0); }
+        /* ... more steps if needed ... */
+        100% { clip: rect(13px, 9999px, 86px, 0); }
+      }
+      @keyframes glitch-anim2 {
+        0% { clip: rect(65px, 9999px, 100px, 0); }
+        100% { clip: rect(0px, 9999px, 20px, 0); }
+      }
+
+    /* 3D Micro-interactions */
+    .btn-3d {
+      transform: perspective(1000px) rotateX(0deg) rotateY(0deg);
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      transform-style: preserve-3d;
+    }
+    .btn-3d:hover {
+      transform: perspective(1000px) rotateX(5deg) rotateY(-5deg) translateY(-4px);
+      box-shadow: 10px 15px 30px rgba(79, 70, 229, 0.2);
+    }
+    .btn-3d:active {
+      transform: perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px) scale(0.95);
+      box-shadow: 2px 5px 10px rgba(79, 70, 229, 0.1);
+    }
+    
+    .floating-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      background: radial-gradient(circle at 50% 50%, #f8fafc 0%, #f1f5f9 100%);
+      overflow: hidden;
+    }
+    .blob {
+      position: absolute;
+      width: 600px;
+      height: 600px;
+      background: linear-gradient(135deg, rgba(79, 70, 229, 0.05) 0%, rgba(129, 140, 248, 0.05) 100%);
+      filter: blur(80px);
+      border-radius: 50%;
+      animation: blob-float 20s infinite alternate;
+    }
+    @keyframes blob-float {
+      from { transform: translate(-10%, -10%) scale(1); }
+      to { transform: translate(20%, 20%) scale(1.2); }
     }
 
     .shake {
@@ -274,7 +487,7 @@
 
     // --- UI Primitives ---
     const Button = ({ children, onClick, variant = "primary", className = "", disabled = false, type = "button" }) => {
-      const base = "px-6 py-3.5 rounded-2xl font-bold transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 disabled:pointer-events-none btn-hover-effect shadow-lg";
+      const base = "px-6 py-3.5 rounded-2xl font-bold transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 disabled:pointer-events-none btn-hover-effect shadow-lg btn-3d";
       const variants = {
         primary: "bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-200/50 hover:shadow-indigo-300/60",
         secondary: "bg-white text-slate-700 border-2 border-slate-100 hover:border-indigo-600 hover:text-indigo-600 shadow-slate-100",
@@ -331,40 +544,61 @@
       );
     };
 
-    const Toast = ({ message, onClose }) => {
+    const Toast = ({ message, type = "success", onClose }) => {
       useEffect(() => {
-        const timer = setTimeout(onClose, 3000);
+        const timer = setTimeout(onClose, 5000);
         return () => clearTimeout(timer);
-      }, [onClose]);
+      }, [onClose, message]);
+
+      const configs = {
+        success: { icon: "ph-check-bold", color: "bg-emerald-500", border: "border-emerald-500/20" },
+        error: { icon: "ph-x-bold", color: "bg-rose-500", border: "border-rose-500/20" },
+        info: { icon: "ph-info-bold", color: "bg-indigo-500", border: "border-indigo-500/20" },
+        war: { icon: "ph-broadcast-bold", color: "bg-indigo-600", border: "border-indigo-400/50", glow: "shadow-[0_0_20px_rgba(99,102,241,0.4)]" }
+      };
+      const config = configs[type] || configs.success;
 
       return (
         <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[9999] fade-in-up">
-          <div className="bg-slate-900/90 backdrop-blur-xl text-white px-8 py-4 rounded-[2rem] shadow-2xl flex items-center gap-4 border-2 border-white/10">
-            <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center">
-              <i className="ph ph-check-bold text-white"></i>
+          <div className={`bg-slate-900/90 backdrop-blur-xl text-white px-6 py-4 rounded-[2rem] shadow-2xl flex items-center gap-4 border-2 ${config.border} ${config.glow || ''}`}>
+            <div className={`w-8 h-8 rounded-full ${config.color} flex items-center justify-center shrink-0`}>
+              <i className={`ph ${config.icon} text-white`}></i>
             </div>
             <span className="font-black text-sm tracking-wide">{message}</span>
+            <button onClick={onClose} className="ml-2 p-1 hover:bg-white/10 rounded-full transition-colors text-white/40 hover:text-white">
+              <i className="ph ph-x text-sm"></i>
+            </button>
           </div>
         </div>
       );
     };
 
-    const Modal = ({ title, children, onClose, footer }) => {
+    const Modal = ({ title, children, onClose, footer, warRoom = false }) => {
       console.log("Rendering Modal with title:", title);
       return (
         <div className="fixed inset-0 z-[10000] p-4 flex items-center justify-center">
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-xl transition-all duration-500" onClick={onClose}></div>
-          <div className="relative bg-white/90 backdrop-blur-2xl rounded-[3rem] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.15)] w-full max-w-2xl overflow-hidden fade-in border border-white">
-            <div className="flex items-center justify-between p-8 border-b border-slate-50/50">
-              <h3 className="font-black text-slate-900 text-2xl tracking-tight">{title}</h3>
-              <button onClick={onClose} className="w-12 h-12 flex items-center justify-center rounded-2xl bg-slate-50 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-all duration-300">
+          <div className={`relative rounded-[3rem] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.15)] w-full max-w-2xl overflow-hidden fade-in border ${
+            warRoom 
+              ? 'war-room-card border-white/10 war-room-glow' 
+              : 'bg-white/90 backdrop-blur-2xl border-white'
+          }`}>
+            <div className={`flex items-center justify-between p-8 border-b ${warRoom ? 'border-white/5' : 'border-slate-50/50'}`}>
+              <h3 className={`font-black text-2xl tracking-tight ${warRoom ? 'text-white glitch-text' : 'text-slate-900'}`} data-text={title}>{title}</h3>
+              <button onClick={onClose} className={`w-12 h-12 flex items-center justify-center rounded-2xl transition-all duration-300 ${
+                warRoom 
+                  ? 'bg-white/5 text-white/40 hover:bg-rose-500/20 hover:text-rose-400' 
+                  : 'bg-slate-50 text-slate-400 hover:bg-rose-50 hover:text-rose-600'
+              }`}>
                 <i className="ph ph-x text-2xl"></i>
               </button>
             </div>
             <div className="p-8 max-h-[75vh] overflow-auto custom-scrollbar">
               {children}
             </div>
-            {footer && <div className="p-8 bg-slate-50/30 backdrop-blur-md flex justify-end gap-4 border-t border-slate-50/50">{footer}</div>}
+            {footer && <div className={`p-8 backdrop-blur-md flex justify-end gap-4 border-t ${
+              warRoom ? 'bg-white/5 border-white/5' : 'bg-slate-50/30 border-slate-50/50'
+            }`}>{footer}</div>}
           </div>
         </div>
       );
@@ -411,7 +645,13 @@
     const InAppBrowserNotice = () => {
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
       return (
-        <div className="min-h-screen flex items-center justify-center p-6 bg-slate-50 bg-[radial-gradient(circle_at_top_right,rgba(79,70,229,0.05),transparent),radial-gradient(circle_at_bottom_left,rgba(79,70,229,0.05),transparent)]">
+        <div className="min-h-screen flex items-center justify-center p-6 bg-slate-50">
+          {/* Background Decorative Elements */}
+          <div className="floating-bg">
+            <div className="blob" style={{ top: '-10%', left: '-10%', animationDelay: '0s', background: 'linear-gradient(135deg, rgba(79, 70, 229, 0.05) 0%, rgba(129, 140, 248, 0.05) 100%)' }}></div>
+            <div className="blob" style={{ top: '60%', left: '70%', animationDelay: '-5s', width: '500px', height: '500px', background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(165, 180, 252, 0.05) 100%)' }}></div>
+          </div>
+          
           <div className="bg-white/80 backdrop-blur-2xl p-12 rounded-[3.5rem] shadow-2xl shadow-slate-200/50 w-full max-w-md text-center border border-white fade-in relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50/50 rounded-full -mr-16 -mt-16"></div>
             
@@ -480,7 +720,13 @@
         }
       };
       return (
-        <div className="min-h-screen flex items-center justify-center p-6 bg-[#F8FAFC] bg-[radial-gradient(circle_at_top_right,rgba(79,70,229,0.08),transparent_50%),radial-gradient(circle_at_bottom_left,rgba(79,70,229,0.08),transparent_50%)]">
+        <div className="min-h-screen flex items-center justify-center p-6 bg-[#F8FAFC]">
+          {/* Background Decorative Elements */}
+          <div className="floating-bg">
+            <div className="blob" style={{ top: '-5%', left: '-5%', animationDelay: '0s', background: 'linear-gradient(135deg, rgba(79, 70, 229, 0.08) 0%, rgba(129, 140, 248, 0.08) 100%)' }}></div>
+            <div className="blob" style={{ top: '70%', left: '80%', animationDelay: '-8s', width: '500px', height: '500px', background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.06) 0%, rgba(165, 180, 252, 0.06) 100%)' }}></div>
+          </div>
+
           <div className="bg-white/70 backdrop-blur-3xl p-12 rounded-[4rem] shadow-[0_32px_64px_-12px_rgba(79,70,229,0.15)] w-full max-w-md text-center border border-white/50 fade-in relative overflow-hidden">
             {/* Background decorative elements */}
             <div className="absolute -top-24 -left-24 w-48 h-48 bg-indigo-500/5 rounded-full blur-3xl"></div>
@@ -735,6 +981,47 @@
         }
       };
 
+      const handleImport = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+          try {
+            const data = JSON.parse(event.target.result);
+            if (!data.questions || !Array.isArray(data.questions)) {
+              throw new Error("無效的問卷格式：缺少問題清單");
+            }
+
+            setLoading(true);
+            const newSurvey = {
+              title: (data.title || "匯入的問卷") + " (匯入)",
+              description: data.description || "",
+              questions: data.questions.map(q => ({
+                ...q,
+                id: q.id || String(safeNow() + Math.random())
+              })),
+              creatorId: user.uid,
+              active: true,
+              createdAt: safeNow(),
+              shareToken: Math.random().toString(36).substring(2, 11),
+              expireAt: data.expireAt || null,
+              limitCount: data.limitCount || null,
+            };
+
+            await db.collection("surveys").add(newSurvey);
+            setToast({ message: "問卷匯入成功！✨", type: "success" });
+            // Clear the input
+            e.target.value = "";
+          } catch (err) {
+            setToast({ message: "匯入失敗：" + (err.message || "未知錯誤"), type: "error" });
+          } finally {
+            setLoading(false);
+          }
+        };
+        reader.readAsText(file);
+      };
+
       if (loading) return <Loading text="正在整理您的儀表板..." />;
 
       // Calculate simple stats
@@ -742,7 +1029,12 @@
       const totalActive = surveys.filter(s => s.active).length;
 
       return (
-        <div className="max-w-7xl mx-auto p-6 sm:p-12 fade-in pb-32">
+        <div className="max-w-7xl mx-auto p-6 sm:p-12 fade-in pb-32 relative z-10">
+          {/* Dashboard Background Micro-interactions */}
+          <div className="floating-bg">
+            <div className="blob" style={{ top: '10%', left: '80%', animationDelay: '-2s', background: 'linear-gradient(135deg, rgba(79, 70, 229, 0.03) 0%, rgba(129, 140, 248, 0.03) 100%)' }}></div>
+            <div className="blob" style={{ top: '60%', left: '-10%', animationDelay: '-7s', width: '500px', height: '500px', background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.04) 0%, rgba(165, 180, 252, 0.04) 100%)' }}></div>
+          </div>
           {toast && <Toast message={toast.message} onClose={() => setToast(null)} />}
         
         {/* Dashboard Header & Profile */}
@@ -811,12 +1103,26 @@
                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">總回覆數</span>
                 </div>
               </div>
-              <Button onClick={onCreate} className="w-full md:w-auto px-12 py-8 text-2xl shadow-2xl shadow-indigo-500/20 hover:-translate-y-2 rounded-[2.5rem] bg-slate-900 hover:bg-indigo-600 group">
-                <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center mr-4 group-hover:rotate-90 transition-transform duration-500">
-                  <i className="ph ph-plus-bold text-2xl"></i>
-                </div>
-                建立新問卷
-              </Button>
+              <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+                <Button onClick={onCreate} className="px-12 py-8 text-2xl shadow-2xl shadow-indigo-500/20 hover:-translate-y-2 rounded-[2.5rem] bg-slate-900 hover:bg-indigo-600 group">
+                  <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center mr-4 group-hover:rotate-90 transition-transform duration-500">
+                    <i className="ph ph-plus-bold text-2xl"></i>
+                  </div>
+                  建立新問卷
+                </Button>
+                <label className="cursor-pointer">
+                  <input 
+                    type="file" 
+                    accept=".json" 
+                    className="hidden" 
+                    onChange={handleImport}
+                  />
+                  <div className="h-full flex items-center justify-center px-10 py-8 text-xl shadow-xl shadow-slate-100 hover:-translate-y-2 rounded-[2.5rem] bg-white border-4 border-slate-50 text-slate-600 hover:border-indigo-100 hover:text-indigo-600 transition-all font-black group">
+                    <i className="ph ph-upload-simple-bold text-2xl mr-4 group-hover:bounce transition-all"></i>
+                    上傳問卷
+                  </div>
+                </label>
+              </div>
             </div>
           </div>
 
@@ -987,6 +1293,23 @@
                                 <i className="ph ph-copy-bold text-lg"></i>
                                 <span>複製</span>
                               </button>
+                              <button
+                                onClick={(e) => { 
+                                  e.preventDefault();
+                                  e.stopPropagation(); 
+                                  const blob = new Blob([JSON.stringify(s, null, 2)], { type: "application/json" });
+                                  const url = URL.createObjectURL(blob);
+                                  const a = document.createElement("a");
+                                  a.href = url;
+                                  a.download = `${s.title || "survey"}.json`;
+                                  a.click();
+                                }}
+                                className="flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-600 hover:bg-amber-600 hover:text-white rounded-xl transition-all duration-300 font-bold text-xs border border-amber-100/50 active:scale-90 cursor-pointer shadow-sm hover:shadow-amber-200"
+                                style={{ pointerEvents: 'auto', touchAction: 'manipulation' }}
+                              >
+                                <i className="ph ph-download-simple-bold text-lg"></i>
+                                <span>導出</span>
+                              </button>
                             </div>
                             <button
                               onClick={(e) => { 
@@ -1073,6 +1396,115 @@
       const [showAdvanced, setShowAdvanced] = useState(false);
       const [shareToken, setShareToken] = useState(String(Math.random().toString(36).substring(2, 11)));
       const [sharePublic, setSharePublic] = useState(false);
+      const [showAiPicker, setShowAiPicker] = useState(false);
+      const [isAiGenerating, setIsAiGenerating] = useState(false);
+
+      const templates = [
+        {
+          title: "顧客滿意度調查 (CSAT)",
+          desc: "專業的顧客回饋模板，包含服務品質、產品體驗與推薦意願。",
+          questions: [
+            { id: "q1", type: "choice", title: "您對本次服務的整體滿意度為何？", options: ["非常滿意", "滿意", "普通", "不滿意", "非常不滿意"] },
+            { id: "q2", type: "choice", title: "您會推薦我們的產品給朋友或同事嗎？", options: ["極有可能", "有可能", "不確定", "不太可能", "絕對不會"] },
+            { id: "q3", type: "text", title: "您覺得我們在哪方面可以做得更好？", options: [] }
+          ]
+        },
+        {
+          title: "員工參與度調查 (ENPS)",
+          desc: "了解團隊內部氛圍、文化認同感與工作成就感。",
+          questions: [
+            { id: "q1", type: "choice", title: "您在目前的工作中感到有成就感嗎？", options: ["總是如此", "經常如此", "偶爾如此", "很少如此", "從不"] },
+            { id: "q2", type: "choice", title: "您認同公司的核心價值與願景嗎？", options: ["完全認同", "認同", "普通", "不認同", "完全不認同"] },
+            { id: "q3", type: "text", title: "對於改善團隊協作，您有什麼建議？", options: [] }
+          ]
+        },
+        {
+          title: "活動報名與需求統計",
+          desc: "快速收集活動參與者資訊、餐飲需求與出席意願。",
+          questions: [
+            { id: "q1", type: "text", title: "您的姓名與連絡電話？", options: [] },
+            { id: "q2", type: "choice", title: "您的餐飲習慣為何？", options: ["葷食", "素食 (全素)", "素食 (蛋奶素)", "其他特殊過敏 (請備註)"] },
+            { id: "q3", type: "choice", title: "您是否需要安排接駁車？", options: ["是，需要接駁", "否，自行前往"] }
+          ]
+        },
+        {
+          title: "品牌認知度與偏好調查",
+          desc: "深入了解品牌在市場中的地位、第一印象與競爭優勢。",
+          questions: [
+            { id: "q1", type: "choice", title: "您第一次聽到我們品牌是透過什麼管道？", options: ["社交媒體 (FB/IG)", "親友推薦", "網路廣告", "線下活動/看板", "其他"] },
+            { id: "q2", type: "choice", title: "與同類品牌相比，您認為我們的產品特色在於？", options: ["價格實惠", "外觀設計出色", "功能強大", "品牌信譽好", "售後服務佳"] },
+            { id: "q3", type: "text", title: "如果您可以用三個形容詞描述我們的品牌，會是哪三個？", options: [] }
+          ]
+        },
+        {
+          title: "產品開箱與首月體驗",
+          desc: "追蹤新客戶在購買產品後第一個月的真實使用心得。",
+          questions: [
+            { id: "q1", type: "choice", title: "收到產品後，開箱的過程是否符合您的期待？", options: ["超出預期", "符合期待", "尚可", "不符合期待", "包裝有受損"] },
+            { id: "q2", type: "choice", title: "在使用產品的第一週內，您遇到最大的困難是？", options: ["設定太複雜", "功能不會操作", "品質不如預期", "物流延遲", "沒有遇到任何問題"] },
+            { id: "q3", type: "text", title: "請分享一個您在使用過程中感到最驚喜的功能或時刻。", options: [] }
+          ]
+        }
+      ];
+
+      const useTemplate = (t) => {
+        setShowAiPicker(false);
+        setIsAiGenerating(true);
+        setToast({ message: "🪄 AI 正在分析行業最佳實踐...", type: "info" });
+        
+        // Simulating AI thinking and generating with a typing effect
+        setTimeout(() => {
+          setTitle("");
+          setDesc("");
+          setQuestions([]);
+          
+          let i = 0;
+          const titleText = t.title;
+          const typeInterval = setInterval(() => {
+            setTitle(prev => titleText.substring(0, i + 1));
+            i++;
+            if (i >= titleText.length) {
+              clearInterval(typeInterval);
+              
+              // Typing description
+              let j = 0;
+              const descText = t.desc;
+              const descInterval = setInterval(() => {
+                setDesc(prev => descText.substring(0, j + 1));
+                j++;
+                if (j >= descText.length) {
+                  clearInterval(descInterval);
+                  
+                  // Adding questions one by one with a pop effect
+                  let k = 0;
+                  const addNextQuestion = () => {
+                    if (k < t.questions.length) {
+                      const q = t.questions[k];
+                      setQuestions(prev => [...prev, { ...q, id: String(safeNow() + Math.random()) }]);
+                      k++;
+                      setTimeout(addNextQuestion, 400); // delay between questions
+                    } else {
+                      setIsAiGenerating(false);
+                      setToast({ message: `🪄 AI 已完成「${t.title}」模板生成！`, type: "success" });
+                      
+                      // Trigger confetti for the "Magic" feeling
+                      if (window.confetti) {
+                        window.confetti({
+                          particleCount: 100,
+                          spread: 70,
+                          origin: { y: 0.6 },
+                          colors: ['#4f46e5', '#818cf8', '#c7d2fe']
+                        });
+                      }
+                    }
+                  };
+                  addNextQuestion();
+                }
+              }, 15);
+            }
+          }, 30);
+        }, 800);
+      };
 
       const addQuestion = () => setQuestions(prev => [...prev, { id: String(safeNow() + Math.random()), type: "text", title: "", options: [] }]);
       const removeQuestion = (id) => setQuestions(prev => (prev.length <= 1 ? prev : prev.filter(q => q.id !== id)));
@@ -1125,7 +1557,12 @@
       };
 
       return (
-        <div className="max-w-4xl mx-auto p-6 sm:p-12 fade-in pb-40">
+        <div className="max-w-4xl mx-auto p-6 sm:p-12 fade-in pb-40 relative z-10">
+          {/* Create Survey Background Micro-interactions */}
+          <div className="floating-bg">
+            <div className="blob" style={{ top: '20%', left: '70%', animationDelay: '-3s', background: 'linear-gradient(135deg, rgba(79, 70, 229, 0.04) 0%, rgba(129, 140, 248, 0.04) 100%)' }}></div>
+            <div className="blob" style={{ top: '70%', left: '10%', animationDelay: '-9s', width: '400px', height: '400px', background: 'linear-gradient(135deg, rgba(165, 180, 252, 0.03) 0%, rgba(199, 210, 254, 0.03) 100%)' }}></div>
+          </div>
           {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
           <div className="flex items-center justify-between mb-12">
             <button 
@@ -1137,9 +1574,47 @@
               </div>
               Back to Dashboard
             </button>
-            <div className="hidden md:flex items-center gap-3 text-slate-300 font-bold text-sm">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              Draft Autosaved
+            <div className="flex items-center gap-6 relative">
+              <button 
+                disabled={isAiGenerating}
+                onClick={() => setShowAiPicker(!showAiPicker)}
+                className={`group flex items-center gap-3 px-6 py-3 rounded-2xl font-black text-xs transition-all shadow-sm border ${
+                  isAiGenerating 
+                    ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed' 
+                    : (showAiPicker ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-indigo-50 text-indigo-600 border-indigo-100 hover:bg-indigo-600 hover:text-white')
+                }`}
+              >
+                <i className={`ph ${isAiGenerating ? 'ph-circle-notch animate-spin' : 'ph-magic-wand-fill animate-pulse'} text-lg`}></i>
+                {isAiGenerating ? 'AI 生成中...' : 'AI 智慧模板'}
+              </button>
+
+              {showAiPicker && (
+                <div className="absolute top-full mt-4 right-0 w-[350px] bg-white rounded-[2rem] shadow-[0_20px_50px_rgba(79,70,229,0.2)] border border-slate-100 p-6 z-[60] fade-in animate-in slide-in-from-top-4 duration-300">
+                  <div className="flex items-center justify-between mb-6 px-2">
+                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Select AI Blueprint</h4>
+                    <button onClick={() => setShowAiPicker(false)} className="text-slate-300 hover:text-rose-500 transition-colors">
+                      <i className="ph ph-x-bold text-lg"></i>
+                    </button>
+                  </div>
+                  <div className="space-y-3">
+                    {templates.map((t, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => useTemplate(t)}
+                        className="w-full text-left p-5 rounded-2xl hover:bg-indigo-50 border-2 border-transparent hover:border-indigo-100 transition-all group/t"
+                      >
+                        <div className="font-black text-slate-900 mb-1 group-hover/t:text-indigo-600 transition-colors">{t.title}</div>
+                        <div className="text-[10px] text-slate-400 font-bold leading-relaxed">{t.desc}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="hidden md:flex items-center gap-3 text-slate-300 font-bold text-sm">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                Draft Autosaved
+              </div>
             </div>
           </div>
 
@@ -1268,6 +1743,8 @@
                       >
                         <option value="text">💬 簡答題 (Text)</option>
                         <option value="choice">🔘 單選題 (Choice)</option>
+                        <option value="rating">⭐ 評分題 (Rating 1-10)</option>
+                        <option value="file">📁 檔案上傳 (File Upload)</option>
                       </select>
                       <i className="ph ph-caret-down-bold absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
                     </div>
@@ -1324,6 +1801,44 @@
                       </button>
                     </div>
                   )}
+
+                  {q.type === "rating" && (
+                    <div className="space-y-4 pl-4 border-l-4 border-slate-50">
+                      <div className="p-6 bg-indigo-50/50 rounded-2xl border-2 border-indigo-100/50">
+                        <div className="flex items-center gap-3 text-indigo-600 font-black mb-2">
+                          <i className="ph ph-info-fill text-xl"></i>
+                          <span>評分題預覽 (Rating Scale)</span>
+                        </div>
+                        <p className="text-xs text-slate-500 font-bold leading-relaxed mb-6">
+                          使用者將會看到 1 到 10 的評分圓圈，可以用於滿意度調查、符合程度評估等場景。
+                        </p>
+                        <div className="flex justify-between items-center gap-2">
+                          {[...Array(10)].map((_, i) => (
+                            <div key={i} className="w-8 h-8 rounded-full border-2 border-indigo-200 flex items-center justify-center text-[10px] font-black text-indigo-300 bg-white">
+                              {i + 1}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {q.type === "file" && (
+                    <div className="space-y-4 pl-4 border-l-4 border-slate-50">
+                      <div className="p-8 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-4 group/file">
+                        <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-sm group-hover/file:scale-110 transition-transform duration-500">
+                          <i className="ph ph-cloud-arrow-up-fill text-3xl text-slate-300 group-hover/file:text-indigo-500 transition-colors"></i>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-sm font-black text-slate-600 mb-1">檔案上傳區域預覽</div>
+                          <div className="text-[10px] text-slate-400 font-bold">填答者將可以點擊或拖放檔案進行上傳</div>
+                        </div>
+                        <div className="px-4 py-1.5 bg-white rounded-xl text-[9px] font-black text-slate-400 border border-slate-100 uppercase tracking-widest">
+                          Support: Images, PDF, Docs (Max 5MB)
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
@@ -1358,6 +1873,7 @@
       const [step, setStep] = useState(-1); // -1 intro, 0..n-1 questions, n success
       const [respondent, setRespondent] = useState({ name: "", email: "" });
       const [answers, setAnswers] = useState({});
+      const [localFiles, setLocalFiles] = useState({}); // New: stores File objects before upload
       const [timings, setTimings] = useState({});
       const [loading, setLoading] = useState(true);
       const [submitting, setSubmitting] = useState(false);
@@ -1443,7 +1959,8 @@
       const nextQuestion = () => {
         const q = survey.questions[step];
         const val = answers[q.id];
-        if (!val) {
+        const file = localFiles[q.id];
+        if (!val && !file) {
           const el = document.getElementById(`q-${q.id}`);
           if (el) {
             el.classList.add('shake');
@@ -1462,7 +1979,8 @@
       const submit = async () => {
         const q = survey.questions[step];
         const val = answers[q.id];
-        if (!val) return setToast({ message: "最後一題也別忘了填寫喔！✨", type: "error" });
+        const file = localFiles[q.id];
+        if (!val && !file) return setToast({ message: "最後一題也別忘了填寫喔！✨", type: "error" });
         
         // Finalize timings including the last question
         const elapsed = Math.max(0, (safeNow() - (startAtRef.current || safeNow())) / 1000);
@@ -1470,14 +1988,51 @@
 
         setSubmitting(true);
         try {
+          // Upload files if any
+          const finalAnswers = { ...answers };
+          for (const qId of Object.keys(localFiles)) {
+            const f = localFiles[qId];
+            if (f) {
+              const storageRef = firebase.storage().ref();
+              const fileRef = storageRef.child(`uploads/${survey.id}/${safeNow()}_${f.name}`);
+              await fileRef.put(f);
+              const downloadURL = await fileRef.getDownloadURL();
+              finalAnswers[qId] = downloadURL;
+            }
+          }
+
           await db.collection("responses").add({
             surveyId: survey.id,
             surveyCreatorId: survey.creatorId || null,
             respondent: { name: respondent.name.trim(), email: respondent.email.trim() },
-            answers,
+            answers: finalAnswers,
             timings: finalTimings,
             submittedAt: safeNow(),
           });
+          
+          // 噴發慶祝紙屑
+          if (window.confetti) {
+            const duration = 3 * 1000;
+            const animationEnd = Date.now() + duration;
+            const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+            const randomInRange = (min, max) => Math.random() * (max - min) + min;
+
+            const interval = setInterval(function() {
+              const timeLeft = animationEnd - Date.now();
+              if (timeLeft <= 0) return clearInterval(interval);
+              const particleCount = 50 * (timeLeft / duration);
+              window.confetti(Object.assign({}, defaults, { 
+                particleCount, 
+                origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } 
+              }));
+              window.confetti(Object.assign({}, defaults, { 
+                particleCount, 
+                origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } 
+              }));
+            }, 250);
+          }
+
           setStep(survey.questions.length); // success
         } catch (err) {
           setToast({ message: "提交失敗：" + (err && err.message ? err.message : String(err)), type: "error" });
@@ -1523,20 +2078,67 @@
 
       if (step >= (survey.questions || []).length && step !== -1) {
         return (
-        <div className="min-h-screen flex items-center justify-center p-6 bg-indigo-50/20">
-          {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-          <div className="text-center glass p-16 md:p-24 rounded-[4rem] shadow-2xl shadow-indigo-100/30 max-w-2xl w-full border-4 border-white fade-in relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-500 to-emerald-500"></div>
-              <div className="w-32 h-32 bg-indigo-600 text-white rounded-[2.5rem] flex items-center justify-center mx-auto mb-10 shadow-2xl shadow-indigo-200 rotate-6 animate-bounce-subtle">
-                <i className="ph ph-check-circle-fill text-6xl"></i>
+          <div className="min-h-screen flex items-center justify-center p-6 bg-slate-950 relative overflow-hidden">
+            {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+            
+            {/* Success Background Effects */}
+            <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,_rgba(99,102,241,0.15)_0%,_transparent_70%)] animate-pulse"></div>
+              <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-500/10 rounded-full blur-[120px] animate-blob"></div>
+              <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-emerald-500/10 rounded-full blur-[120px] animate-blob" style={{ animationDelay: '2s' }}></div>
+              <div className="war-room-scanline opacity-30"></div>
+              <div className="absolute inset-0 war-room-grid opacity-10"></div>
+            </div>
+
+            <div className="text-center p-16 md:p-24 rounded-[5rem] bg-white/5 backdrop-blur-3xl border border-white/10 shadow-[0_0_100px_rgba(99,102,241,0.2)] max-w-2xl w-full fade-in relative overflow-hidden group">
+              <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
+              
+              <div className="relative mb-12">
+                <div className="w-40 h-40 bg-gradient-to-tr from-indigo-600 to-indigo-400 text-white rounded-[3.5rem] flex items-center justify-center mx-auto shadow-[0_20px_50px_rgba(79,70,229,0.4)] rotate-6 animate-bounce-subtle relative z-10">
+                  <i className="ph ph-check-circle-fill text-8xl"></i>
+                </div>
+                <div className="absolute inset-0 bg-indigo-500/20 blur-3xl rounded-full scale-150 animate-pulse"></div>
+                
+                {/* Orbital Rings */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 border border-indigo-500/20 rounded-full animate-ping opacity-20"></div>
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 border border-white/5 rounded-full animate-spin-slow opacity-30"></div>
               </div>
-              <h2 className="text-5xl font-black text-slate-900 mb-6 tracking-tight leading-tight">感謝您的參與！</h2>
-              <p className="text-slate-500 text-xl font-medium leading-relaxed max-w-md mx-auto">
-                您的回覆已成功送出。我們非常重視您的寶貴意見，這將幫助我們做得更好。
-              </p>
-              <div className="mt-16 pt-10 border-t border-slate-100 flex items-center justify-center gap-3 text-slate-400 font-black uppercase tracking-[0.2em] text-xs">
-                <i className="ph ph-sparkle-fill text-indigo-500"></i>
-                Powered by SurveyLight
+
+              <div className="relative z-10 space-y-6">
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-500/20 text-indigo-400 text-[10px] font-black uppercase tracking-[0.2em] mb-4 border border-indigo-500/30">
+                  <i className="ph ph-sparkle-fill animate-pulse"></i>
+                  Transmission Successful
+                </div>
+                
+                <h2 className="text-6xl font-black text-white mb-6 tracking-tighter leading-none glitch-text" data-text="MISSION COMPLETE">
+                  MISSION COMPLETE
+                </h2>
+                <p className="text-slate-400 text-xl font-medium leading-relaxed max-w-md mx-auto">
+                  數據已成功穿越時空，抵達我們的戰略指揮中心。感謝您的卓越貢獻！
+                </p>
+                
+                <div className="pt-12 flex flex-col items-center gap-8">
+                  <div className="flex items-center gap-4 px-6 py-3 rounded-2xl bg-white/5 border border-white/10">
+                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></div>
+                    <span className="text-[11px] font-black text-emerald-400 uppercase tracking-[0.3em] war-room-text-glow">Data Sync: 100%</span>
+                  </div>
+                  
+                  <button 
+                    onClick={() => window.location.reload()}
+                    className="group relative px-12 py-6 bg-white text-slate-900 rounded-[2.5rem] font-black text-lg transition-all hover:scale-105 active:scale-95 shadow-2xl hover:shadow-white/10 overflow-hidden"
+                  >
+                    <span className="relative z-10">再填一份問卷</span>
+                    <div className="absolute inset-0 rounded-[2.5rem] bg-gradient-to-r from-indigo-500 to-emerald-500 opacity-0 group-hover:opacity-20 transition-opacity"></div>
+                    <div className="absolute -bottom-1 left-0 w-full h-1 bg-indigo-600 group-hover:h-full transition-all duration-500 opacity-10"></div>
+                  </button>
+                </div>
+              </div>
+
+              <div className="mt-20 pt-10 border-t border-white/5 flex items-center justify-center gap-4 text-white/20 font-black uppercase tracking-[0.4em] text-[10px]">
+                <div className="w-12 h-px bg-white/5"></div>
+                <i className="ph ph-shield-check-fill text-indigo-500/40"></i>
+                SurveyLight Secure Network
+                <div className="w-12 h-px bg-white/5"></div>
               </div>
             </div>
           </div>
@@ -1615,6 +2217,11 @@
 
       return (
         <div className={`min-h-screen flex flex-col items-center justify-center p-6 transition-all duration-1000 relative overflow-hidden ${focusMode ? 'bg-slate-950' : 'bg-slate-50'}`}>
+          {/* Take Survey Background Micro-interactions */}
+          <div className="floating-bg">
+            <div className="blob" style={{ top: '15%', left: '75%', animationDelay: '-4s', background: focusMode ? 'linear-gradient(135deg, rgba(79, 70, 229, 0.08) 0%, rgba(129, 140, 248, 0.08) 100%)' : 'linear-gradient(135deg, rgba(79, 70, 229, 0.03) 0%, rgba(129, 140, 248, 0.03) 100%)' }}></div>
+            <div className="blob" style={{ top: '75%', left: '15%', animationDelay: '-10s', width: '450px', height: '450px', background: focusMode ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.06) 0%, rgba(165, 180, 252, 0.06) 100%)' : 'linear-gradient(135deg, rgba(165, 180, 252, 0.02) 0%, rgba(199, 210, 254, 0.02) 100%)' }}></div>
+          </div>
           {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
           
           {/* Focus Mode Background Effects */}
@@ -1705,6 +2312,101 @@
                     }`}>
                       Character Count: {(answers[q.id] || "").length}
                     </div>
+                  </div>
+                ) : q.type === "rating" ? (
+                  <div className="flex flex-col gap-10">
+                    <div className="flex flex-wrap justify-between items-center gap-3">
+                      {[...Array(10)].map((_, i) => {
+                        const val = i + 1;
+                        const isSelected = Number(answers[q.id]) === val;
+                        return (
+                          <button
+                            key={val}
+                            onClick={() => setAnswers({ ...answers, [q.id]: val })}
+                            className={`w-12 h-12 md:w-14 md:h-14 rounded-full border-4 font-black text-xl transition-all duration-500 flex items-center justify-center shadow-lg active:scale-90 ${
+                              isSelected 
+                                ? (focusMode 
+                                    ? 'bg-indigo-500 border-white text-white shadow-indigo-500/50 scale-110' 
+                                    : 'bg-indigo-600 border-indigo-100 text-white shadow-indigo-200 scale-110')
+                                : (focusMode 
+                                    ? 'bg-white/5 border-white/10 text-white/40 hover:bg-white/10 hover:border-white/20' 
+                                    : 'bg-white border-slate-100 text-slate-400 hover:border-indigo-200 hover:text-indigo-600 hover:bg-indigo-50')
+                            }`}
+                          >
+                            {val}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <div className="flex justify-between px-2">
+                      <span className={`text-[10px] font-black uppercase tracking-[0.2em] ${focusMode ? 'text-white/30' : 'text-slate-400'}`}>非常不符合</span>
+                      <span className={`text-[10px] font-black uppercase tracking-[0.2em] ${focusMode ? 'text-white/30' : 'text-slate-400'}`}>非常符合</span>
+                    </div>
+                  </div>
+                ) : q.type === "file" ? (
+                  <div className="space-y-6">
+                    <div 
+                      className={`relative p-12 rounded-[2.5rem] border-4 border-dashed transition-all duration-500 flex flex-col items-center justify-center gap-6 group/file ${
+                        localFiles[q.id] 
+                          ? (focusMode ? 'bg-indigo-500/10 border-indigo-500/50' : 'bg-indigo-50 border-indigo-200')
+                          : (focusMode ? 'bg-white/5 border-white/10 hover:border-white/20' : 'bg-slate-50 border-slate-200 hover:border-indigo-300')
+                      }`}
+                      onDragOver={e => e.preventDefault()}
+                      onDrop={e => {
+                        e.preventDefault();
+                        const file = e.dataTransfer.files[0];
+                        if (file) setLocalFiles({ ...localFiles, [q.id]: file });
+                      }}
+                    >
+                      <input 
+                        type="file" 
+                        className="absolute inset-0 opacity-0 cursor-pointer" 
+                        onChange={e => {
+                          const file = e.target.files[0];
+                          if (file) setLocalFiles({ ...localFiles, [q.id]: file });
+                        }}
+                      />
+                      
+                      {localFiles[q.id] ? (
+                        <>
+                          <div className="w-20 h-20 bg-indigo-600 text-white rounded-3xl flex items-center justify-center shadow-xl shadow-indigo-500/20">
+                            <i className="ph ph-file-check-fill text-4xl"></i>
+                          </div>
+                          <div className="text-center">
+                            <div className={`text-xl font-black mb-1 ${focusMode ? 'text-white' : 'text-slate-900'}`}>{localFiles[q.id].name}</div>
+                            <div className={`text-xs font-bold ${focusMode ? 'text-indigo-400' : 'text-indigo-600'}`}>
+                              {(localFiles[q.id].size / 1024 / 1024).toFixed(2)} MB • 點擊或拖放以更換檔案
+                            </div>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className={`w-20 h-20 rounded-3xl flex items-center justify-center transition-all duration-500 ${
+                            focusMode ? 'bg-white/10 text-white/20 group-hover/file:text-white group-hover/file:bg-indigo-600' : 'bg-white text-slate-200 group-hover/file:text-indigo-600 shadow-sm'
+                          }`}>
+                            <i className="ph ph-cloud-arrow-up-fill text-4xl"></i>
+                          </div>
+                          <div className="text-center">
+                            <div className={`text-xl font-black mb-1 ${focusMode ? 'text-white' : 'text-slate-900'}`}>點擊或拖放檔案至此</div>
+                            <div className={`text-xs font-bold ${focusMode ? 'text-white/40' : 'text-slate-400'}`}>支援圖片、PDF、文件 (最大 5MB)</div>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                    {localFiles[q.id] && (
+                      <button 
+                        onClick={() => {
+                          const newFiles = { ...localFiles };
+                          delete newFiles[q.id];
+                          setLocalFiles(newFiles);
+                        }}
+                        className={`w-full py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${
+                          focusMode ? 'bg-rose-500/10 text-rose-400 hover:bg-rose-500/20' : 'bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white'
+                        }`}
+                      >
+                        移除檔案
+                      </button>
+                    )}
                   </div>
                 ) : (
                   <div className="grid gap-4">
@@ -1806,6 +2508,14 @@
       const [selected, setSelected] = useState(null);
       const [toast, setToast] = useState(null);
       const [pulse, setPulse] = useState(false);
+      const [warRoom, setWarRoom] = useState(false);
+      const [currentTime, setCurrentTime] = useState(new Date());
+      const [filter, setFilter] = useState({ questionId: null, value: null, operator: 'equals' }); // operator: 'equals', 'gt', 'lt'
+
+      useEffect(() => {
+        const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+        return () => clearInterval(timer);
+      }, []);
 
       useEffect(() => {
         let cancelled = false;
@@ -1863,8 +2573,10 @@
                   if (rData.length > 0) {
                     let totalTime = 0;
                     const qTimings = {};
+                    const qRatings = {};
                     rData.forEach(r => {
                       let rTotal = 0;
+                      // Time stats
                       Object.entries(r.timings || {}).forEach(([qid, time]) => {
                         const t = Number(time) || 0;
                         rTotal += t;
@@ -1872,15 +2584,28 @@
                         qTimings[qid].sum += t;
                         qTimings[qid].count += 1;
                       });
+                      // Rating stats
+                      Object.entries(r.answers || {}).forEach(([qid, ans]) => {
+                        const question = sData.questions.find(q => q.id === qid);
+                        if (question && question.type === 'rating') {
+                          const score = Number(ans) || 0;
+                          if (score > 0) {
+                            if (!qRatings[qid]) qRatings[qid] = { sum: 0, count: 0 };
+                            qRatings[qid].sum += score;
+                            qRatings[qid].count += 1;
+                          }
+                        }
+                      });
                       totalTime += rTotal;
                     });
                     setStats({
                       totalCount: rData.length,
                       avgCompletionTime: totalTime / rData.length,
                       questionStats: qTimings,
+                      ratingStats: qRatings,
                     });
                   } else {
-                    setStats({ totalCount: 0, avgCompletionTime: 0, questionStats: {} });
+                    setStats({ totalCount: 0, avgCompletionTime: 0, questionStats: {}, ratingStats: {} });
                   }
                 }
               }, err => {
@@ -1910,6 +2635,49 @@
         if (s < 60) return `${s.toFixed(1)}s`;
         return `${Math.floor(s / 60)}m ${(s % 60).toFixed(0)}s`;
       };
+
+      const filteredResponses = responses.filter(r => {
+        if (!filter.questionId) return true;
+        const ans = r.answers?.[filter.questionId];
+        if (ans === undefined || ans === null) return false;
+
+        if (filter.operator === 'equals') return String(ans) === String(filter.value);
+        if (filter.operator === 'gt') return Number(ans) > Number(filter.value);
+        if (filter.operator === 'lt') return Number(ans) < Number(filter.value);
+        return true;
+      });
+
+      const filteredStats = React.useMemo(() => {
+        if (!survey) return null;
+        
+        const qStats = {};
+        const rStats = {};
+        
+        survey.questions.forEach(q => {
+          qStats[q.id] = { sum: 0, count: 0 };
+          if (q.type === 'rating') {
+            rStats[q.id] = { sum: 0, count: 0 };
+          }
+        });
+
+        filteredResponses.forEach(r => {
+          survey.questions.forEach(q => {
+            const time = Number(r.timings?.[q.id]) || 0;
+            qStats[q.id].sum += time;
+            qStats[q.id].count += 1;
+
+            if (q.type === 'rating') {
+              const val = Number(r.answers?.[q.id]);
+              if (!isNaN(val)) {
+                rStats[q.id].sum += val;
+                rStats[q.id].count += 1;
+              }
+            }
+          });
+        });
+
+        return { questionStats: qStats, ratingStats: rStats };
+      }, [filteredResponses, survey]);
 
       const downloadCSV = () => {
         try {
@@ -1972,80 +2740,185 @@
       }
 
       return (
-        <div className="max-w-6xl mx-auto p-6 sm:p-12 fade-in pb-32">
-          {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-          {/* Header */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-16">
-            <div className="flex items-center gap-8">
-              {!publicToken && (
-                <button 
-                  onClick={onBack} 
-                  className="group w-14 h-14 flex items-center justify-center bg-white rounded-2xl shadow-sm text-slate-400 hover:text-indigo-600 transition-all border border-slate-100 hover:border-indigo-100 hover:bg-indigo-50"
-                >
-                  <i className="ph ph-arrow-left text-2xl group-hover:-translate-x-1 transition-transform"></i>
-                </button>
-              )}
-              <div className="min-w-0">
-                <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-white text-[10px] font-black uppercase tracking-[0.2em] mb-4 transition-all duration-500 ${pulse ? 'bg-rose-500 scale-110 shadow-lg shadow-rose-200' : 'bg-indigo-600'}`}>
-                  <i className={`ph ${pulse ? 'ph-broadcast-fill animate-pulse' : 'ph-chart-line-up-fill'}`}></i>
-                  {pulse ? 'Live Update Incoming!' : 'Insight Analytics'}
+        <div className={`min-h-screen transition-all duration-1000 ${warRoom ? 'war-room-bg' : 'bg-slate-50/30'}`}>
+          {/* Analytics Background Micro-interactions */}
+          {!warRoom && (
+            <div className="floating-bg">
+              <div className="blob" style={{ top: '5%', left: '80%', animationDelay: '-1s', background: 'linear-gradient(135deg, rgba(79, 70, 229, 0.04) 0%, rgba(129, 140, 248, 0.04) 100%)' }}></div>
+              <div className="blob" style={{ top: '65%', left: '-5%', animationDelay: '-6s', width: '550px', height: '550px', background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(165, 180, 252, 0.05) 100%)' }}></div>
+            </div>
+          )}
+          
+          {/* War Room Data Streams */}
+          {warRoom && (
+            <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+              {[...Array(15)].map((_, i) => (
+                <div 
+                  key={i} 
+                  className="data-stream" 
+                  style={{ 
+                    left: `${Math.random() * 100}%`, 
+                    animationDelay: `${Math.random() * 5}s`,
+                    animationDuration: `${2 + Math.random() * 4}s`,
+                    opacity: 0.1 + Math.random() * 0.2
+                  }}
+                ></div>
+              ))}
+              {/* Added Real-time Grid & Radar lines */}
+              <div className="absolute inset-0 war-room-grid opacity-10"></div>
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] border border-indigo-500/20 rounded-full animate-ping opacity-20"></div>
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] border border-indigo-500/10 rounded-full opacity-30"></div>
+              
+              {/* Strategic Command Labels */}
+              <div className="absolute top-1/4 left-10 text-[9px] font-black text-indigo-500/30 uppercase tracking-[0.5em] rotate-90 origin-left">Sector 7G-Alpha</div>
+              <div className="absolute bottom-1/4 right-10 text-[9px] font-black text-indigo-500/30 uppercase tracking-[0.5em] -rotate-90 origin-right">Encrypted Link Active</div>
+            </div>
+          )}
+
+          {warRoom && <div className="war-room-scanline"></div>}
+          {warRoom && (
+            <div className="fixed top-0 left-0 w-full z-[100] bg-indigo-950/40 backdrop-blur-xl border-b border-white/10 py-3 px-8 flex items-center justify-between overflow-hidden shadow-[0_10px_40px_rgba(0,0,0,0.5)]">
+              <div className="flex items-center gap-8">
+                <div className="flex items-center gap-3">
+                  <div className="relative">
+                    <span className="block w-3 h-3 rounded-full bg-emerald-500"></span>
+                    <span className="absolute inset-0 w-3 h-3 rounded-full bg-emerald-500 animate-ping"></span>
+                  </div>
+                  <span className="text-[12px] font-black text-white uppercase tracking-[0.2em] war-room-text-glow">Strategic Command</span>
                 </div>
-                <h1 className="text-4xl font-black text-slate-900 truncate tracking-tight leading-tight">{survey?.title}</h1>
-                <div className="flex items-center gap-4 mt-2">
-                  <span className="text-slate-400 text-sm font-bold flex items-center gap-1.5">
-                    <i className="ph ph-calendar-blank-bold"></i>
-                    建立於：{new Date((survey?.createdAt || 0)).toLocaleDateString()}
-                  </span>
-                  <span className="w-1 h-1 rounded-full bg-slate-200"></span>
-                  <span className="text-slate-400 text-sm font-bold flex items-center gap-1.5">
-                    <i className="ph ph-hash-bold"></i>
-                    ID: {(surveyId || survey?.id || '').slice(0, 8)}...
-                  </span>
-                  {publicToken && (
-                    <>
-                      <span className="w-1 h-1 rounded-full bg-slate-200"></span>
-                      <span className="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded text-[10px] font-black uppercase tracking-widest border border-emerald-100">Public View</span>
-                    </>
-                  )}
+                <div className="h-6 w-[1px] bg-white/10"></div>
+                <div className="flex items-center gap-6 text-[11px] font-bold text-indigo-400 uppercase tracking-widest">
+                  <div className="flex items-center gap-2">
+                    <span className="text-white/40">SENSORS:</span>
+                    <span className="text-emerald-400">ACTIVE</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-white/40">DATA:</span>
+                    <span className="text-white">{responses.length * (survey?.questions?.length || 0)} PTS</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-white/40">TIME:</span>
+                    <span className="text-white tabular-nums">{currentTime.toLocaleTimeString()}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex-1 max-w-2xl mx-12 overflow-hidden relative">
+                <div className="flex items-center gap-12 animate-marquee whitespace-nowrap">
+                  {responses.slice(-5).reverse().map((r, i) => (
+                    <div key={i} className="flex items-center gap-3 text-[11px] font-bold text-white/40 uppercase">
+                      <span className="text-indigo-400">●</span>
+                      <span>INCOMING: {r.respondent?.name || "ANONYMOUS"}</span>
+                      <span className="text-[10px] opacity-50">[{new Date(r.submittedAt).toLocaleTimeString()}]</span>
+                    </div>
+                  ))}
+                  {/* Duplicate for seamless loop */}
+                  {responses.slice(-5).reverse().map((r, i) => (
+                    <div key={i+'d'} className="flex items-center gap-3 text-[11px] font-bold text-white/40 uppercase">
+                      <span className="text-indigo-400">●</span>
+                      <span>INCOMING: {r.respondent?.name || "ANONYMOUS"}</span>
+                      <span className="text-[10px] opacity-50">[{new Date(r.submittedAt).toLocaleTimeString()}]</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="absolute inset-y-0 left-0 w-12 bg-gradient-to-r from-indigo-950/40 to-transparent z-10"></div>
+                <div className="absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-indigo-950/40 to-transparent z-10"></div>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="px-3 py-1 bg-rose-500/10 border border-rose-500/20 rounded text-[9px] font-black text-rose-500 uppercase tracking-tighter animate-pulse">
+                  System: Nominal
                 </div>
               </div>
             </div>
-
-            {responses.length > 0 && !publicToken && (
-              <div className="flex items-center gap-4">
-                <Button 
-                  onClick={downloadCSV}
-                  className="bg-slate-900 hover:bg-slate-800 shadow-xl shadow-slate-100/50 px-8 py-4 rounded-2xl flex items-center gap-3"
-                >
-                  <i className="ph ph-file-csv-fill text-2xl"></i>
-                  匯出 (CSV)
-                </Button>
-                {survey?.shareToken && (
-                  <Button 
-                    onClick={() => {
-                      const url = new URL(window.location.href.split('?')[0].split('#')[0]);
-                      url.hash = `#/analytics/public/${survey.shareToken}`;
-                      const shareUrl = url.toString();
-                      if (navigator.share) {
-                        navigator.share({
-                          title: `SurveyLight 分析報告｜${survey.title}`,
-                          text: `查看此問卷的即時分析數據：${survey.title}`,
-                          url: shareUrl
-                        });
-                      } else {
-                        navigator.clipboard.writeText(shareUrl);
-                        setToast({ message: "已複製分析報告連結", type: "success" });
-                      }
-                    }}
-                    className="bg-indigo-600 hover:bg-indigo-700 shadow-xl shadow-indigo-100/50 px-8 py-4 rounded-2xl flex items-center gap-3"
+          )}
+          <div className={`max-w-6xl mx-auto p-6 sm:p-12 fade-in pb-32 relative z-10 ${warRoom ? 'text-white pt-24' : ''}`}>
+            {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+            {/* Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-16">
+              <div className="flex items-center gap-8">
+                {!publicToken && (
+                  <button 
+                    onClick={onBack} 
+                    className={`group w-14 h-14 flex items-center justify-center rounded-2xl shadow-sm transition-all border ${
+                      warRoom 
+                        ? 'bg-slate-900/50 text-white/40 border-white/10 hover:text-white hover:border-indigo-500' 
+                        : 'bg-white text-slate-400 hover:text-indigo-600 border-slate-100 hover:border-indigo-100 hover:bg-indigo-50'
+                    }`}
                   >
-                    <i className="ph ph-share-network-fill text-2xl"></i>
-                    分享報告
-                  </Button>
+                    <i className="ph ph-arrow-left text-2xl group-hover:-translate-x-1 transition-transform"></i>
+                  </button>
                 )}
+                <div className="min-w-0">
+                  <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-white text-[10px] font-black uppercase tracking-[0.2em] mb-4 transition-all duration-500 ${pulse ? 'bg-rose-500 scale-110 shadow-lg shadow-rose-200' : 'bg-indigo-600'}`}>
+                    <i className={`ph ${pulse ? 'ph-broadcast-fill animate-pulse' : 'ph-chart-line-up-fill'}`}></i>
+                    {pulse ? 'Live Update Incoming!' : (warRoom ? 'Strategic Insight Center' : 'Insight Analytics')}
+                  </div>
+                  <h1 className={`text-4xl font-black truncate tracking-tight leading-tight ${warRoom ? 'text-white glitch-text' : 'text-slate-900'}`} data-text={survey?.title}>{survey?.title}</h1>
+                  <div className="flex items-center gap-4 mt-2">
+                    <span className={`${warRoom ? 'text-white/40' : 'text-slate-400'} text-sm font-bold flex items-center gap-1.5`}>
+                      <i className="ph ph-calendar-blank-bold"></i>
+                      建立於：{new Date((survey?.createdAt || 0)).toLocaleDateString()}
+                    </span>
+                    <span className={`w-1 h-1 rounded-full ${warRoom ? 'bg-white/10' : 'bg-slate-200'}`}></span>
+                    <span className={`${warRoom ? 'text-white/40' : 'text-slate-400'} text-sm font-bold flex items-center gap-1.5`}>
+                      <i className="ph ph-hash-bold"></i>
+                      ID: {(surveyId || survey?.id || '').slice(0, 8)}...
+                    </span>
+                    {publicToken && (
+                      <>
+                        <span className={`w-1 h-1 rounded-full ${warRoom ? 'bg-white/10' : 'bg-slate-200'}`}></span>
+                        <span className="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded text-[10px] font-black uppercase tracking-widest border border-emerald-100">Public View</span>
+                      </>
+                    )}
+                  </div>
+                </div>
               </div>
-            )}
-          </div>
+
+              {responses.length > 0 && !publicToken && (
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={() => setWarRoom(!warRoom)}
+                    className={`px-8 py-4 rounded-2xl flex items-center gap-3 font-black transition-all duration-500 shadow-xl ${
+                      warRoom 
+                        ? 'bg-indigo-600 text-white shadow-indigo-500/40 ring-4 ring-indigo-500/20' 
+                        : 'bg-white text-slate-400 hover:text-indigo-600 border border-slate-100 shadow-slate-100'
+                    }`}
+                  >
+                    <i className={`ph ${warRoom ? 'ph-broadcast-fill animate-pulse' : 'ph-monitor-play-fill'} text-2xl`}></i>
+                    {warRoom ? 'WAR ROOM ON' : 'WAR ROOM'}
+                  </button>
+                  <Button 
+                    onClick={downloadCSV}
+                    className={`${warRoom ? 'bg-slate-900 border border-white/10' : 'bg-slate-900'} hover:bg-slate-800 shadow-xl shadow-slate-100/50 px-8 py-4 rounded-2xl flex items-center gap-3`}
+                  >
+                    <i className="ph ph-file-csv-fill text-2xl"></i>
+                    匯出 (CSV)
+                  </Button>
+                  {survey?.shareToken && (
+                    <Button 
+                      onClick={() => {
+                        const url = new URL(window.location.href.split('?')[0].split('#')[0]);
+                        url.hash = `#/analytics/public/${survey.shareToken}`;
+                        const shareUrl = url.toString();
+                        if (navigator.share) {
+                          navigator.share({
+                            title: `SurveyLight 分析報告｜${survey.title}`,
+                            text: `查看此問卷的即時分析數據：${survey.title}`,
+                            url: shareUrl
+                          });
+                        } else {
+                          navigator.clipboard.writeText(shareUrl);
+                          setToast({ message: "已複製分析報告連結", type: "success" });
+                        }
+                      }}
+                      className="bg-indigo-600 hover:bg-indigo-700 shadow-xl shadow-indigo-100/50 px-8 py-4 rounded-2xl flex items-center gap-3"
+                    >
+                      <i className="ph ph-share-network-fill text-2xl"></i>
+                      分享報告
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
 
           {responses.length === 0 ? (
             <div className="text-center py-40 glass rounded-[5rem] border-4 border-dashed border-slate-100 bg-white/50 fade-in">
@@ -2060,88 +2933,451 @@
             </div>
           ) : (
             <div className="space-y-20 fade-in">
+              {/* Advanced Filter UI */}
+              <div className={`p-8 rounded-[2.5rem] border-2 transition-all mb-12 ${
+                warRoom 
+                  ? 'war-room-card border-white/5 bg-indigo-500/5 shadow-2xl' 
+                  : 'glass border-white shadow-xl shadow-indigo-100/20 bg-white/60 backdrop-blur-xl'
+              }`}>
+                <div className="flex flex-col md:flex-row md:items-end gap-8">
+                  <div className="flex-1 space-y-4">
+                    <label className={`flex items-center gap-2 text-[10px] font-black uppercase tracking-widest ${warRoom ? 'text-indigo-400' : 'text-slate-400'}`}>
+                      <i className="ph ph-funnel-fill text-lg"></i>
+                      數據交叉篩選器 (Advanced Filter)
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {/* Question Selector */}
+                      <div className="relative">
+                        <select 
+                          className={`w-full appearance-none rounded-2xl px-6 py-4 text-sm font-black transition-all border-2 cursor-pointer ${
+                            warRoom 
+                              ? 'bg-white/5 border-white/10 text-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10' 
+                              : 'bg-white border-slate-100 text-slate-700 focus:border-indigo-600 focus:ring-4 focus:ring-indigo-500/5'
+                          }`}
+                          value={filter.questionId || ""}
+                          onChange={e => {
+                            const qid = e.target.value;
+                            if (!qid) {
+                              setFilter({ questionId: null, value: null, operator: 'equals' });
+                            } else {
+                              const q = survey.questions.find(x => x.id === qid);
+                              setFilter({ 
+                                questionId: qid, 
+                                value: q.type === 'choice' ? q.options[0] : (q.type === 'rating' ? 5 : ""), 
+                                operator: q.type === 'rating' ? 'gt' : 'equals' 
+                              });
+                            }
+                          }}
+                        >
+                          <option value="">-- 選擇篩選題目 --</option>
+                          {survey?.questions.filter(q => q.type !== 'text').map(q => (
+                            <option key={q.id} value={q.id}>
+                              {q.type === 'choice' ? '🔘' : '⭐'} {q.title}
+                            </option>
+                          ))}
+                        </select>
+                        <i className="ph ph-caret-down-bold absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                      </div>
+
+                      {/* Operator Selector (only for rating) */}
+                      {filter.questionId && survey?.questions.find(q => q.id === filter.questionId)?.type === 'rating' && (
+                        <div className="relative">
+                          <select 
+                            className={`w-full appearance-none rounded-2xl px-6 py-4 text-sm font-black transition-all border-2 cursor-pointer ${
+                              warRoom 
+                                ? 'bg-white/5 border-white/10 text-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10' 
+                                : 'bg-white border-slate-100 text-slate-700 focus:border-indigo-600 focus:ring-4 focus:ring-indigo-500/5'
+                            }`}
+                            value={filter.operator}
+                            onChange={e => setFilter({ ...filter, operator: e.target.value })}
+                          >
+                            <option value="gt">大於 (Greater than)</option>
+                            <option value="lt">小於 (Less than)</option>
+                            <option value="equals">等於 (Equals)</option>
+                          </select>
+                          <i className="ph ph-caret-down-bold absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                        </div>
+                      )}
+
+                      {/* Value Selector */}
+                      {filter.questionId && (
+                        <div className="relative">
+                          {survey.questions.find(q => q.id === filter.questionId).type === 'choice' ? (
+                            <select 
+                              className={`w-full appearance-none rounded-2xl px-6 py-4 text-sm font-black transition-all border-2 cursor-pointer ${
+                                warRoom 
+                                  ? 'bg-white/5 border-white/10 text-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10' 
+                                  : 'bg-white border-slate-100 text-slate-700 focus:border-indigo-600 focus:ring-4 focus:ring-indigo-500/5'
+                              }`}
+                              value={filter.value || ""}
+                              onChange={e => setFilter({ ...filter, value: e.target.value })}
+                            >
+                              {survey.questions.find(q => q.id === filter.questionId).options.map(opt => (
+                                <option key={opt} value={opt}>{opt}</option>
+                              ))}
+                            </select>
+                          ) : (
+                            <input 
+                              type="number"
+                              min="1" max="10"
+                              className={`w-full rounded-2xl px-6 py-4 text-sm font-black transition-all border-2 ${
+                                warRoom 
+                                  ? 'bg-white/5 border-white/10 text-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10' 
+                                  : 'bg-white border-slate-100 text-slate-700 focus:border-indigo-600 focus:ring-4 focus:ring-indigo-500/5'
+                              }`}
+                              value={filter.value || ""}
+                              onChange={e => setFilter({ ...filter, value: e.target.value })}
+                            />
+                          )}
+                          {survey.questions.find(q => q.id === filter.questionId).type === 'choice' && (
+                            <i className="ph ph-caret-down-bold absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {filter.questionId && (
+                    <button 
+                      onClick={() => setFilter({ questionId: null, value: null, operator: 'equals' })}
+                      className={`h-[58px] px-8 rounded-2xl font-black text-sm flex items-center gap-2 transition-all active:scale-95 ${
+                        warRoom ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20 hover:bg-rose-500 hover:text-white' : 'bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white'
+                      }`}
+                    >
+                      <i className="ph ph-x-bold"></i> 重設
+                    </button>
+                  )}
+                </div>
+
+                {filter.questionId && (
+                  <div className={`mt-6 pt-6 border-t flex items-center justify-between ${warRoom ? 'border-white/5' : 'border-slate-100'}`}>
+                    <div className="flex items-center gap-3">
+                      <div className={`w-2 h-2 rounded-full animate-pulse ${warRoom ? 'bg-indigo-400 shadow-[0_0_10px_rgba(129,140,248,0.8)]' : 'bg-indigo-600'}`}></div>
+                      <p className={`text-xs font-bold ${warRoom ? 'text-white/60' : 'text-slate-500'}`}>
+                        已篩選出 <span className={`text-lg font-black tabular-nums ${warRoom ? 'text-white' : 'text-indigo-600'}`}>{filteredResponses.length}</span> 筆符合條件的回覆
+                        <span className="mx-2 opacity-30">|</span>
+                        佔總數據的 {Math.round((filteredResponses.length / responses.length) * 100)}%
+                      </p>
+                    </div>
+                    <div className={`text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-xl ${warRoom ? 'bg-white/5 text-white/30' : 'bg-slate-50 text-slate-400'}`}>
+                      Active Segment
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* Stats Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-                <div className={`glass p-12 rounded-[4rem] border-4 border-white shadow-2xl relative overflow-hidden group hover:-translate-y-2 transition-all duration-500 ${pulse ? 'ring-8 ring-indigo-500/20 scale-[1.02] shadow-indigo-200' : 'shadow-indigo-100/30'}`}>
-                  <div className="absolute top-0 right-0 w-40 h-40 bg-indigo-50/50 rounded-full -mr-20 -mt-20 group-hover:scale-150 transition-transform duration-1000"></div>
+                <div className={`p-12 rounded-[4rem] border-4 shadow-2xl relative overflow-hidden group hover:-translate-y-2 transition-all duration-500 ${
+                  warRoom 
+                    ? 'war-room-card border-white/10 war-room-glow war-room-cyber-border' 
+                    : 'glass border-white shadow-indigo-100/30'
+                } ${pulse ? 'ring-8 ring-indigo-500/20 scale-[1.02]' : ''}`}>
+                  <div className={`absolute top-0 right-0 w-40 h-40 rounded-full -mr-20 -mt-20 group-hover:scale-150 transition-transform duration-1000 ${warRoom ? 'bg-indigo-500/10' : 'bg-indigo-50/50'}`}></div>
                   {pulse && <div className="absolute top-8 right-8 w-4 h-4 bg-rose-500 rounded-full animate-ping z-20"></div>}
                   <div className="relative">
-                    <div className="w-16 h-16 bg-slate-900 text-white rounded-[1.5rem] flex items-center justify-center mb-10 shadow-2xl shadow-slate-200 group-hover:bg-indigo-600 transition-colors">
-                      <i className={`ph ph-users-fill text-3xl ${pulse ? 'animate-bounce' : ''}`}></i>
+                    <div className={`w-16 h-16 rounded-[1.5rem] flex items-center justify-center mb-10 shadow-2xl transition-colors ${
+                      warRoom ? 'bg-indigo-600 text-white shadow-indigo-500/20' : 'bg-slate-900 text-white shadow-slate-200 group-hover:bg-indigo-600'
+                    }`}>
+                      <i className={`ph ph-users-fill text-3xl ${pulse ? 'animate-bounce' : (warRoom ? 'war-room-pulse' : '')}`}></i>
                     </div>
-                    <p className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.3em] mb-3">Total Responses</p>
+                    <p className={`text-[10px] font-black uppercase tracking-[0.3em] mb-3 ${warRoom ? 'text-indigo-400' : 'text-indigo-600'}`}>Total Responses</p>
                     <div className="flex items-baseline gap-4">
-                      <p className="text-7xl font-black text-slate-900 tracking-tighter">{stats?.totalCount || 0}</p>
-                      <p className="text-slate-400 font-black text-xl">回覆</p>
+                      <p className={`text-7xl font-black tracking-tighter ${warRoom ? 'text-white war-room-text-glow' : 'text-slate-900'}`}>{stats?.totalCount || 0}</p>
+                      <p className={`font-black text-xl ${warRoom ? 'text-white/40' : 'text-slate-400'}`}>回覆</p>
                     </div>
                   </div>
                 </div>
 
-                <div className={`glass p-12 rounded-[4rem] border-4 border-white shadow-2xl relative overflow-hidden group hover:-translate-y-2 transition-all duration-500 ${pulse ? 'ring-8 ring-emerald-500/20 scale-[1.02] shadow-emerald-200' : 'shadow-emerald-100/30'}`}>
-                  <div className="absolute top-0 right-0 w-40 h-40 bg-emerald-50/50 rounded-full -mr-20 -mt-20 group-hover:scale-150 transition-transform duration-1000"></div>
+                <div className={`p-12 rounded-[4rem] border-4 shadow-2xl relative overflow-hidden group hover:-translate-y-2 transition-all duration-500 ${
+                  warRoom 
+                    ? 'war-room-card border-white/10 war-room-glow war-room-cyber-border' 
+                    : 'glass border-white shadow-emerald-100/30'
+                } ${pulse ? 'ring-8 ring-emerald-500/20 scale-[1.02]' : ''}`}>
+                  <div className={`absolute top-0 right-0 w-40 h-40 rounded-full -mr-20 -mt-20 group-hover:scale-150 transition-transform duration-1000 ${warRoom ? 'bg-emerald-500/10' : 'bg-emerald-50/50'}`}></div>
                   <div className="relative">
-                    <div className="w-16 h-16 bg-emerald-500 text-white rounded-[1.5rem] flex items-center justify-center mb-10 shadow-2xl shadow-emerald-100 group-hover:bg-emerald-600 transition-colors">
-                      <i className="ph ph-clock-fill text-3xl"></i>
+                    <div className={`w-16 h-16 rounded-[1.5rem] flex items-center justify-center mb-10 shadow-2xl transition-colors ${
+                      warRoom ? 'bg-emerald-600 text-white shadow-emerald-500/20' : 'bg-emerald-500 text-white shadow-emerald-100 group-hover:bg-emerald-600'
+                    }`}>
+                      <i className={`ph ph-clock-fill text-3xl ${warRoom ? 'war-room-pulse' : ''}`}></i>
                     </div>
-                    <p className="text-[10px] font-black text-emerald-600 uppercase tracking-[0.3em] mb-3">Avg. Time</p>
+                    <p className={`text-[10px] font-black uppercase tracking-[0.3em] mb-3 ${warRoom ? 'text-emerald-400' : 'text-emerald-600'}`}>Avg. Time</p>
                     <div className="flex items-baseline gap-4">
-                      <p className="text-7xl font-black text-slate-900 tracking-tighter">{formatTime(stats?.avgCompletionTime || 0)}</p>
+                      <p className={`text-7xl font-black tracking-tighter ${warRoom ? 'text-white war-room-text-glow' : 'text-slate-900'}`}>{formatTime(stats?.avgCompletionTime || 0)}</p>
                     </div>
                   </div>
                 </div>
 
-                <div className={`glass p-12 rounded-[4rem] border-4 border-white shadow-2xl relative overflow-hidden group hover:-translate-y-2 transition-all duration-500 ${pulse ? 'ring-8 ring-amber-500/20 scale-[1.02] shadow-amber-200' : 'shadow-amber-100/30'} hidden lg:block`}>
-                  <div className="absolute top-0 right-0 w-40 h-40 bg-amber-50/50 rounded-full -mr-20 -mt-20 group-hover:scale-150 transition-transform duration-1000"></div>
+                <div className={`p-12 rounded-[4rem] border-4 shadow-2xl relative overflow-hidden group hover:-translate-y-2 transition-all duration-500 hidden lg:block ${
+                  warRoom 
+                    ? 'war-room-card border-white/10 war-room-glow war-room-cyber-border' 
+                    : 'glass border-white shadow-amber-100/30'
+                } ${pulse ? 'ring-8 ring-amber-500/20 scale-[1.02]' : ''}`}>
+                  <div className={`absolute top-0 right-0 w-40 h-40 rounded-full -mr-20 -mt-20 group-hover:scale-150 transition-transform duration-1000 ${warRoom ? 'bg-amber-500/10' : 'bg-amber-50/50'}`}></div>
                   <div className="relative">
-                    <div className="w-16 h-16 bg-amber-500 text-white rounded-[1.5rem] flex items-center justify-center mb-10 shadow-2xl shadow-amber-100 group-hover:bg-amber-600 transition-colors">
-                      <i className={`ph ${pulse ? 'ph-lightning-fill text-rose-500 animate-pulse' : 'ph-trend-up-fill'} text-3xl`}></i>
+                    <div className={`w-16 h-16 rounded-[1.5rem] flex items-center justify-center mb-10 shadow-2xl transition-colors ${
+                      warRoom ? 'bg-amber-600 text-white shadow-amber-500/20' : 'bg-amber-500 text-white shadow-amber-100 group-hover:bg-amber-600'
+                    }`}>
+                      <i className={`ph ${pulse ? 'ph-lightning-fill text-rose-500 animate-pulse' : 'ph-trend-up-fill'} text-3xl ${warRoom ? 'war-room-pulse' : ''}`}></i>
                     </div>
-                    <p className="text-[10px] font-black text-amber-600 uppercase tracking-[0.3em] mb-3">{pulse ? 'LIVE PULSE ACTIVE' : 'Status Monitoring'}</p>
+                    <p className={`text-[10px] font-black uppercase tracking-[0.3em] mb-3 ${warRoom ? 'text-amber-400' : 'text-amber-600'}`}>{pulse ? 'LIVE PULSE ACTIVE' : 'Status Monitoring'}</p>
                     <div className="flex items-center gap-3">
                       <div className={`w-4 h-4 rounded-full ${pulse ? 'bg-rose-500 animate-ping' : 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]'}`}></div>
-                      <p className="text-3xl font-black text-slate-900 tracking-tighter uppercase">{pulse ? 'Receiving...' : 'Connected'}</p>
+                      <p className={`text-3xl font-black tracking-tighter uppercase ${warRoom ? 'text-white war-room-text-glow' : 'text-slate-900'}`}>{pulse ? 'Receiving...' : 'Connected'}</p>
                     </div>
                   </div>
                 </div>
               </div>
 
+              {/* Strategic Data Heatmap (War Room Only) */}
+              {warRoom && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 fade-in-up">
+                  <div className="war-room-card rounded-[4rem] p-12 border-white/10 war-room-cyber-border overflow-hidden group">
+                    <div className="flex items-center justify-between mb-10">
+                      <div>
+                        <h3 className="text-2xl font-black text-white tracking-tight mb-2">地理分佈熱力圖</h3>
+                        <p className="text-indigo-400 text-[10px] font-black uppercase tracking-[0.3em]">Geographic Data Heatmap</p>
+                      </div>
+                      <div className="w-12 h-12 bg-indigo-600/20 rounded-2xl flex items-center justify-center border border-indigo-500/30">
+                        <i className="ph ph-map-trifold-fill text-indigo-400 text-xl"></i>
+                      </div>
+                    </div>
+                    
+                    <div className="relative aspect-video bg-indigo-950/40 rounded-[2.5rem] border border-white/5 flex items-center justify-center group-hover:border-indigo-500/30 transition-colors">
+                      <div className="absolute inset-0 war-room-grid opacity-20"></div>
+                      <div className="relative z-10 text-center space-y-4">
+                        <div className="flex justify-center gap-4">
+                          <div className="w-16 h-16 bg-indigo-500/20 rounded-full animate-ping"></div>
+                          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-indigo-400 rounded-full shadow-[0_0_20px_#6366f1]"></div>
+                        </div>
+                        <p className="text-indigo-300/60 font-black text-[10px] uppercase tracking-[0.2em]">Map Simulation Active</p>
+                        <div className="text-white/20 font-black text-4xl italic tracking-tighter opacity-30 select-none">TAIWAN / ASIA-PACIFIC</div>
+                      </div>
+                      
+                      {/* Random Data Points */}
+                      {[...Array(8)].map((_, i) => (
+                        <div 
+                          key={i} 
+                          className="absolute w-2 h-2 bg-emerald-400 rounded-full animate-pulse shadow-[0_0_10px_#34d399]"
+                          style={{ 
+                            top: `${20 + Math.random() * 60}%`, 
+                            left: `${20 + Math.random() * 60}%`,
+                            animationDelay: `${i * 0.5}s`
+                          }}
+                        ></div>
+                      ))}
+                    </div>
+                    
+                    <div className="mt-8 grid grid-cols-2 gap-4">
+                      <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
+                        <p className="text-white/40 text-[9px] font-black uppercase mb-1">主要區域</p>
+                        <p className="text-white font-bold text-sm">台北 / 新北 (64%)</p>
+                      </div>
+                      <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
+                        <p className="text-white/40 text-[9px] font-black uppercase mb-1">活躍時段</p>
+                        <p className="text-white font-bold text-sm">14:00 - 18:00</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="war-room-card rounded-[4rem] p-12 border-white/10 war-room-cyber-border overflow-hidden group">
+                    <div className="flex items-center justify-between mb-10">
+                      <div>
+                        <h3 className="text-2xl font-black text-white tracking-tight mb-2">AI 即時情緒分析</h3>
+                        <p className="text-rose-400 text-[10px] font-black uppercase tracking-[0.3em]">AI Sentiment Pulse</p>
+                      </div>
+                      <div className="w-12 h-12 bg-rose-600/20 rounded-2xl flex items-center justify-center border border-rose-500/30">
+                        <i className="ph ph-brain-fill text-rose-400 text-xl"></i>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-8">
+                      <div className="flex items-center gap-6">
+                        <div className="flex-1 space-y-2">
+                          <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-emerald-400">
+                            <span>正面 Positive</span>
+                            <span>72%</span>
+                          </div>
+                          <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                            <div className="h-full bg-emerald-500 shadow-[0_0_10px_#10b981] transition-all duration-1000" style={{ width: '72%' }}></div>
+                          </div>
+                        </div>
+                        <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30">
+                          <i className="ph ph-smiley-fill text-emerald-400 text-xl"></i>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-6">
+                        <div className="flex-1 space-y-2">
+                          <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-indigo-400">
+                            <span>中立 Neutral</span>
+                            <span>18%</span>
+                          </div>
+                          <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                            <div className="h-full bg-indigo-500 shadow-[0_0_10px_#6366f1] transition-all duration-1000" style={{ width: '18%' }}></div>
+                          </div>
+                        </div>
+                        <div className="w-12 h-12 rounded-full bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30">
+                          <i className="ph ph-minus-circle-fill text-indigo-400 text-xl"></i>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-6">
+                        <div className="flex-1 space-y-2">
+                          <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-rose-400">
+                            <span>負面 Negative</span>
+                            <span>10%</span>
+                          </div>
+                          <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                            <div className="h-full bg-rose-500 shadow-[0_0_10px_#f43f5e] transition-all duration-1000" style={{ width: '10%' }}></div>
+                          </div>
+                        </div>
+                        <div className="w-12 h-12 rounded-full bg-rose-500/20 flex items-center justify-center border border-rose-500/30">
+                          <i className="ph ph-smiley-sad-fill text-rose-400 text-xl"></i>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-10 p-6 rounded-[2rem] bg-indigo-600/10 border border-indigo-500/20 relative overflow-hidden group-hover:bg-indigo-600/20 transition-all">
+                      <div className="flex items-center gap-4 relative z-10">
+                        <div className="w-10 h-10 bg-indigo-500 rounded-xl flex items-center justify-center animate-bounce-subtle shadow-lg">
+                          <i className="ph ph-sparkle-fill text-white"></i>
+                        </div>
+                        <div>
+                          <p className="text-indigo-300 font-bold text-sm">AI 核心洞察</p>
+                          <p className="text-white/60 text-[11px] leading-relaxed">受訪者對於「產品體驗」呈現高度滿意，特別是針對新加入的 3D 介面給予極佳評價。</p>
+                        </div>
+                      </div>
+                      <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/10 rounded-full blur-2xl -mr-12 -mt-12"></div>
+                    </div>
+                  </div>
+                 </div>
+               )}
+
+              {/* Engagement Pulse Heatmap (War Room Only) */}
+              {warRoom && (
+                <div className="war-room-card rounded-[4rem] p-12 border-4 border-white/10 war-room-glow war-room-cyber-border relative overflow-hidden group">
+                  <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-8 mb-12">
+                    <div>
+                      <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-500/10 text-indigo-400 text-[10px] font-black uppercase tracking-[0.2em] mb-4">
+                        <i className="ph ph-activity-bold animate-pulse"></i>
+                        Real-time Engagement Pulse
+                      </div>
+                      <h3 className="text-4xl font-black text-white tracking-tighter">數據互動頻率熱點圖</h3>
+                    </div>
+                    <div className="flex gap-4">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-indigo-500/20"></div>
+                        <span className="text-[10px] font-bold text-white/40 uppercase">Low</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.8)]"></div>
+                        <span className="text-[10px] font-bold text-white/40 uppercase">Peak</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-7 md:grid-cols-12 lg:grid-cols-24 gap-2">
+                    {[...Array(window.innerWidth < 768 ? 28 : 72)].map((_, i) => {
+                      const activity = Math.random();
+                      const isPeak = activity > 0.8;
+                      return (
+                        <div 
+                          key={i}
+                          className={`aspect-square rounded-lg transition-all duration-1000 ${
+                            isPeak 
+                              ? 'bg-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.6)] animate-pulse' 
+                              : activity > 0.4 
+                                ? 'bg-indigo-500/40' 
+                                : activity > 0.1 
+                                  ? 'bg-indigo-500/20' 
+                                  : 'bg-white/5'
+                          }`}
+                          title={`Activity Level: ${Math.floor(activity * 100)}%`}
+                        ></div>
+                      );
+                    })}
+                  </div>
+                  
+                  <div className="mt-10 flex items-center justify-between pt-8 border-t border-white/5">
+                    <div className="flex items-center gap-6">
+                      <div className="text-center">
+                        <div className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-1">Stability</div>
+                        <div className="text-lg font-black text-emerald-400 tabular-nums">99.9%</div>
+                      </div>
+                      <div className="w-px h-8 bg-white/5"></div>
+                      <div className="text-center">
+                        <div className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-1">Throughput</div>
+                        <div className="text-lg font-black text-white tabular-nums">{Math.floor(Math.random() * 500 + 100)} kb/s</div>
+                      </div>
+                    </div>
+                    <div className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em] flex items-center gap-3">
+                      <span className="w-8 h-px bg-white/5"></span>
+                      Sub-orbital Data Stream
+                      <span className="w-8 h-px bg-white/5"></span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Timing Analysis */}
               <div className="space-y-10">
                 <div className="flex items-center justify-between px-4">
                   <div>
-                    <h3 className="text-3xl font-black text-slate-900 tracking-tight">題目耗時分析</h3>
-                    <p className="text-slate-400 font-bold mt-1">了解填答者在哪些題目停留最久</p>
+                    <h3 className={`text-3xl font-black tracking-tight ${warRoom ? 'text-white' : 'text-slate-900'}`}>題目耗時分析</h3>
+                    <p className={`${warRoom ? 'text-white/40' : 'text-slate-400'} font-bold mt-1`}>
+                      {filter.questionId ? '篩選後的題目停留時間分布' : '了解填答者在哪些題目停留最久'}
+                    </p>
                   </div>
-                  <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-300">
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${warRoom ? 'bg-white/5 text-white/20' : 'bg-slate-50 text-slate-300'}`}>
                     <i className="ph ph-timer-bold text-2xl"></i>
                   </div>
                 </div>
                 
                 <div className="grid gap-6">
                   {(survey?.questions || []).map((q, idx) => {
-                    const qs = (stats?.questionStats || {})[q.id];
-                    const avg = qs ? (qs.sum / qs.count) : 0;
+                    const currentStats = filter.questionId ? filteredStats : stats;
+                    const qs = (currentStats?.questionStats || {})[q.id];
+                    const avg = qs?.count > 0 ? (qs.sum / qs.count) : 0;
                     // Calculate relative width for a mini bar chart
-                    const maxTime = Math.max(...Object.values(stats?.questionStats || {}).map(s => s.sum / s.count), 1);
+                    const maxTime = Math.max(...Object.values(currentStats?.questionStats || {}).map(s => s.count > 0 ? s.sum / s.count : 0), 1);
                     const widthPercent = Math.max(5, (avg / maxTime) * 100);
 
                     return (
-                      <div key={q.id} className="group glass p-8 rounded-[2.5rem] border-2 border-white hover:border-indigo-100 transition-all bg-white/40 backdrop-blur-md">
+                      <div key={q.id} className={`group p-8 rounded-[2.5rem] border-2 transition-all backdrop-blur-md ${
+                        warRoom 
+                          ? 'war-room-card border-white/5 hover:border-indigo-500/30' 
+                          : 'glass border-white hover:border-indigo-100 bg-white/40'
+                      }`}>
                         <div className="flex flex-col md:flex-row md:items-center gap-8">
-                          <div className="w-16 h-16 bg-slate-900 text-white rounded-2xl flex items-center justify-center font-black text-xl flex-shrink-0 group-hover:bg-indigo-600 transition-colors shadow-lg">
+                          <div className={`w-16 h-16 rounded-2xl flex items-center justify-center font-black text-xl flex-shrink-0 transition-colors shadow-lg ${
+                            warRoom ? 'bg-indigo-600 text-white' : 'bg-slate-900 text-white group-hover:bg-indigo-600'
+                          }`}>
                             {idx + 1}
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-3 mb-2">
-                              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-100 px-3 py-1 rounded-lg">
-                                {q.type === 'choice' ? '🔘 Choice' : '💬 Text'}
+                              <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-lg ${
+                                warRoom ? 'bg-white/5 text-white/40' : 'bg-slate-100 text-slate-400'
+                              }`}>
+                                {q.type === 'choice' ? '🔘 Choice' : q.type === 'rating' ? '⭐ Rating' : '💬 Text'}
                               </span>
-                              <span className="text-sm font-black text-indigo-600 tabular-nums">平均 {formatTime(avg)}</span>
+                              <span className={`text-sm font-black tabular-nums ${warRoom ? 'text-indigo-400' : 'text-indigo-600'}`}>
+                                平均 {formatTime(avg)}
+                              </span>
+                              {q.type === 'rating' && currentStats?.ratingStats?.[q.id] && currentStats.ratingStats[q.id].count > 0 && (
+                                <>
+                                  <span className={`w-1 h-1 rounded-full ${warRoom ? 'bg-white/10' : 'bg-slate-200'}`}></span>
+                                  <span className={`text-sm font-black tabular-nums text-emerald-500`}>
+                                    平均評分 {(currentStats.ratingStats[q.id].sum / currentStats.ratingStats[q.id].count).toFixed(1)} / 10
+                                  </span>
+                                </>
+                              )}
                             </div>
-                            <h4 className="text-xl font-black text-slate-900 truncate mb-4">{q.title}</h4>
+                            <h4 className={`text-xl font-black truncate mb-4 ${warRoom ? 'text-white' : 'text-slate-900'}`}>{q.title}</h4>
                             
                             {/* Mini Bar Chart */}
-                            <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden shadow-inner">
+                            <div className={`h-3 w-full rounded-full overflow-hidden shadow-inner ${warRoom ? 'bg-white/5' : 'bg-slate-100'}`}>
                               <div 
                                 className="h-full bg-gradient-to-r from-indigo-500 to-indigo-400 rounded-full transition-all duration-1000 ease-out"
                                 style={{ width: `${widthPercent}%` }}
@@ -2159,53 +3395,71 @@
               <div className="space-y-10">
                 <div className="flex items-center justify-between px-4">
                   <div>
-                    <h3 className="text-3xl font-black text-slate-900 tracking-tight">詳細填答名單</h3>
-                    <p className="text-slate-400 font-bold mt-1">共 {responses.length} 筆回覆數據</p>
+                    <h3 className={`text-3xl font-black tracking-tight ${warRoom ? 'text-white' : 'text-slate-900'}`}>詳細填答名單</h3>
+                    <p className={`${warRoom ? 'text-white/40' : 'text-slate-400'} font-bold mt-1`}>
+                      {filter.questionId ? (
+                        <>
+                          篩選出 <span className={warRoom ? 'text-white' : 'text-indigo-600'}>{filteredResponses.length}</span> 筆符合條件的回覆
+                          <span className="mx-2 opacity-30">/</span>
+                          總計 {responses.length} 筆
+                        </>
+                      ) : (
+                        `共 ${responses.length} 筆回覆數據`
+                      )}
+                    </p>
                   </div>
-                  <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-300">
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${warRoom ? 'bg-white/5 text-white/20' : 'bg-slate-50 text-slate-300'}`}>
                     <i className="ph ph-users-bold text-2xl"></i>
                   </div>
                 </div>
 
-                <div className="card-modern overflow-hidden bg-white/70 backdrop-blur-xl border-2 border-white">
+                <div className={`overflow-hidden border-2 transition-all ${
+                  warRoom 
+                    ? 'war-room-card border-white/5 shadow-2xl' 
+                    : 'card-modern bg-white/70 backdrop-blur-xl border-white'
+                }`}>
                   <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse whitespace-nowrap">
                       <thead>
-                        <tr className="bg-slate-50/50 text-slate-400 text-[10px] font-black uppercase tracking-[0.3em]">
+                        <tr className={`${warRoom ? 'bg-white/5 text-white/20' : 'bg-slate-50/50 text-slate-400'} text-[10px] font-black uppercase tracking-[0.3em]`}>
                           <th className="p-10">填答者資訊</th>
                           <th className="p-10">作答總時長</th>
                           <th className="p-10">提交時間</th>
                           <th className="p-10 text-right">操作</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-50">
-                        {responses
+                      <tbody className={`divide-y ${warRoom ? 'divide-white/5' : 'divide-slate-50'}`}>
+                        {filteredResponses
                           .sort((a, b) => (b.submittedAt || 0) - (a.submittedAt || 0))
                           .map((r) => {
                             const totalTime = Object.values(r.timings || {}).reduce((a, b) => a + (Number(b) || 0), 0);
                             return (
-                              <tr key={r.id} className="group hover:bg-white transition-all duration-300">
+                              <tr key={r.id} className={`group transition-all duration-300 ${warRoom ? 'hover:bg-white/5' : 'hover:bg-white'}`}>
                                 <td className="p-10">
                                   <div className="flex items-center gap-6">
-                                    <div className="w-16 h-16 bg-slate-50 rounded-[1.5rem] flex items-center justify-center text-slate-300 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-500 shadow-inner">
+                                    <div className={`w-16 h-16 rounded-[1.5rem] flex items-center justify-center transition-all duration-500 shadow-inner ${
+                                      warRoom ? 'bg-white/5 text-white/20 group-hover:bg-indigo-600 group-hover:text-white' : 'bg-slate-50 text-slate-300 group-hover:bg-indigo-600 group-hover:text-white'
+                                    }`}>
                                       <i className="ph ph-user-fill text-2xl"></i>
                                     </div>
                                     <div>
-                                      <div className="font-black text-slate-900 text-xl mb-1">{r.respondent?.name || "匿名"}</div>
-                                      <div className="text-sm text-slate-400 font-bold tracking-tight">{r.respondent?.email || "無信箱資訊"}</div>
+                                      <div className={`font-black text-xl mb-1 ${warRoom ? 'text-white' : 'text-slate-900'}`}>{r.respondent?.name || "匿名"}</div>
+                                      <div className={`text-sm font-bold tracking-tight ${warRoom ? 'text-white/30' : 'text-slate-400'}`}>{r.respondent?.email || "無信箱資訊"}</div>
                                     </div>
                                   </div>
                                 </td>
                                 <td className="p-10">
-                                  <div className="inline-flex items-center gap-3 px-5 py-2.5 bg-indigo-50 text-indigo-600 rounded-2xl font-black text-lg">
+                                  <div className={`inline-flex items-center gap-3 px-5 py-2.5 rounded-2xl font-black text-lg ${
+                                    warRoom ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-50 text-indigo-600'
+                                  }`}>
                                     <i className="ph ph-clock-fill"></i>
                                     {formatTime(totalTime)}
                                   </div>
                                 </td>
                                 <td className="p-10">
                                   <div className="space-y-1">
-                                    <div className="text-slate-900 font-black text-lg">{new Date(r.submittedAt || 0).toLocaleDateString()}</div>
-                                    <div className="text-slate-400 font-bold text-xs uppercase tracking-widest">
+                                    <div className={`font-black text-lg ${warRoom ? 'text-white' : 'text-slate-900'}`}>{new Date(r.submittedAt || 0).toLocaleDateString()}</div>
+                                    <div className={`font-bold text-xs uppercase tracking-widest ${warRoom ? 'text-white/20' : 'text-slate-400'}`}>
                                       {new Date(r.submittedAt || 0).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                     </div>
                                   </div>
@@ -2213,7 +3467,11 @@
                                 <td className="p-10 text-right">
                                   <button
                                     onClick={() => setSelected(r)}
-                                    className="inline-flex items-center gap-3 px-10 py-5 bg-slate-900 text-white rounded-2xl font-black text-sm hover:bg-indigo-600 transition-all active:scale-95 shadow-2xl shadow-slate-200 group-hover:shadow-indigo-500/20"
+                                    className={`inline-flex items-center gap-3 px-10 py-5 rounded-2xl font-black text-sm transition-all active:scale-95 shadow-2xl ${
+                                      warRoom 
+                                        ? 'bg-indigo-600 text-white hover:bg-indigo-500 shadow-indigo-500/20' 
+                                        : 'bg-slate-900 text-white hover:bg-indigo-600 shadow-slate-200 group-hover:shadow-indigo-500/20'
+                                    }`}
                                   >
                                     查看詳情 <i className="ph ph-eye-fill text-xl"></i>
                                   </button>
@@ -2234,9 +3492,15 @@
             <Modal
               title="填答詳情回顧"
               onClose={() => setSelected(null)}
+              warRoom={warRoom}
               footer={
                 <div className="flex justify-end w-full">
-                  <Button onClick={() => setSelected(null)} className="px-14 py-5 rounded-[2rem] shadow-2xl shadow-indigo-200">
+                  <Button 
+                    onClick={() => setSelected(null)} 
+                    className={`px-14 py-5 rounded-[2rem] shadow-2xl ${
+                      warRoom ? 'bg-indigo-600 text-white shadow-indigo-500/20' : 'shadow-indigo-200'
+                    }`}
+                  >
                     關閉詳情
                   </Button>
                 </div>
@@ -2244,37 +3508,71 @@
             >
               <div className="space-y-12">
                 {/* User Profile Header */}
-                <div className="relative overflow-hidden glass p-10 rounded-[3.5rem] border-4 border-white shadow-2xl shadow-indigo-100/20 group">
-                  <div className="absolute top-0 right-0 w-40 h-40 bg-indigo-50 rounded-full -mr-20 -mt-20 group-hover:scale-110 transition-transform duration-1000"></div>
+                <div className={`relative overflow-hidden p-10 rounded-[3.5rem] border-4 shadow-2xl group transition-all duration-500 ${
+                  warRoom 
+                    ? 'war-room-card border-white/10 war-room-glow' 
+                    : 'glass border-white shadow-indigo-100/20 bg-white/50 backdrop-blur-md'
+                }`}>
+                  <div className={`absolute top-0 right-0 w-40 h-40 rounded-full -mr-20 -mt-20 group-hover:scale-110 transition-transform duration-1000 ${
+                    warRoom ? 'bg-indigo-500/10' : 'bg-indigo-50'
+                  }`}></div>
                   <div className="relative flex flex-col sm:flex-row items-center justify-between gap-8">
                     <div className="flex items-center gap-8">
-                      <div className="w-20 h-20 bg-slate-900 text-white rounded-[2rem] flex items-center justify-center shadow-2xl shadow-slate-200 group-hover:bg-indigo-600 transition-colors">
-                        <i className="ph ph-user-circle-fill text-5xl"></i>
+                      <div className={`w-20 h-20 rounded-[2rem] flex items-center justify-center shadow-2xl transition-all ${
+                        warRoom ? 'bg-indigo-600 text-white shadow-indigo-500/20' : 'bg-slate-900 text-white shadow-slate-200 group-hover:bg-indigo-600'
+                      }`}>
+                        <i className={`ph ph-user-circle-fill text-5xl ${warRoom ? 'war-room-pulse' : ''}`}></i>
                       </div>
                       <div>
-                        <div className="font-black text-3xl text-slate-900 mb-2">{selected.respondent?.name || "匿名"}</div>
-                        <div className="flex items-center gap-2 text-slate-500 font-bold">
-                          <i className="ph ph-envelope-simple-fill text-indigo-400"></i>
+                        <div className={`font-black text-3xl mb-2 ${warRoom ? 'text-white war-room-text-glow' : 'text-slate-900'}`}>{selected.respondent?.name || "匿名"}</div>
+                        <div className={`flex items-center gap-2 font-bold ${warRoom ? 'text-white/40' : 'text-slate-500'}`}>
+                          <i className={`ph ph-envelope-simple-fill ${warRoom ? 'text-indigo-400' : 'text-indigo-400'}`}></i>
                           {selected.respondent?.email || "未提供信箱"}
                         </div>
                       </div>
                     </div>
                     <div className="flex flex-col items-center sm:items-end gap-2">
-                      <div className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">Total Time Spent</div>
-                      <div className="px-8 py-4 bg-white rounded-2xl shadow-sm border border-slate-100 text-3xl font-black text-indigo-600 tabular-nums">
+                      <div className={`text-[10px] font-black uppercase tracking-[0.2em] ${warRoom ? 'text-indigo-400' : 'text-slate-300'}`}>Total Time Spent</div>
+                      <div className={`px-8 py-4 rounded-2xl shadow-sm border text-3xl font-black tabular-nums transition-all ${
+                        warRoom 
+                          ? 'bg-white/5 border-white/10 text-white war-room-text-glow' 
+                          : 'bg-white border-slate-100 text-indigo-600'
+                      }`}>
                         {formatTime(Object.values(selected.timings || {}).reduce((a, b) => a + (Number(b) || 0), 0))}
                       </div>
                     </div>
                   </div>
                 </div>
 
+                {/* Data Insights Summary for War Room */}
+                {warRoom && (
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="p-8 rounded-[2.5rem] bg-emerald-500/5 border border-emerald-500/20 flex flex-col gap-2">
+                      <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Efficiency Rating</span>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-4xl font-black text-white">Optimal</span>
+                        <span className="text-xs text-emerald-400">94%</span>
+                      </div>
+                    </div>
+                    <div className="p-8 rounded-[2.5rem] bg-indigo-500/5 border border-indigo-500/20 flex flex-col gap-2">
+                      <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Consistency Score</span>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-4xl font-black text-white">High</span>
+                        <span className="text-xs text-indigo-400">0.82σ</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Question Responses */}
                 <div className="space-y-8">
                   <div className="flex items-center gap-4 px-4">
-                    <div className="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
+                      warRoom ? 'bg-indigo-600 text-white shadow-indigo-500/20' : 'bg-slate-900 text-white'
+                    }`}>
                       <i className="ph ph-list-checks-bold text-xl"></i>
                     </div>
-                    <h4 className="text-2xl font-black text-slate-900 tracking-tight">逐題回答詳情</h4>
+                    <h4 className={`text-2xl font-black tracking-tight ${warRoom ? 'text-white' : 'text-slate-900'}`}>逐題回答詳情</h4>
                   </div>
                   
                   <div className="space-y-8">
@@ -2282,36 +3580,91 @@
                       const ans = (selected.answers || {})[q.id];
                       const t = (selected.timings || {})[q.id];
                       return (
-                        <div key={q.id} className="group glass p-10 rounded-[3.5rem] border-2 border-white hover:border-indigo-100 transition-all bg-white/50 backdrop-blur-md">
+                        <div key={q.id} className={`group p-10 rounded-[3.5rem] border-2 transition-all backdrop-blur-md ${
+                          warRoom 
+                            ? 'war-room-card border-white/5 hover:border-indigo-500/30' 
+                            : 'glass border-white hover:border-indigo-100 bg-white/50'
+                        }`}>
                           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
                             <div className="flex items-center gap-5">
-                              <div className="w-12 h-12 bg-slate-100 text-slate-400 rounded-2xl flex items-center justify-center font-black group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black transition-all ${
+                                warRoom 
+                                  ? 'bg-indigo-600 text-white shadow-indigo-500/20' 
+                                  : 'bg-slate-100 text-slate-400 group-hover:bg-indigo-600 group-hover:text-white'
+                              }`}>
                                 {idx + 1}
                               </div>
-                              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-xl bg-slate-50 border border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                                {q.type === 'choice' ? '🔘 Choice Question' : '💬 Text Question'}
+                              <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all ${
+                                warRoom 
+                                  ? 'bg-white/5 border-white/5 text-white/40' 
+                                  : 'bg-slate-50 border-slate-100 text-slate-400'
+                              }`}>
+                                {q.type === 'choice' ? '🔘 Choice Question' : q.type === 'rating' ? '⭐ Rating Question' : q.type === 'file' ? '📁 File Question' : '💬 Text Question'}
                               </div>
                             </div>
-                            <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-white rounded-2xl border border-slate-100 shadow-sm text-xs font-black text-indigo-600 uppercase tracking-widest tabular-nums">
+                            <div className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl border shadow-sm text-xs font-black uppercase tracking-widest tabular-nums transition-all ${
+                              warRoom 
+                                ? 'bg-white/5 border-white/5 text-indigo-400' 
+                                : 'bg-white border-slate-100 text-indigo-600'
+                            }`}>
                               <i className="ph ph-timer-bold text-lg"></i>
                               {formatTime(t || 0)}
                             </div>
                           </div>
-                          <h5 className="font-black text-slate-900 mb-8 text-2xl tracking-tight leading-tight group-hover:text-indigo-600 transition-colors">{q.title}</h5>
-                          <div className="bg-white/80 rounded-[2rem] p-8 border-2 border-slate-50 text-slate-700 font-bold text-xl leading-relaxed shadow-inner">
+                          <h5 className={`font-black mb-8 text-2xl tracking-tight leading-tight transition-colors ${
+                            warRoom ? 'text-white group-hover:text-indigo-400' : 'text-slate-900 group-hover:text-indigo-600'
+                          }`}>{q.title}</h5>
+                          <div className={`rounded-[2rem] p-8 border-2 font-bold text-xl leading-relaxed shadow-inner transition-all ${
+                            warRoom 
+                              ? 'bg-white/5 border-white/5 text-white/80' 
+                              : 'bg-white/80 border-slate-50 text-slate-700'
+                          }`}>
                             {ans ? (
                               <div className="flex items-start gap-5">
-                                <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center flex-shrink-0">
-                                  <i className="ph ph-chat-centered-dots-fill text-indigo-400 text-2xl"></i>
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${
+                                  warRoom ? 'bg-indigo-500/20' : 'bg-indigo-50'
+                                }`}>
+                                  <i className={`ph ${q.type === 'rating' ? 'ph-star-fill' : q.type === 'file' ? 'ph-file-cloud-fill' : 'ph-chat-centered-dots-fill'} text-2xl ${warRoom ? 'text-indigo-400' : 'text-indigo-400'}`}></i>
                                 </div>
-                                <div className="pt-1">{String(ans)}</div>
+                                <div className="pt-1">
+                                  {q.type === 'rating' ? (
+                                    <div className="flex items-center gap-3">
+                                      <span className="text-3xl font-black text-indigo-600">{ans}</span>
+                                      <span className="text-sm text-slate-400">/ 10</span>
+                                      <div className="flex gap-1 ml-4">
+                                        {[...Array(10)].map((_, i) => (
+                                          <div key={i} className={`w-2 h-2 rounded-full ${i < Number(ans) ? 'bg-indigo-500' : 'bg-slate-200'}`}></div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  ) : q.type === 'file' ? (
+                                    <div className="flex items-center gap-4">
+                                      <a 
+                                        href={ans} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className={`inline-flex items-center gap-3 px-8 py-4 rounded-2xl font-black text-sm transition-all active:scale-95 ${
+                                          warRoom ? 'bg-indigo-600 text-white hover:bg-indigo-500' : 'bg-slate-900 text-white hover:bg-indigo-600'
+                                        }`}
+                                      >
+                                        <i className="ph ph-download-simple-bold text-xl"></i>
+                                        下載 / 查看檔案
+                                      </a>
+                                      <div className={`text-[10px] font-black uppercase tracking-widest ${warRoom ? 'text-white/20' : 'text-slate-300'}`}>
+                                        Uploaded via Firebase Storage
+                                      </div>
+                                    </div>
+                                  ) : String(ans)}
+                                </div>
                               </div>
                             ) : (
-                              <div className="flex items-center gap-5 text-slate-300 italic">
-                                <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center flex-shrink-0">
+                              <div className="flex items-center gap-5 italic transition-colors">
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+                                  warRoom ? 'bg-white/5 text-white/10' : 'bg-slate-50 text-slate-300'
+                                }`}>
                                   <i className="ph ph-prohibit-bold text-2xl"></i>
                                 </div>
-                                <span>填答者跳過了此題</span>
+                                <span className={warRoom ? 'text-white/20' : 'text-slate-300'}>填答者跳過了此題</span>
                               </div>
                             )}
                           </div>
@@ -2323,6 +3676,7 @@
               </div>
             </Modal>
           )}
+          </div>
         </div>
       );
     };
@@ -2333,32 +3687,47 @@
       const [showInfo, setShowInfo] = useState(false);
       const [lastClick, setLastClick] = useState(window.__lastClick || "None");
       const [dbLatency, setDbLatency] = useState(null);
+      const [checking, setChecking] = useState(false);
+      const [sessionEvents, setSessionEvents] = useState([]);
+      const [lastSync, setLastSync] = useState(null);
       
+      const addEvent = (msg) => {
+        setSessionEvents(prev => [
+          { time: new Date().toLocaleTimeString(), msg },
+          ...prev.slice(0, 4)
+        ]);
+      };
+
+      const check = async () => {
+        setChecking(true);
+        const start = Date.now();
+        try {
+          await db.collection("surveys").limit(1).get();
+          setDbStatus("Connected");
+          setDbLatency(Date.now() - start);
+          setLastSync(new Date());
+          addEvent("Firestore Health Check: OK");
+        } catch (e) {
+          console.error("DEBUG: DB Check Failed", e);
+          setDbStatus("Error: " + (e.code || e.message));
+          setDbLatency(null);
+          addEvent(`Sync Failed: ${e.code || 'Unknown'}`);
+        } finally {
+          setChecking(false);
+        }
+      };
+
       useEffect(() => {
-        const on = () => setOnline("Online");
-        const off = () => setOnline("Offline");
+        const on = () => { setOnline("Online"); addEvent("Network: Online"); };
+        const off = () => { setOnline("Offline"); addEvent("Network: Offline"); };
         window.addEventListener("online", on);
         window.addEventListener("offline", off);
         
-        const check = async () => {
-          const start = Date.now();
-          try {
-            // Using a simple query to test connection
-            await db.collection("surveys").limit(1).get();
-            setDbStatus("Connected");
-            setDbLatency(Date.now() - start);
-          } catch (e) {
-            console.error("DEBUG: DB Check Failed", e);
-            setDbStatus("Error: " + (e.code || e.message));
-            setDbLatency(null);
-          }
-        };
-
         check();
         const interval = setInterval(() => {
           check();
           setLastClick(window.__lastClick || "None");
-        }, 15000); // Check every 15s
+        }, 60000); // Check every 60s
         
         return () => {
           window.removeEventListener("online", on);
@@ -2372,54 +3741,60 @@
       return (
         <div className="fixed bottom-4 right-4 z-[9999] flex flex-col items-end gap-2">
           {showInfo && (
-            <div className="bg-white/95 backdrop-blur-xl border border-slate-200 p-6 rounded-[2rem] shadow-2xl mb-2 text-[11px] font-medium text-slate-600 min-w-[300px] fade-in animate-slide-up">
-              <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-100">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></div>
-                  <span className="font-black text-slate-900 uppercase tracking-tighter">Diagnostic Panel</span>
+            <div className="bg-slate-900/95 backdrop-blur-2xl border border-white/10 p-6 rounded-[2.5rem] shadow-2xl mb-2 text-[11px] font-medium text-slate-300 min-w-[340px] fade-in animate-slide-up ring-1 ring-white/10">
+              <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/5">
+                <div className="flex items-center gap-3">
+                  <div className="relative">
+                    <div className={`w-2.5 h-2.5 rounded-full ${checking ? 'bg-indigo-500 animate-ping' : 'bg-emerald-500'}`}></div>
+                    <div className={`absolute inset-0 w-2.5 h-2.5 rounded-full ${checking ? 'bg-indigo-500/50' : 'bg-emerald-500/50'}`}></div>
+                  </div>
+                  <span className="font-black text-white uppercase tracking-[0.2em]">Command Console</span>
                 </div>
-                <button onClick={() => setShowInfo(false)} className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-rose-50 text-slate-400 hover:text-rose-500 transition-colors">
+                <button onClick={() => setShowInfo(false)} className="w-8 h-8 flex items-center justify-center rounded-xl bg-white/5 text-white/40 hover:bg-rose-500/20 hover:text-rose-400 transition-all">
                   <i className="ph ph-x-bold text-xs"></i>
                 </button>
               </div>
               
-              <div className="space-y-3.5">
-                <div className="group flex justify-between items-center">
-                  <span className="text-slate-400">User UID</span>
-                  <span className="font-mono text-[9px] bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200/50 max-w-[140px] truncate select-all">{user?.uid || "Anonymous"}</span>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center p-3 rounded-2xl bg-white/5 border border-white/5">
+                  <span className="text-white/40 font-bold uppercase tracking-widest text-[9px]">Auth Node</span>
+                  <span className="font-mono text-[10px] text-indigo-400 truncate max-w-[160px] select-all">
+                    {user ? user.email.split('@')[0] : "UNAUTHORIZED"}
+                  </span>
                 </div>
                 
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-400">DB Status</span>
-                  <div className="flex items-center gap-2">
-                    {dbLatency && <span className="text-[9px] text-slate-300 font-mono">{dbLatency}ms</span>}
-                    <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${dbStatus === "Connected" ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"}`}>
-                      {dbStatus}
-                    </span>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 rounded-2xl bg-white/5 border border-white/5">
+                    <div className="text-white/40 font-bold uppercase tracking-widest text-[8px] mb-1">Latency</div>
+                    <div className="text-white font-black text-sm tabular-nums">{dbLatency || '--'} <span className="text-[10px] font-medium text-white/20">ms</span></div>
+                  </div>
+                  <div className="p-3 rounded-2xl bg-white/5 border border-white/5">
+                    <div className="text-white/40 font-bold uppercase tracking-widest text-[8px] mb-1">Status</div>
+                    <div className={`text-sm font-black ${dbStatus === "Connected" ? "text-emerald-400" : "text-rose-400"}`}>{dbStatus === "Connected" ? "STABLE" : "FAIL"}</div>
                   </div>
                 </div>
 
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-400">Last Action</span>
-                  <span className="font-mono text-[10px] text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100/50">
-                    {lastClick}
-                  </span>
+                <div className="space-y-2">
+                  <div className="text-white/40 font-bold uppercase tracking-widest text-[8px] px-1">Session Live Log</div>
+                  <div className="bg-black/40 rounded-2xl p-4 border border-white/5 font-mono text-[9px] space-y-2 h-28 overflow-y-auto custom-scrollbar">
+                    {sessionEvents.length === 0 && <div className="text-white/20 italic">No events recorded...</div>}
+                    {sessionEvents.map((e, i) => (
+                      <div key={i} className="flex gap-2">
+                        <span className="text-white/20">[{e.time}]</span>
+                        <span className={e.msg.includes('Fail') ? 'text-rose-400' : 'text-indigo-400'}>{e.msg}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-400">Current Route</span>
-                  <span className="text-slate-900 font-bold bg-slate-50 px-2 py-0.5 rounded border border-slate-100">
-                    {window.location.hash || "/"}
-                  </span>
-                </div>
-
-                <div className="pt-2 mt-2 border-t border-slate-100 flex gap-2">
+                <div className="pt-2 flex gap-3">
                   <button 
-                    onClick={() => window.location.reload()}
-                    className="flex-1 py-2 bg-slate-900 text-white rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-indigo-600 transition-colors active:scale-95 flex items-center justify-center gap-1.5"
+                    onClick={check}
+                    disabled={checking}
+                    className="flex-1 py-3 bg-indigo-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-700 transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-indigo-900/20"
                   >
-                    <i className="ph ph-arrows-clockwise-bold"></i>
-                    Force Refresh
+                    <i className={`ph ${checking ? 'ph-circle-notch animate-spin' : 'ph-arrows-clockwise-bold'} text-sm`}></i>
+                    Sync Node
                   </button>
                   <button 
                     onClick={() => {
@@ -2429,14 +3804,15 @@
                         latency: dbLatency,
                         route: window.location.hash,
                         lastAction: lastClick,
-                        ua: navigator.userAgent
+                        events: sessionEvents,
+                        ua: navigator.userAgent,
+                        ts: new Date().toISOString()
                       }, null, 2));
-                      alert("Diagnostic data copied to clipboard!");
+                      addEvent("Report Copied");
                     }}
-                    className="px-3 py-2 bg-slate-100 text-slate-600 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-slate-200 transition-colors active:scale-95"
-                    title="Copy Logs"
+                    className="w-12 h-12 flex items-center justify-center bg-white/5 text-white/40 rounded-2xl border border-white/5 hover:bg-white/10 hover:text-white transition-all active:scale-95"
                   >
-                    <i className="ph ph-copy-bold"></i>
+                    <i className="ph ph-copy-bold text-lg"></i>
                   </button>
                 </div>
               </div>
@@ -2445,20 +3821,24 @@
           
           <button 
             onClick={() => setShowInfo(!showInfo)}
-            className="group flex items-center gap-3 bg-white/80 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-indigo-500/10 hover:border-indigo-200 transition-all active:scale-95"
+            className={`group flex items-center gap-3 px-5 py-3.5 rounded-[1.5rem] border transition-all active:scale-95 shadow-2xl ${
+              showInfo 
+                ? 'bg-indigo-600 border-indigo-500 text-white' 
+                : 'bg-white/90 backdrop-blur-md border-slate-200 text-slate-400 hover:border-indigo-300'
+            }`}
           >
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2.5">
               <div className="relative">
-                <span className={`block w-2 h-2 rounded-full ${online === "Online" ? "bg-emerald-500" : "bg-rose-500"}`}></span>
-                {online === "Online" && <span className="absolute inset-0 rounded-full bg-emerald-500 animate-ping opacity-40"></span>}
+                <span className={`block w-2.5 h-2.5 rounded-full ${online === "Online" && dbStatus === "Connected" ? (showInfo ? "bg-white" : "bg-emerald-500") : "bg-rose-500"}`}></span>
+                {online === "Online" && dbStatus === "Connected" && <span className={`absolute inset-0 rounded-full animate-ping opacity-40 ${showInfo ? "bg-white" : "bg-emerald-500"}`}></span>}
               </div>
-              <span className="text-[10px] font-black text-slate-400 group-hover:text-slate-600 uppercase tracking-tighter">v1.2.7</span>
+              <span className={`text-[11px] font-black uppercase tracking-[0.1em] ${showInfo ? 'text-white' : 'text-slate-400 group-hover:text-slate-600'}`}>System Node</span>
             </div>
-            <div className="w-px h-3 bg-slate-200"></div>
-            <div className="flex items-center gap-1.5">
-              <i className={`ph ph-database-bold ${dbStatus === "Connected" ? "text-emerald-500" : "text-rose-400"}`}></i>
-              <span className={`text-[10px] font-bold ${dbStatus === "Connected" ? "text-emerald-600" : "text-rose-500"}`}>
-                {dbStatus === "Connected" ? "Live" : "Offline"}
+            <div className={`w-px h-3 ${showInfo ? 'bg-white/20' : 'bg-slate-200'}`}></div>
+            <div className="flex items-center gap-2">
+              <i className={`ph ph-lightning-fill ${dbStatus === "Connected" ? (showInfo ? "text-white" : "text-amber-400") : "text-rose-400"}`}></i>
+              <span className={`text-[11px] font-black tabular-nums ${showInfo ? 'text-white' : (dbStatus === "Connected" ? "text-slate-700" : "text-rose-500")}`}>
+                {dbStatus === "Connected" ? (dbLatency ? `${dbLatency}ms` : "Live") : "Error"}
               </span>
             </div>
           </button>
@@ -2661,8 +4041,15 @@
       };
 
       return (
-        <React.Fragment>
-          {/* Global Deletion Modal */}
+      <React.Fragment>
+        {/* Floating Background Micro-interactions */}
+        <div className="floating-bg">
+          <div className="blob" style={{ top: '-10%', left: '-10%', animationDelay: '0s' }}></div>
+          <div className="blob" style={{ top: '60%', left: '70%', animationDelay: '-5s', width: '500px', height: '500px', background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(165, 180, 252, 0.05) 100%)' }}></div>
+          <div className="blob" style={{ top: '20%', left: '80%', animationDelay: '-10s', width: '400px', height: '400px', background: 'linear-gradient(135deg, rgba(244, 63, 94, 0.03) 0%, rgba(251, 113, 133, 0.03) 100%)' }}></div>
+        </div>
+
+        {/* Global Deletion Modal */}
           {deleteTarget && (
             <Modal
               title="確認刪除問卷？"

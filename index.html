@@ -1985,8 +1985,9 @@
 
       const recordTimingForStep = () => {
         if (!survey) return;
-        if (step < 0 || step >= survey.questions.length) return;
-        const qId = survey.questions[step].id;
+        if (step < 0 || step >= (survey?.questions?.length || 0)) return;
+        const qId = survey?.questions?.[step]?.id;
+        if (!qId) return;
         const elapsed = Math.max(0, (safeNow() - (startAtRef.current || safeNow())) / 1000);
         setTimings(prev => ({ ...prev, [qId]: (prev[qId] || 0) + elapsed }));
       };
@@ -2002,7 +2003,8 @@
       };
 
       const nextQuestion = () => {
-        const q = survey.questions[step];
+        const q = survey?.questions?.[step];
+        if (!q) return;
         const val = answers[q.id];
         const file = localFiles[q.id];
         if (!val && !file) {
@@ -2022,7 +2024,8 @@
       };
 
       const submit = async () => {
-        const q = survey.questions[step];
+        const q = survey?.questions?.[step];
+        if (!q) return;
         const val = answers[q.id];
         const file = localFiles[q.id];
         if (!val && !file) return setToast({ message: "最後一題也別忘了填寫喔！✨", type: "error" });
@@ -2118,7 +2121,7 @@
             }, 250);
           }
 
-          setStep(survey.questions.length); // success
+          setStep(survey?.questions?.length || 0); // success
         } catch (err) {
           setToast({ message: "提交失敗：" + (err && err.message ? err.message : String(err)), type: "error" });
         } finally {
@@ -2277,7 +2280,7 @@
                 <p className="text-slate-500 whitespace-pre-wrap text-lg font-medium">{survey.description}</p>
               </div>
 
-              {survey.questions.map((q, idx) => (
+              {(survey?.questions || []).map((q, idx) => (
                 <div key={q.id} className="bg-white rounded-[2.5rem] p-10 shadow-lg border-2 border-slate-100 relative overflow-hidden group hover:shadow-xl transition-all">
                   <div className="absolute top-0 left-0 w-2 h-full bg-slate-200 group-hover:bg-indigo-500 transition-colors"></div>
                   <div className="flex items-start gap-6">
@@ -2414,10 +2417,13 @@
         );
       }
 
-      const q = survey.questions[step];
-      const isLast = step === survey.questions.length - 1;
-      const progress = Math.round(((step) / survey.questions.length) * 100);
-      const nextProgress = Math.round(((step + 1) / survey.questions.length) * 100);
+      const q = survey?.questions?.[step];
+      if (!q && step !== (survey?.questions?.length || 0)) return null; 
+      
+      const qLen = survey?.questions?.length || 1;
+      const isLast = step === qLen - 1;
+      const progress = Math.round(((step) / qLen) * 100);
+      const nextProgress = Math.round(((step + 1) / qLen) * 100);
 
       return (
         <div className={`min-h-screen flex flex-col items-center justify-center p-6 transition-all duration-1000 relative overflow-hidden ${focusMode ? 'bg-slate-950' : 'bg-slate-50'}`}>
@@ -2468,7 +2474,7 @@
           <div className={`fixed top-10 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-4 px-6 py-3 rounded-full border transition-all duration-500 ${focusMode ? 'bg-white/5 border-white/10 text-white backdrop-blur-xl' : 'bg-white/80 border-white text-slate-900 shadow-xl shadow-indigo-500/5 backdrop-blur-xl'}`}>
             <span className={`text-[10px] font-black uppercase tracking-[0.3em] ${focusMode ? 'text-indigo-400' : 'text-indigo-600'}`}>Progress</span>
             <div className="flex items-center gap-1.5">
-              {survey.questions.map((_, idx) => (
+              {(survey?.questions || []).map((_, idx) => (
                 <div 
                   key={idx}
                   className={`w-2 h-2 rounded-full transition-all duration-500 ${
@@ -2505,7 +2511,7 @@
                 <div className={`px-6 py-2.5 rounded-2xl text-xs font-black tracking-[0.2em] transition-all duration-500 ${
                   focusMode ? 'bg-indigo-500/20 text-indigo-300' : 'bg-slate-900 text-white'
                 }`}>
-                  QUESTION {step + 1} OF {survey.questions.length}
+                  QUESTION {step + 1} OF {survey?.questions?.length || 0}
                 </div>
                 <div className={`font-black italic text-4xl transition-all duration-500 ${
                   focusMode ? 'text-white/5' : 'text-slate-300'
@@ -2623,11 +2629,14 @@
                     {localFiles[q.id] && (
                       <button 
                         onClick={() => {
+                          if (isPreview) return;
                           const newFiles = { ...localFiles };
                           delete newFiles[q.id];
                           setLocalFiles(newFiles);
                         }}
                         className={`w-full py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${
+                          isPreview ? 'opacity-50 cursor-not-allowed' : ''
+                        } ${
                           focusMode ? 'bg-rose-500/10 text-rose-400 hover:bg-rose-500/20' : 'bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white'
                         }`}
                       >
@@ -2729,7 +2738,6 @@
       console.log("Analytics component mounting with:", { surveyId, userId: user?.uid, publicToken });
       const [survey, setSurvey] = useState(null);
       const [responses, setResponses] = useState([]);
-      const [stats, setStats] = useState(null);
       const [loading, setLoading] = useState(true);
       const [error, setError] = useState(null);
       const [selected, setSelected] = useState(null);
@@ -2799,109 +2807,29 @@
             }
 
             unsubscribeResponses = q.onSnapshot(snap => {
+              try {
                 console.log("ANALYTICS: responses updated, count:", snap.size);
                 const rData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 if (!cancelled) {
                   setResponses(rData);
                   setPulse(true);
                   setTimeout(() => setPulse(false), 1000);
-                  
-                  if (rData.length > 0) {
-                    let totalTime = 0;
-                    const qTimings = {};
-                    const qRatings = {};
-                    const geoCounts = {};
-                    const sentimentStats = { positive: 0, neutral: 0, negative: 0 };
-                    const timeHeatmap = {}; // "day-hour": count
-
-                    rData.forEach(r => {
-                      let rTotal = 0;
-                      // Time stats
-                      Object.entries(r.timings || {}).forEach(([qid, time]) => {
-                        const t = Number(time) || 0;
-                        rTotal += t;
-                        if (!qTimings[qid]) qTimings[qid] = { sum: 0, count: 0 };
-                        qTimings[qid].sum += t;
-                        qTimings[qid].count += 1;
-                      });
-
-                      // Geo stats
-                      if (r.geo && r.geo.city && r.geo.city !== '未知') {
-                        const city = r.geo.city;
-                        geoCounts[city] = (geoCounts[city] || 0) + 1;
-                      } else if (r.geo && r.geo.region && r.geo.region !== '未知') {
-                        const region = r.geo.region;
-                        geoCounts[region] = (geoCounts[region] || 0) + 1;
-                      }
-
-                      // Heatmap stats
-                      if (r.submittedAt) {
-                        const date = new Date(r.submittedAt);
-                        const day = date.getDay(); // 0-6 (Sun-Sat)
-                        const hour = date.getHours(); // 0-23
-                        const key = `${day}-${hour}`;
-                        timeHeatmap[key] = (timeHeatmap[key] || 0) + 1;
-                      }
-
-                      // Rating & Sentiment stats
-                      Object.entries(r.answers || {}).forEach(([qid, ans]) => {
-                        const question = sData.questions.find(q => q.id === qid);
-                        if (question) {
-                          if (question.type === 'rating') {
-                            const score = Number(ans) || 0;
-                            if (score > 0) {
-                              if (!qRatings[qid]) qRatings[qid] = { sum: 0, count: 0 };
-                              qRatings[qid].sum += score;
-                              qRatings[qid].count += 1;
-                              
-                              // Use rating for sentiment too
-                              if (score >= sentimentConfig.posThreshold) sentimentStats.positive++;
-                              else if (score <= sentimentConfig.negThreshold) sentimentStats.negative++;
-                              else sentimentStats.neutral++;
-                            }
-                          } else if (question.type === 'text' && typeof ans === 'string') {
-                            const text = ans.toLowerCase();
-                            let score = 0;
-                            sentimentConfig.posWords.forEach(w => { if (text.includes(w.toLowerCase())) score++; });
-                            sentimentConfig.negWords.forEach(w => { if (text.includes(w.toLowerCase())) score--; });
-                            
-                            if (score > 0) sentimentStats.positive++;
-                            else if (score < 0) sentimentStats.negative++;
-                            else sentimentStats.neutral++;
-                          }
-                        }
-                      });
-                      totalTime += rTotal;
-                    });
-
-                    // Sort geo stats
-                    const sortedGeo = Object.entries(geoCounts)
-                      .sort((a, b) => b[1] - a[1])
-                      .slice(0, 5);
-
-                    setStats({
-                      totalCount: rData.length,
-                      avgCompletionTime: totalTime / rData.length,
-                      questionStats: qTimings,
-                      ratingStats: qRatings,
-                      geoStats: sortedGeo,
-                      sentiment: sentimentStats,
-                      heatmap: timeHeatmap
-                    });
-                  } else {
-                    setStats({ totalCount: 0, avgCompletionTime: 0, questionStats: {}, ratingStats: {}, geoStats: [], sentiment: { positive: 0, neutral: 0, negative: 0 }, heatmap: {} });
-                  }
+                  setLoading(false);
                 }
-              }, err => {
-                console.error("ANALYTICS: responses snapshot error:", err);
-                if (!cancelled) setError("獲取回覆數據失敗：" + err.message);
-              });
+              } catch (innerErr) {
+                console.error("ANALYTICS: Error processing responses snapshot:", innerErr);
+                if (!cancelled) setError("處理數據時發生錯誤：" + innerErr.message);
+              }
+            }, err => {
+              console.error("ANALYTICS: responses snapshot error:", err);
+              if (!cancelled) setError("獲取回覆數據失敗：" + err.message);
+              setLoading(false);
+            });
 
           } catch (err) {
             console.error("ANALYTICS: init error", err);
             if (!cancelled) setError(err.message);
-          } finally {
-            if (!cancelled) setLoading(false);
+            setLoading(false);
           }
         };
 
@@ -2912,7 +2840,7 @@
           unsubscribeSurvey();
           unsubscribeResponses();
         };
-      }, [surveyId, user?.uid, publicToken, sentimentConfig]);
+      }, [surveyId, user?.uid, publicToken]); // Removed sentimentConfig dependency as it's not needed for fetching
 
       const formatTime = (seconds) => {
         const s = Number(seconds) || 0;
@@ -2920,50 +2848,107 @@
         return `${Math.floor(s / 60)}m ${(s % 60).toFixed(0)}s`;
       };
 
-      const filteredResponses = responses.filter(r => {
-        if (filters.length === 0) return true;
-        return filters.every(f => {
-          const ans = r.answers?.[f.questionId];
-          if (ans === undefined || ans === null) return false;
+      const filteredResponses = useMemo(() => {
+        return responses.filter(r => {
+          if (filters.length === 0) return true;
+          return filters.every(f => {
+            const ans = r.answers?.[f.questionId];
+            if (ans === undefined || ans === null) return false;
 
-          if (f.operator === 'equals') return String(ans) === String(f.value);
-          if (f.operator === 'gt') return Number(ans) > Number(f.value);
-          if (f.operator === 'lt') return Number(ans) < Number(f.value);
-          return true;
+            if (f.operator === 'equals') return String(ans) === String(f.value);
+            if (f.operator === 'gt') return Number(ans) > Number(f.value);
+            if (f.operator === 'lt') return Number(ans) < Number(f.value);
+            return true;
+          });
         });
-      });
+      }, [responses, filters]);
 
-      const filteredStats = React.useMemo(() => {
-        if (!survey) return null;
+      const stats = useMemo(() => {
+        if (!survey || !filteredResponses) return null;
         
-        const qStats = {};
-        const rStats = {};
-        
-        survey.questions.forEach(q => {
-          qStats[q.id] = { sum: 0, count: 0 };
-          if (q.type === 'rating') {
-            rStats[q.id] = { sum: 0, count: 0 };
+        const rData = filteredResponses;
+        let totalTime = 0;
+        const qTimings = {};
+        const qRatings = {};
+        const geoCounts = {};
+        const sentimentStats = { positive: 0, neutral: 0, negative: 0 };
+        const timeHeatmap = {}; // "day-hour": count
+
+        rData.forEach(r => {
+          let rTotal = 0;
+          // Time stats
+          Object.entries(r.timings || {}).forEach(([qid, time]) => {
+            const t = Number(time) || 0;
+            rTotal += t;
+            if (!qTimings[qid]) qTimings[qid] = { sum: 0, count: 0 };
+            qTimings[qid].sum += t;
+            qTimings[qid].count += 1;
+          });
+
+          // Geo stats
+          if (r.geo && r.geo.city && r.geo.city !== '未知') {
+            const city = r.geo.city;
+            geoCounts[city] = (geoCounts[city] || 0) + 1;
+          } else if (r.geo && r.geo.region && r.geo.region !== '未知') {
+            const region = r.geo.region;
+            geoCounts[region] = (geoCounts[region] || 0) + 1;
           }
-        });
 
-        filteredResponses.forEach(r => {
-          survey.questions.forEach(q => {
-            const time = Number(r.timings?.[q.id]) || 0;
-            qStats[q.id].sum += time;
-            qStats[q.id].count += 1;
+          // Heatmap stats
+          if (r.submittedAt) {
+            const date = new Date(r.submittedAt);
+            const day = date.getDay(); // 0-6 (Sun-Sat)
+            const hour = date.getHours(); // 0-23
+            const key = `${day}-${hour}`;
+            timeHeatmap[key] = (timeHeatmap[key] || 0) + 1;
+          }
 
-            if (q.type === 'rating') {
-              const val = Number(r.answers?.[q.id]);
-              if (!isNaN(val)) {
-                rStats[q.id].sum += val;
-                rStats[q.id].count += 1;
+          // Rating & Sentiment stats
+          Object.entries(r.answers || {}).forEach(([qid, ans]) => {
+            const question = (survey?.questions || []).find(q => q.id === qid);
+            if (question) {
+              if (question.type === 'rating') {
+                const score = Number(ans) || 0;
+                if (score > 0) {
+                  if (!qRatings[qid]) qRatings[qid] = { sum: 0, count: 0 };
+                  qRatings[qid].sum += score;
+                  qRatings[qid].count += 1;
+                  
+                  // Use rating for sentiment too
+                  if (score >= sentimentConfig.posThreshold) sentimentStats.positive++;
+                  else if (score <= sentimentConfig.negThreshold) sentimentStats.negative++;
+                  else sentimentStats.neutral++;
+                }
+              } else if (question.type === 'text' && typeof ans === 'string') {
+                const text = ans.toLowerCase();
+                let score = 0;
+                sentimentConfig.posWords.forEach(w => { if (text.includes(w.toLowerCase())) score++; });
+                sentimentConfig.negWords.forEach(w => { if (text.includes(w.toLowerCase())) score--; });
+                
+                if (score > 0) sentimentStats.positive++;
+                else if (score < 0) sentimentStats.negative++;
+                else sentimentStats.neutral++;
               }
             }
           });
+          totalTime += rTotal;
         });
 
-        return { questionStats: qStats, ratingStats: rStats };
-      }, [filteredResponses, survey]);
+        // Sort geo stats
+        const sortedGeo = Object.entries(geoCounts)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 5);
+
+        return {
+          totalCount: rData.length,
+          avgCompletionTime: rData.length > 0 ? totalTime / rData.length : 0,
+          questionStats: qTimings,
+          ratingStats: qRatings,
+          geoStats: sortedGeo,
+          sentiment: sentimentStats,
+          heatmap: timeHeatmap
+        };
+      }, [filteredResponses, survey, sentimentConfig]);
 
       const downloadCSV = () => {
         try {
@@ -2971,7 +2956,7 @@
           
           // CSV Headers
           const headers = ["回覆時間", "填答者姓名", "填答者 Email"];
-          survey.questions.forEach((q, idx) => {
+          (survey?.questions || []).forEach((q, idx) => {
             headers.push(`Q${idx + 1}: ${q.title}`);
             headers.push(`Q${idx + 1} 耗時(秒)`);
           });
@@ -2985,7 +2970,7 @@
               r.respondent?.email || ""
             ];
             
-            survey.questions.forEach(q => {
+            (survey?.questions || []).forEach(q => {
               row.push(r.answers?.[q.id] || "");
               row.push(r.timings?.[q.id] || 0);
             });
@@ -3090,19 +3075,19 @@
               </div>
               <div className="flex-1 max-w-2xl mx-12 overflow-hidden relative">
                 <div className="flex items-center gap-12 animate-marquee whitespace-nowrap">
-                  {responses.slice(-5).reverse().map((r, i) => (
+                  {(responses || []).slice(-5).reverse().map((r, i) => (
                     <div key={i} className="flex items-center gap-3 text-[11px] font-bold text-white/40 uppercase">
                       <span className="text-indigo-400">●</span>
-                      <span>INCOMING: {r.respondent?.name || "ANONYMOUS"}</span>
-                      <span className="text-[10px] opacity-50">[{new Date(r.submittedAt).toLocaleTimeString()}]</span>
+                      <span>INCOMING: {r?.respondent?.name || "ANONYMOUS"}</span>
+                      <span className="text-[10px] opacity-50">[{r?.submittedAt ? new Date(r.submittedAt).toLocaleTimeString() : 'N/A'}]</span>
                     </div>
                   ))}
                   {/* Duplicate for seamless loop */}
-                  {responses.slice(-5).reverse().map((r, i) => (
+                  {(responses || []).slice(-5).reverse().map((r, i) => (
                     <div key={i+'d'} className="flex items-center gap-3 text-[11px] font-bold text-white/40 uppercase">
                       <span className="text-indigo-400">●</span>
-                      <span>INCOMING: {r.respondent?.name || "ANONYMOUS"}</span>
-                      <span className="text-[10px] opacity-50">[{new Date(r.submittedAt).toLocaleTimeString()}]</span>
+                      <span>INCOMING: {r?.respondent?.name || "ANONYMOUS"}</span>
+                      <span className="text-[10px] opacity-50">[{r?.submittedAt ? new Date(r.submittedAt).toLocaleTimeString() : 'N/A'}]</span>
                     </div>
                   ))}
                 </div>
@@ -3330,12 +3315,12 @@
                     </label>
                     <button 
                       onClick={() => {
-                        const firstQ = survey.questions.find(q => q.type !== 'text');
+                        const firstQ = (survey?.questions || []).find(q => q.type !== 'text');
                         if (firstQ) {
                           setFilters([...filters, {
                             id: Math.random().toString(36).substr(2, 9),
                             questionId: firstQ.id,
-                            value: firstQ.type === 'choice' ? firstQ.options[0] : (firstQ.type === 'rating' ? 5 : ""),
+                            value: firstQ.type === 'choice' ? (firstQ.options?.[0] || "") : (firstQ.type === 'rating' ? 5 : ""),
                             operator: firstQ.type === 'rating' ? 'gt' : 'equals'
                           }]);
                         }
@@ -3361,18 +3346,19 @@
                             value={f.questionId}
                             onChange={e => {
                               const qid = e.target.value;
-                              const q = survey.questions.find(x => x.id === qid);
+                              const q = (survey?.questions || []).find(x => x.id === qid);
+                              if (!q) return;
                               const newFilters = [...filters];
                               newFilters[idx] = {
                                 ...f,
                                 questionId: qid,
-                                value: q.type === 'choice' ? q.options[0] : (q.type === 'rating' ? 5 : ""),
+                                value: q.type === 'choice' ? (q.options?.[0] || "") : (q.type === 'rating' ? 5 : ""),
                                 operator: q.type === 'rating' ? 'gt' : 'equals'
                               };
                               setFilters(newFilters);
                             }}
                           >
-                            {survey?.questions.filter(q => q.type !== 'text').map(q => (
+                            {(survey?.questions || []).filter(q => q.type !== 'text').map(q => (
                               <option key={q.id} value={q.id}>
                                 {q.type === 'choice' ? '🔘' : '⭐'} {q.title}
                               </option>
@@ -3382,69 +3368,81 @@
                         </div>
 
                         <div className="sm:col-span-3 relative">
-                          {survey?.questions.find(q => q.id === f.questionId)?.type === 'rating' ? (
-                            <>
-                              <select 
-                                className={`w-full appearance-none rounded-2xl px-6 py-4 text-sm font-black transition-all border-2 cursor-pointer ${
-                                  warRoom ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-slate-100 text-slate-700'
-                                }`}
-                                value={f.operator}
-                                onChange={e => {
-                                  const newFilters = [...filters];
-                                  newFilters[idx] = { ...f, operator: e.target.value };
-                                  setFilters(newFilters);
-                                }}
-                              >
-                                <option value="gt">大於</option>
-                                <option value="lt">小於</option>
-                                <option value="equals">等於</option>
-                              </select>
-                              <i className="ph ph-caret-down-bold absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
-                            </>
-                          ) : (
-                            <div className={`w-full rounded-2xl px-6 py-4 text-sm font-black border-2 text-center opacity-50 ${
-                              warRoom ? 'bg-white/5 border-white/10 text-white' : 'bg-slate-50 border-slate-100 text-slate-400'
-                            }`}>
-                              等於
-                            </div>
-                          )}
+                          {(() => {
+                            const q = (survey?.questions || []).find(x => x.id === f.questionId);
+                            if (q?.type === 'rating') {
+                              return (
+                                <>
+                                  <select 
+                                    className={`w-full appearance-none rounded-2xl px-6 py-4 text-sm font-black transition-all border-2 cursor-pointer ${
+                                      warRoom ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-slate-100 text-slate-700'
+                                    }`}
+                                    value={f.operator}
+                                    onChange={e => {
+                                      const newFilters = [...filters];
+                                      newFilters[idx] = { ...f, operator: e.target.value };
+                                      setFilters(newFilters);
+                                    }}
+                                  >
+                                    <option value="gt">大於</option>
+                                    <option value="lt">小於</option>
+                                    <option value="equals">等於</option>
+                                  </select>
+                                  <i className="ph ph-caret-down-bold absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                                </>
+                              );
+                            }
+                            return (
+                              <div className={`w-full rounded-2xl px-6 py-4 text-sm font-black border-2 text-center opacity-50 ${
+                                warRoom ? 'bg-white/5 border-white/10 text-white' : 'bg-slate-50 border-slate-100 text-slate-400'
+                              }`}>
+                                等於
+                              </div>
+                            );
+                          })()}
                         </div>
 
                         <div className="sm:col-span-4 relative">
-                          {survey.questions.find(q => q.id === f.questionId).type === 'choice' ? (
-                            <select 
-                              className={`w-full appearance-none rounded-2xl px-6 py-4 text-sm font-black transition-all border-2 cursor-pointer ${
-                                warRoom ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-slate-100 text-slate-700'
-                              }`}
-                              value={f.value}
-                              onChange={e => {
-                                const newFilters = [...filters];
-                                newFilters[idx] = { ...f, value: e.target.value };
-                                setFilters(newFilters);
-                              }}
-                            >
-                              {survey.questions.find(q => q.id === f.questionId).options.map(opt => (
-                                <option key={opt} value={opt}>{opt}</option>
-                              ))}
-                            </select>
-                          ) : (
-                            <input 
-                              type="number"
-                              min="1" max="10"
-                              className={`w-full rounded-2xl px-6 py-4 text-sm font-black transition-all border-2 ${
-                                warRoom ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-slate-100 text-slate-700'
-                              }`}
-                              value={f.value}
-                              onChange={e => {
-                                const newFilters = [...filters];
-                                newFilters[idx] = { ...f, value: e.target.value };
-                                setFilters(newFilters);
-                              }}
-                            />
-                          )}
-                          {survey.questions.find(q => q.id === f.questionId).type === 'choice' && (
-                            <i className="ph ph-caret-down-bold absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
-                          )}
+                          {(() => {
+                            const q = (survey?.questions || []).find(x => x.id === f.questionId);
+                            if (q?.type === 'choice') {
+                              return (
+                                <>
+                                  <select 
+                                    className={`w-full appearance-none rounded-2xl px-6 py-4 text-sm font-black transition-all border-2 cursor-pointer ${
+                                      warRoom ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-slate-100 text-slate-700'
+                                    }`}
+                                    value={f.value}
+                                    onChange={e => {
+                                      const newFilters = [...filters];
+                                      newFilters[idx] = { ...f, value: e.target.value };
+                                      setFilters(newFilters);
+                                    }}
+                                  >
+                                    {(q.options || []).map(opt => (
+                                      <option key={opt} value={opt}>{opt}</option>
+                                    ))}
+                                  </select>
+                                  <i className="ph ph-caret-down-bold absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                                </>
+                              );
+                            }
+                            return (
+                              <input 
+                                type="number"
+                                min="1" max="10"
+                                className={`w-full rounded-2xl px-6 py-4 text-sm font-black transition-all border-2 ${
+                                  warRoom ? 'bg-white/5 border-white/10 text-white' : 'bg-white border-slate-100 text-slate-700'
+                                }`}
+                                value={f.value}
+                                onChange={e => {
+                                  const newFilters = [...filters];
+                                  newFilters[idx] = { ...f, value: e.target.value };
+                                  setFilters(newFilters);
+                                }}
+                              />
+                            );
+                          })()}
                         </div>
 
                         <div className="sm:col-span-1 flex justify-center">
@@ -3728,79 +3726,13 @@
                       </div>
                     </div>
                     
-                    <div className="space-y-6">
+                    <div className="space-y-8">
                       {(() => {
                         const total = (stats?.sentiment?.positive || 0) + (stats?.sentiment?.neutral || 0) + (stats?.sentiment?.negative || 0) || 1;
                         const posP = Math.round(((stats?.sentiment?.positive || 0) / total) * 100);
                         const neuP = Math.round(((stats?.sentiment?.neutral || 0) / total) * 100);
                         const negP = 100 - posP - neuP;
                         
-                        return [
-                          { label: '正面情緒', value: posP, color: 'bg-emerald-500', icon: 'ph-smiley-fill' },
-                          { label: '中立情緒', value: neuP, color: 'bg-indigo-500', icon: 'ph-meh-fill' },
-                          { label: '負面情緒', value: negP, color: 'bg-rose-500', icon: 'ph-smiley-angry-fill' }
-                        ].map(s => (
-                          <div key={s.label} className="p-6 rounded-2xl bg-white/5 border border-white/5 group/item transition-all hover:bg-white/10">
-                            <div className="flex items-center justify-between mb-4">
-                              <div className="flex items-center gap-3">
-                                <i className={`ph ${s.icon} text-2xl ${s.color.replace('bg-', 'text-')}`}></i>
-                                <span className="font-black text-white">{s.label}</span>
-                              </div>
-                              <span className="text-2xl font-black text-white tabular-nums">{s.value}%</span>
-                            </div>
-                            <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                              <div className={`h-full ${s.color} war-room-glow transition-all duration-1000`} style={{ width: `${s.value}%` }}></div>
-                            </div>
-                          </div>
-                        ));
-                      })()}
-                    </div>
-                  </div>
-
-                  {/* Geo Distribution Summary (Replacing Map) */}
-                  <div className="war-room-card rounded-[2.5rem] sm:rounded-[4rem] p-6 sm:p-12 border-white/10 war-room-cyber-border overflow-hidden group">
-                    <div className="flex items-center justify-between mb-10">
-                      <div>
-                        <h3 className="text-2xl font-black text-white tracking-tight mb-2">地理分佈數據摘要</h3>
-                        <p className="text-emerald-400 text-[10px] font-black uppercase tracking-[0.3em]">Geographic Data Summary</p>
-                      </div>
-                      <div className="w-12 h-12 bg-emerald-500/20 rounded-2xl flex items-center justify-center border border-emerald-500/30">
-                        <i className="ph ph-map-pin-fill text-emerald-400 text-xl"></i>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-4">
-                      {(stats?.geoStats || []).length > 0 ? (
-                        stats.geoStats.map(([city, count]) => (
-                          <div key={city} className="p-6 rounded-2xl bg-white/5 border border-white/5 group/geo transition-all hover:bg-white/10">
-                            <div className="flex items-center justify-between mb-4">
-                              <div className="flex items-center gap-3">
-                                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                                <span className="font-black text-white text-lg">{city}</span>
-                              </div>
-                              <div className="text-right">
-                                <div className="text-2xl font-black text-white tabular-nums">{Math.round((count / stats.totalCount) * 100)}%</div>
-                                <div className="text-[10px] font-black text-white/20 uppercase tracking-widest">{count} 筆回覆</div>
-                              </div>
-                            </div>
-                            <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-                              <div 
-                                className="h-full bg-emerald-500 war-room-glow transition-all duration-1000"
-                                style={{ width: `${(count / stats.totalCount) * 100}%` }}
-                              ></div>
-                            </div>
-                          </div>
-                        ))
-                      ) : (
-                        <div className="text-center py-20 bg-white/5 rounded-3xl border border-dashed border-white/10">
-                          <i className="ph ph-broadcast text-4xl text-white/10 mb-4 animate-pulse"></i>
-                          <p className="text-white/20 font-black uppercase tracking-widest text-xs">等待數據流入...</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
                         return (
                           <>
                             <div className="flex items-center gap-6">
@@ -3930,12 +3862,22 @@
                             </div>
                             <h4 className={`text-xl font-black truncate mb-4 ${warRoom ? 'text-white' : 'text-slate-900'}`}>{q.title}</h4>
                             
-                            {/* Mini Bar Chart */}
-                            <div className={`h-3 w-full rounded-full overflow-hidden shadow-inner ${warRoom ? 'bg-white/5' : 'bg-slate-100'}`}>
-                              <div 
-                                className="h-full bg-gradient-to-r from-indigo-500 to-indigo-400 rounded-full transition-all duration-1000 ease-out"
-                                style={{ width: `${widthPercent}%` }}
-                              ></div>
+                            {/* Relative Time Impact Indicator (Replacing Mini Bar Chart) */}
+                            <div className="flex items-center gap-3">
+                              <div className={`text-[10px] font-black uppercase tracking-widest ${warRoom ? 'text-white/20' : 'text-slate-300'}`}>
+                                時間佔比
+                              </div>
+                              <div className="flex-1 flex items-center gap-2">
+                                <div className={`flex-1 h-1.5 rounded-full overflow-hidden ${warRoom ? 'bg-white/5' : 'bg-slate-100'}`}>
+                                  <div 
+                                    className="h-full bg-indigo-500 rounded-full transition-all duration-1000 ease-out"
+                                    style={{ width: `${widthPercent}%` }}
+                                  ></div>
+                                </div>
+                                <span className={`text-[10px] font-black tabular-nums ${warRoom ? 'text-indigo-400' : 'text-indigo-600'}`}>
+                                  {Math.round(widthPercent)}%
+                                </span>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -3951,7 +3893,7 @@
                   <div>
                     <h3 className={`text-3xl font-black tracking-tight ${warRoom ? 'text-white' : 'text-slate-900'}`}>詳細填答名單</h3>
                     <p className={`${warRoom ? 'text-white/40' : 'text-slate-400'} font-bold mt-1`}>
-                      {filter.questionId ? (
+                      {filters.length > 0 ? (
                         <>
                           篩選出 <span className={warRoom ? 'text-white' : 'text-indigo-600'}>{filteredResponses.length}</span> 筆符合條件的回覆
                           <span className="mx-2 opacity-30">/</span>

@@ -1283,20 +1283,6 @@
                                 onClick={(e) => { 
                                   e.preventDefault();
                                   e.stopPropagation(); 
-                                  console.log("ACTION: Duplicate clicked", s.id);
-                                  window.__lastClick = "Duplicate:" + s.id;
-                                  duplicateSurvey(s); 
-                                }}
-                                className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-xl transition-all duration-300 font-bold text-xs border border-emerald-100/50 active:scale-90 cursor-pointer shadow-sm hover:shadow-emerald-200"
-                                style={{ pointerEvents: 'auto', touchAction: 'manipulation' }}
-                              >
-                                <i className="ph ph-copy-bold text-lg"></i>
-                                <span>複製</span>
-                              </button>
-                              <button
-                                onClick={(e) => { 
-                                  e.preventDefault();
-                                  e.stopPropagation(); 
                                   const blob = new Blob([JSON.stringify(s, null, 2)], { type: "application/json" });
                                   const url = URL.createObjectURL(blob);
                                   const a = document.createElement("a");
@@ -1988,16 +1974,46 @@
 
         setSubmitting(true);
         try {
+          // Detect Geolocation
+          let geo = { city: '未知', region: '未知', country: '未知' };
+          try {
+            const geoRes = await fetch('https://ipapi.co/json/');
+            const geoData = await geoRes.json();
+            if (geoData && !geoData.error) {
+              geo = {
+                city: geoData.city || '未知',
+                region: geoData.region || '未知',
+                country: geoData.country_name || '未知',
+                latitude: geoData.latitude,
+                longitude: geoData.longitude
+              };
+            }
+          } catch (e) {
+            console.error("Geo detection failed:", e);
+          }
+
           // Upload files if any
           const finalAnswers = { ...answers };
           for (const qId of Object.keys(localFiles)) {
             const f = localFiles[qId];
             if (f) {
-              const storageRef = firebase.storage().ref();
-              const fileRef = storageRef.child(`uploads/${survey.id}/${safeNow()}_${f.name}`);
-              await fileRef.put(f);
-              const downloadURL = await fileRef.getDownloadURL();
-              finalAnswers[qId] = downloadURL;
+              try {
+                const storageRef = firebase.storage().ref();
+                const fileName = `${safeNow()}_${f.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
+                const fileRef = storageRef.child(`uploads/${survey.id}/${fileName}`);
+                
+                console.log("UPLOADING FILE:", f.name, "to", fileRef.fullPath);
+                
+                // Use blob for more reliable upload
+                const blob = new Blob([f], { type: f.type });
+                await fileRef.put(blob);
+                const downloadURL = await fileRef.getDownloadURL();
+                finalAnswers[qId] = downloadURL;
+                console.log("UPLOAD SUCCESS:", downloadURL);
+              } catch (uploadErr) {
+                console.error("FILE UPLOAD ERROR:", uploadErr);
+                throw new Error(`檔案「${f.name}」上傳失敗：${uploadErr.message || '請檢查網路或 Storage 權限'}`);
+              }
             }
           }
 
@@ -2007,6 +2023,7 @@
             respondent: { name: respondent.name.trim(), email: respondent.email.trim() },
             answers: finalAnswers,
             timings: finalTimings,
+            geo: geo,
             submittedAt: safeNow(),
           });
           
@@ -2512,6 +2529,15 @@
       const [currentTime, setCurrentTime] = useState(new Date());
       const [filter, setFilter] = useState({ questionId: null, value: null, operator: 'equals' }); // operator: 'equals', 'gt', 'lt'
 
+      // Customizable analysis config
+      const [sentimentConfig, setSentimentConfig] = useState({
+        posWords: ['好', '棒', '優', '讚', '滿意', '快', '方便', '喜歡', 'good', 'great', 'excellent', 'love', 'fast'],
+        negWords: ['差', '慢', '爛', '不滿意', '討厭', '難用', '壞', 'bad', 'slow', 'hate', 'difficult', 'broken'],
+        posThreshold: 8,
+        negThreshold: 4
+      });
+      const [showConfig, setShowConfig] = useState(false);
+
       useEffect(() => {
         const timer = setInterval(() => setCurrentTime(new Date()), 1000);
         return () => clearInterval(timer);
@@ -2574,6 +2600,9 @@
                     let totalTime = 0;
                     const qTimings = {};
                     const qRatings = {};
+                    const geoCounts = {};
+                    const sentimentStats = { positive: 0, neutral: 0, negative: 0 };
+                    
                     rData.forEach(r => {
                       let rTotal = 0;
                       // Time stats
@@ -2584,28 +2613,62 @@
                         qTimings[qid].sum += t;
                         qTimings[qid].count += 1;
                       });
-                      // Rating stats
+
+                      // Geo stats
+                      if (r.geo && r.geo.city && r.geo.city !== '未知') {
+                        const city = r.geo.city;
+                        geoCounts[city] = (geoCounts[city] || 0) + 1;
+                      } else if (r.geo && r.geo.region && r.geo.region !== '未知') {
+                        const region = r.geo.region;
+                        geoCounts[region] = (geoCounts[region] || 0) + 1;
+                      }
+
+                      // Rating & Sentiment stats
                       Object.entries(r.answers || {}).forEach(([qid, ans]) => {
                         const question = sData.questions.find(q => q.id === qid);
-                        if (question && question.type === 'rating') {
-                          const score = Number(ans) || 0;
-                          if (score > 0) {
-                            if (!qRatings[qid]) qRatings[qid] = { sum: 0, count: 0 };
-                            qRatings[qid].sum += score;
-                            qRatings[qid].count += 1;
+                        if (question) {
+                          if (question.type === 'rating') {
+                            const score = Number(ans) || 0;
+                            if (score > 0) {
+                              if (!qRatings[qid]) qRatings[qid] = { sum: 0, count: 0 };
+                              qRatings[qid].sum += score;
+                              qRatings[qid].count += 1;
+                              
+                              // Use rating for sentiment too
+                              if (score >= sentimentConfig.posThreshold) sentimentStats.positive++;
+                              else if (score <= sentimentConfig.negThreshold) sentimentStats.negative++;
+                              else sentimentStats.neutral++;
+                            }
+                          } else if (question.type === 'text' && typeof ans === 'string') {
+                            const text = ans.toLowerCase();
+                            let score = 0;
+                            sentimentConfig.posWords.forEach(w => { if (text.includes(w.toLowerCase())) score++; });
+                            sentimentConfig.negWords.forEach(w => { if (text.includes(w.toLowerCase())) score--; });
+                            
+                            if (score > 0) sentimentStats.positive++;
+                            else if (score < 0) sentimentStats.negative++;
+                            else sentimentStats.neutral++;
                           }
                         }
                       });
                       totalTime += rTotal;
                     });
+
+                    // Sort geo stats
+                    const sortedGeo = Object.entries(geoCounts)
+                      .sort((a, b) => b[1] - a[1])
+                      .slice(0, 5);
+
                     setStats({
                       totalCount: rData.length,
                       avgCompletionTime: totalTime / rData.length,
                       questionStats: qTimings,
                       ratingStats: qRatings,
+                      geoStats: sortedGeo,
+                      sentiment: sentimentStats
                     });
                   } else {
-                    setStats({ totalCount: 0, avgCompletionTime: 0, questionStats: {}, ratingStats: {} });
+                    setStats({ totalCount: 0, avgCompletionTime: 0, questionStats: {}, ratingStats: {}, geoStats: [], sentiment: { positive: 0, neutral: 0, negative: 0 } });
                   }
                 }
               }, err => {
@@ -2628,7 +2691,7 @@
           unsubscribeSurvey();
           unsubscribeResponses();
         };
-      }, [surveyId, user?.uid, publicToken]);
+      }, [surveyId, user?.uid, publicToken, sentimentConfig]);
 
       const formatTime = (seconds) => {
         const s = Number(seconds) || 0;
@@ -2876,6 +2939,17 @@
               {responses.length > 0 && !publicToken && (
                 <div className="flex items-center gap-4">
                   <button
+                    onClick={() => setShowConfig(true)}
+                    className={`px-8 py-4 rounded-2xl flex items-center gap-3 font-black transition-all border ${
+                      warRoom 
+                        ? 'bg-white/5 text-white/40 hover:bg-white/10 border-white/10' 
+                        : 'bg-white text-slate-400 hover:text-indigo-600 border-slate-100'
+                    }`}
+                  >
+                    <i className="ph ph-gear-fill text-2xl"></i>
+                    分析設定
+                  </button>
+                  <button
                     onClick={() => setWarRoom(!warRoom)}
                     className={`px-8 py-4 rounded-2xl flex items-center gap-3 font-black transition-all duration-500 shadow-xl ${
                       warRoom 
@@ -2919,6 +2993,92 @@
                 </div>
               )}
             </div>
+
+          {showConfig && (
+            <Modal 
+              title="自訂數據分析方法" 
+              onClose={() => setShowConfig(false)}
+              warRoom={warRoom}
+              footer={
+                <Button onClick={() => setShowConfig(false)}>完成設定</Button>
+              }
+            >
+              <div className="space-y-8">
+                <section className="space-y-4">
+                  <h4 className={`text-lg font-black flex items-center gap-2 ${warRoom ? 'text-white' : 'text-slate-900'}`}>
+                    <i className="ph ph-text-aa-bold text-indigo-500"></i>
+                    文字情緒關鍵字
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className={`text-xs font-black uppercase tracking-widest ${warRoom ? 'text-white/40' : 'text-slate-400'}`}>正向關鍵字 (逗號分隔)</label>
+                      <textarea 
+                        className={`w-full p-4 rounded-2xl border-2 transition-all h-32 text-sm font-medium ${
+                          warRoom ? 'bg-white/5 border-white/10 text-white focus:border-indigo-500' : 'bg-slate-50 border-slate-100 focus:border-indigo-600 focus:bg-white'
+                        }`}
+                        value={sentimentConfig.posWords.join(', ')}
+                        onChange={e => setSentimentConfig({ ...sentimentConfig, posWords: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className={`text-xs font-black uppercase tracking-widest ${warRoom ? 'text-white/40' : 'text-slate-400'}`}>負向關鍵字 (逗號分隔)</label>
+                      <textarea 
+                        className={`w-full p-4 rounded-2xl border-2 transition-all h-32 text-sm font-medium ${
+                          warRoom ? 'bg-white/5 border-white/10 text-white focus:border-indigo-500' : 'bg-slate-50 border-slate-100 focus:border-indigo-600 focus:bg-white'
+                        }`}
+                        value={sentimentConfig.negWords.join(', ')}
+                        onChange={e => setSentimentConfig({ ...sentimentConfig, negWords: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+                      />
+                    </div>
+                  </div>
+                </section>
+
+                <section className="space-y-4">
+                  <h4 className={`text-lg font-black flex items-center gap-2 ${warRoom ? 'text-white' : 'text-slate-900'}`}>
+                    <i className="ph ph-star-bold text-amber-500"></i>
+                    評分情緒門檻
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className={`text-xs font-black uppercase tracking-widest ${warRoom ? 'text-white/40' : 'text-slate-400'}`}>正向情緒門檻 (≥ X 分)</label>
+                      <div className="flex items-center gap-4">
+                        <input 
+                          type="range" min="1" max="10" 
+                          className="flex-1 accent-indigo-600"
+                          value={sentimentConfig.posThreshold}
+                          onChange={e => setSentimentConfig({ ...sentimentConfig, posThreshold: Number(e.target.value) })}
+                        />
+                        <span className={`w-12 h-12 rounded-xl flex items-center justify-center font-black ${warRoom ? 'bg-white/10 text-white' : 'bg-slate-100 text-slate-900'}`}>
+                          {sentimentConfig.posThreshold}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className={`text-xs font-black uppercase tracking-widest ${warRoom ? 'text-white/40' : 'text-slate-400'}`}>負向情緒門檻 (≤ X 分)</label>
+                      <div className="flex items-center gap-4">
+                        <input 
+                          type="range" min="1" max="10" 
+                          className="flex-1 accent-rose-600"
+                          value={sentimentConfig.negThreshold}
+                          onChange={e => setSentimentConfig({ ...sentimentConfig, negThreshold: Number(e.target.value) })}
+                        />
+                        <span className={`w-12 h-12 rounded-xl flex items-center justify-center font-black ${warRoom ? 'bg-white/10 text-white' : 'bg-slate-100 text-slate-900'}`}>
+                          {sentimentConfig.negThreshold}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <div className={`p-6 rounded-3xl border-2 flex items-start gap-4 ${warRoom ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-300' : 'bg-indigo-50 border-indigo-100 text-indigo-700'}`}>
+                  <i className="ph ph-lightbulb-fill text-2xl shrink-0"></i>
+                  <p className="text-sm font-bold leading-relaxed">
+                    調整設定後，系統將立即重新計算所有回覆的情緒分佈。這會同時影響一般分析介面與 War Room 戰情室。
+                  </p>
+                </div>
+              </div>
+            </Modal>
+          )}
 
           {responses.length === 0 ? (
             <div className="text-center py-40 glass rounded-[5rem] border-4 border-dashed border-slate-100 bg-white/50 fade-in">
@@ -3171,11 +3331,19 @@
                     <div className="mt-8 grid grid-cols-2 gap-4">
                       <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
                         <p className="text-white/40 text-[9px] font-black uppercase mb-1">主要區域</p>
-                        <p className="text-white font-bold text-sm">台北 / 新北 (64%)</p>
+                        <p className="text-white font-bold text-sm">
+                          {stats?.geoStats?.length > 0 
+                            ? `${stats.geoStats[0][0]} (${Math.round((stats.geoStats[0][1] / stats.totalCount) * 100)}%)` 
+                            : '偵測中...'}
+                        </p>
                       </div>
                       <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
-                        <p className="text-white/40 text-[9px] font-black uppercase mb-1">活躍時段</p>
-                        <p className="text-white font-bold text-sm">14:00 - 18:00</p>
+                        <p className="text-white/40 text-[9px] font-black uppercase mb-1">次要區域</p>
+                        <p className="text-white font-bold text-sm">
+                          {stats?.geoStats?.length > 1 
+                            ? `${stats.geoStats[1][0]} (${Math.round((stats.geoStats[1][1] / stats.totalCount) * 100)}%)` 
+                            : '尚無數據'}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -3184,7 +3352,7 @@
                     <div className="flex items-center justify-between mb-10">
                       <div>
                         <h3 className="text-2xl font-black text-white tracking-tight mb-2">AI 即時情緒分析</h3>
-                        <p className="text-rose-400 text-[10px] font-black uppercase tracking-[0.3em]">AI Sentiment Pulse</p>
+                        <p className="text-rose-400 text-[10px] font-black uppercase tracking-[0.3em]">AI Sentiment Pulse (Real-time)</p>
                       </div>
                       <div className="w-12 h-12 bg-rose-600/20 rounded-2xl flex items-center justify-center border border-rose-500/30">
                         <i className="ph ph-brain-fill text-rose-400 text-xl"></i>
@@ -3192,63 +3360,80 @@
                     </div>
                     
                     <div className="space-y-8">
-                      <div className="flex items-center gap-6">
-                        <div className="flex-1 space-y-2">
-                          <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-emerald-400">
-                            <span>正面 Positive</span>
-                            <span>72%</span>
-                          </div>
-                          <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                            <div className="h-full bg-emerald-500 shadow-[0_0_10px_#10b981] transition-all duration-1000" style={{ width: '72%' }}></div>
-                          </div>
-                        </div>
-                        <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30">
-                          <i className="ph ph-smiley-fill text-emerald-400 text-xl"></i>
-                        </div>
-                      </div>
+                      {(() => {
+                        const total = (stats?.sentiment?.positive || 0) + (stats?.sentiment?.neutral || 0) + (stats?.sentiment?.negative || 0) || 1;
+                        const posP = Math.round(((stats?.sentiment?.positive || 0) / total) * 100);
+                        const neuP = Math.round(((stats?.sentiment?.neutral || 0) / total) * 100);
+                        const negP = 100 - posP - neuP;
+                        
+                        return (
+                          <>
+                            <div className="flex items-center gap-6">
+                              <div className="flex-1 space-y-2">
+                                <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-emerald-400">
+                                  <span>正面 Positive</span>
+                                  <span>{posP}%</span>
+                                </div>
+                                <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                                  <div className="h-full bg-emerald-500 shadow-[0_0_10px_#10b981] transition-all duration-1000" style={{ width: `${posP}%` }}></div>
+                                </div>
+                              </div>
+                              <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30">
+                                <i className="ph ph-smiley-fill text-emerald-400 text-xl"></i>
+                              </div>
+                            </div>
 
-                      <div className="flex items-center gap-6">
-                        <div className="flex-1 space-y-2">
-                          <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-indigo-400">
-                            <span>中立 Neutral</span>
-                            <span>18%</span>
-                          </div>
-                          <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                            <div className="h-full bg-indigo-500 shadow-[0_0_10px_#6366f1] transition-all duration-1000" style={{ width: '18%' }}></div>
-                          </div>
-                        </div>
-                        <div className="w-12 h-12 rounded-full bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30">
-                          <i className="ph ph-minus-circle-fill text-indigo-400 text-xl"></i>
-                        </div>
-                      </div>
+                            <div className="flex items-center gap-6">
+                              <div className="flex-1 space-y-2">
+                                <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-indigo-400">
+                                  <span>中立 Neutral</span>
+                                  <span>{neuP}%</span>
+                                </div>
+                                <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                                  <div className="h-full bg-indigo-500 shadow-[0_0_10px_#6366f1] transition-all duration-1000" style={{ width: `${neuP}%` }}></div>
+                                </div>
+                              </div>
+                              <div className="w-12 h-12 rounded-full bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30">
+                                <i className="ph ph-minus-circle-fill text-indigo-400 text-xl"></i>
+                              </div>
+                            </div>
 
-                      <div className="flex items-center gap-6">
-                        <div className="flex-1 space-y-2">
-                          <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-rose-400">
-                            <span>負面 Negative</span>
-                            <span>10%</span>
-                          </div>
-                          <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                            <div className="h-full bg-rose-500 shadow-[0_0_10px_#f43f5e] transition-all duration-1000" style={{ width: '10%' }}></div>
-                          </div>
-                        </div>
-                        <div className="w-12 h-12 rounded-full bg-rose-500/20 flex items-center justify-center border border-rose-500/30">
-                          <i className="ph ph-smiley-sad-fill text-rose-400 text-xl"></i>
-                        </div>
-                      </div>
-                    </div>
+                            <div className="flex items-center gap-6">
+                              <div className="flex-1 space-y-2">
+                                <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-rose-400">
+                                  <span>負面 Negative</span>
+                                  <span>{negP}%</span>
+                                </div>
+                                <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                                  <div className="h-full bg-rose-500 shadow-[0_0_10px_#f43f5e] transition-all duration-1000" style={{ width: `${negP}%` }}></div>
+                                </div>
+                              </div>
+                              <div className="w-12 h-12 rounded-full bg-rose-500/20 flex items-center justify-center border border-rose-500/30">
+                                <i className="ph ph-smiley-sad-fill text-rose-400 text-xl"></i>
+                              </div>
+                            </div>
 
-                    <div className="mt-10 p-6 rounded-[2rem] bg-indigo-600/10 border border-indigo-500/20 relative overflow-hidden group-hover:bg-indigo-600/20 transition-all">
-                      <div className="flex items-center gap-4 relative z-10">
-                        <div className="w-10 h-10 bg-indigo-500 rounded-xl flex items-center justify-center animate-bounce-subtle shadow-lg">
-                          <i className="ph ph-sparkle-fill text-white"></i>
-                        </div>
-                        <div>
-                          <p className="text-indigo-300 font-bold text-sm">AI 核心洞察</p>
-                          <p className="text-white/60 text-[11px] leading-relaxed">受訪者對於「產品體驗」呈現高度滿意，特別是針對新加入的 3D 介面給予極佳評價。</p>
-                        </div>
-                      </div>
-                      <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/10 rounded-full blur-2xl -mr-12 -mt-12"></div>
+                            <div className="mt-10 p-6 rounded-[2rem] bg-indigo-600/10 border border-indigo-500/20 relative overflow-hidden group-hover:bg-indigo-600/20 transition-all">
+                              <div className="flex items-center gap-4 relative z-10">
+                                <div className="w-10 h-10 bg-indigo-500 rounded-xl flex items-center justify-center animate-bounce-subtle shadow-lg">
+                                  <i className="ph ph-sparkle-fill text-white"></i>
+                                </div>
+                                <div>
+                                  <p className="text-indigo-300 font-bold text-sm">AI 核心洞察</p>
+                                  <p className="text-white/60 text-[11px] leading-relaxed">
+                                    {posP > 60 
+                                      ? `受訪者整體呈現高度正向情緒 (${posP}%)，顯示問卷內容或產品體驗極佳。` 
+                                      : negP > 30 
+                                        ? `注意！負面情緒佔比達 ${negP}%，建議檢視特定題目的文字回覆以找出痛點。`
+                                        : `情緒分佈相對平均，目前正向與中立情緒佔據主導地位，數據表現穩定。`}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/10 rounded-full blur-2xl -mr-12 -mt-12"></div>
+                            </div>
+                          </>
+                        );
+                      })()}
                     </div>
                   </div>
                  </div>

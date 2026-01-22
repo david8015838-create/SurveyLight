@@ -583,20 +583,20 @@
               ? 'war-room-card border-white/10 war-room-glow' 
               : 'bg-white/90 backdrop-blur-2xl border-white'
           }`}>
-            <div className={`flex items-center justify-between p-8 border-b ${warRoom ? 'border-white/5' : 'border-slate-50/50'}`}>
-              <h3 className={`font-black text-2xl tracking-tight ${warRoom ? 'text-white glitch-text' : 'text-slate-900'}`} data-text={title}>{title}</h3>
-              <button onClick={onClose} className={`w-12 h-12 flex items-center justify-center rounded-2xl transition-all duration-300 ${
+            <div className={`flex items-center justify-between p-6 sm:p-8 border-b ${warRoom ? 'border-white/5' : 'border-slate-50/50'}`}>
+              <h3 className={`font-black text-xl sm:text-2xl tracking-tight ${warRoom ? 'text-white glitch-text' : 'text-slate-900'}`} data-text={title}>{title}</h3>
+              <button onClick={onClose} className={`w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-2xl transition-all duration-300 ${
                 warRoom 
                   ? 'bg-white/5 text-white/40 hover:bg-rose-500/20 hover:text-rose-400' 
                   : 'bg-slate-50 text-slate-400 hover:bg-rose-50 hover:text-rose-600'
               }`}>
-                <i className="ph ph-x text-2xl"></i>
+                <i className="ph ph-x text-xl sm:text-2xl"></i>
               </button>
             </div>
-            <div className="p-8 max-h-[75vh] overflow-auto custom-scrollbar">
+            <div className="p-4 sm:p-8 max-h-[75vh] overflow-auto custom-scrollbar">
               {children}
             </div>
-            {footer && <div className={`p-8 backdrop-blur-md flex justify-end gap-4 border-t ${
+            {footer && <div className={`p-6 sm:p-8 backdrop-blur-md flex justify-end gap-4 border-t ${
               warRoom ? 'bg-white/5 border-white/5' : 'bg-slate-50/30 border-slate-50/50'
             }`}>{footer}</div>}
           </div>
@@ -3367,7 +3367,7 @@
 
               {/* Stats Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-                <div className={`p-12 rounded-[4rem] border-4 shadow-2xl relative overflow-hidden group hover:-translate-y-2 transition-all duration-500 ${
+                <div className={`p-6 sm:p-12 rounded-[2.5rem] sm:rounded-[4rem] border-4 shadow-2xl relative overflow-hidden group hover:-translate-y-2 transition-all duration-500 ${
                   warRoom 
                     ? 'war-room-card border-white/10 war-room-glow war-room-cyber-border' 
                     : 'glass border-white shadow-indigo-100/30'
@@ -3382,13 +3382,13 @@
                     </div>
                     <p className={`text-[10px] font-black uppercase tracking-[0.3em] mb-3 ${warRoom ? 'text-indigo-400' : 'text-indigo-600'}`}>Total Responses</p>
                     <div className="flex items-baseline gap-4">
-                      <p className={`text-7xl font-black tracking-tighter ${warRoom ? 'text-white war-room-text-glow' : 'text-slate-900'}`}>{stats?.totalCount || 0}</p>
+                      <p className={`text-5xl sm:text-7xl font-black tracking-tighter ${warRoom ? 'text-white war-room-text-glow' : 'text-slate-900'}`}>{stats?.totalCount || 0}</p>
                       <p className={`font-black text-xl ${warRoom ? 'text-white/40' : 'text-slate-400'}`}>回覆</p>
                     </div>
                   </div>
                 </div>
 
-                <div className={`p-12 rounded-[4rem] border-4 shadow-2xl relative overflow-hidden group hover:-translate-y-2 transition-all duration-500 ${
+                <div className={`p-6 sm:p-12 rounded-[2.5rem] sm:rounded-[4rem] border-4 shadow-2xl relative overflow-hidden group hover:-translate-y-2 transition-all duration-500 ${
                   warRoom 
                     ? 'war-room-card border-white/10 war-room-glow war-room-cyber-border' 
                     : 'glass border-white shadow-emerald-100/30'
@@ -3402,12 +3402,12 @@
                     </div>
                     <p className={`text-[10px] font-black uppercase tracking-[0.3em] mb-3 ${warRoom ? 'text-emerald-400' : 'text-emerald-600'}`}>Avg. Time</p>
                     <div className="flex items-baseline gap-4">
-                      <p className={`text-7xl font-black tracking-tighter ${warRoom ? 'text-white war-room-text-glow' : 'text-slate-900'}`}>{formatTime(stats?.avgCompletionTime || 0)}</p>
+                      <p className={`text-5xl sm:text-7xl font-black tracking-tighter ${warRoom ? 'text-white war-room-text-glow' : 'text-slate-900'}`}>{formatTime(stats?.avgCompletionTime || 0)}</p>
                     </div>
                   </div>
                 </div>
 
-                <div className={`p-12 rounded-[4rem] border-4 shadow-2xl relative overflow-hidden group hover:-translate-y-2 transition-all duration-500 hidden lg:block ${
+                <div className={`p-6 sm:p-12 rounded-[2.5rem] sm:rounded-[4rem] border-4 shadow-2xl relative overflow-hidden group hover:-translate-y-2 transition-all duration-500 hidden lg:block ${
                   warRoom 
                     ? 'war-room-card border-white/10 war-room-glow war-room-cyber-border' 
                     : 'glass border-white shadow-amber-100/30'
@@ -3431,20 +3431,20 @@
               {/* Strategic Data Heatmap (War Room & Analytics) */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 fade-in-up">
                 {/* Time Heatmap Card */}
-                <div className={`rounded-[4rem] p-12 border-4 shadow-2xl overflow-hidden relative group ${
+                <div className={`rounded-[2.5rem] sm:rounded-[4rem] p-6 sm:p-12 border-4 shadow-2xl overflow-hidden relative group ${
                   warRoom ? 'war-room-card border-white/10 war-room-cyber-border' : 'glass border-white shadow-indigo-100/30'
                 }`}>
                   <div className="flex items-center justify-between mb-10">
                     <div>
-                      <h3 className={`text-2xl font-black tracking-tight mb-2 ${warRoom ? 'text-white' : 'text-slate-900'}`}>數據互動頻率熱點圖</h3>
-                      <p className={`text-xs font-black uppercase tracking-widest ${warRoom ? 'text-indigo-400' : 'text-indigo-600'}`}>Interaction Frequency Heatmap</p>
+                      <h3 className={`text-xl sm:text-2xl font-black tracking-tight mb-2 ${warRoom ? 'text-white' : 'text-slate-900'}`}>數據互動頻率熱點圖</h3>
+                      <p className={`text-[10px] sm:text-xs font-black uppercase tracking-widest ${warRoom ? 'text-indigo-400' : 'text-indigo-600'}`}>Interaction Frequency Heatmap</p>
                     </div>
-                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${warRoom ? 'bg-indigo-500/20 text-indigo-400' : 'bg-indigo-50 text-indigo-600'}`}>
-                      <i className="ph ph-calendar-check-fill text-2xl"></i>
+                    <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center ${warRoom ? 'bg-indigo-500/20 text-indigo-400' : 'bg-indigo-50 text-indigo-600'}`}>
+                      <i className="ph ph-calendar-check-fill text-xl sm:text-2xl"></i>
                     </div>
                   </div>
 
-                  <div className="overflow-x-auto pb-4">
+                  <div className="overflow-x-auto pb-4 -mx-2 px-2 custom-scrollbar">
                     <div className="min-w-[600px]">
                       {/* Hour Labels */}
                       <div className="flex mb-4 ml-10">
@@ -3508,16 +3508,16 @@
                 </div>
 
                 {/* Geo Heatmap Card */}
-                <div className={`rounded-[4rem] p-12 border-4 shadow-2xl overflow-hidden group ${
+                <div className={`rounded-[2.5rem] sm:rounded-[4rem] p-6 sm:p-12 border-4 shadow-2xl overflow-hidden group ${
                   warRoom ? 'war-room-card border-white/10 war-room-cyber-border' : 'glass border-white shadow-emerald-100/30'
                 }`}>
                   <div className="flex items-center justify-between mb-10">
                     <div>
-                      <h3 className={`text-2xl font-black tracking-tight mb-2 ${warRoom ? 'text-white' : 'text-slate-900'}`}>地理分佈熱力圖</h3>
-                      <p className={`text-xs font-black uppercase tracking-widest ${warRoom ? 'text-emerald-400' : 'text-emerald-600'}`}>Geographic Sentiment Analysis</p>
+                      <h3 className={`text-xl sm:text-2xl font-black tracking-tight mb-2 ${warRoom ? 'text-white' : 'text-slate-900'}`}>地理分佈熱力圖</h3>
+                      <p className={`text-[10px] sm:text-xs font-black uppercase tracking-widest ${warRoom ? 'text-emerald-400' : 'text-emerald-600'}`}>Geographic Sentiment Analysis</p>
                     </div>
-                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${warRoom ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-50 text-emerald-600'}`}>
-                      <i className="ph ph-map-pin-fill text-2xl"></i>
+                    <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center ${warRoom ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-50 text-emerald-600'}`}>
+                      <i className="ph ph-map-pin-fill text-xl sm:text-2xl"></i>
                     </div>
                   </div>
                   
@@ -3552,7 +3552,7 @@
               {/* Strategic Data Heatmap (War Room Only) */}
               {warRoom && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 fade-in-up">
-                  <div className="war-room-card rounded-[4rem] p-12 border-white/10 war-room-cyber-border overflow-hidden group">
+                  <div className="war-room-card rounded-[2.5rem] sm:rounded-[4rem] p-6 sm:p-12 border-white/10 war-room-cyber-border overflow-hidden group">
                     <div className="flex items-center justify-between mb-10">
                       <div>
                         <h3 className="text-2xl font-black text-white tracking-tight mb-2">互動頻率分佈</h3>
@@ -3572,7 +3572,8 @@
                             24小時熱度分佈
                           </h4>
                         </div>
-                        <div className="grid grid-cols-24 gap-1 h-24">
+                        <div className="overflow-x-auto pb-6 -mx-2 px-2 custom-scrollbar">
+                          <div className="grid grid-cols-24 gap-1 h-24 min-w-[500px]">
                           {(() => {
                             // Calculate hourly aggregation across all days
                             const hourlyData = Array(24).fill(0);
@@ -3599,6 +3600,7 @@
                           })()}
                         </div>
                       </div>
+                    </div>
 
                       {/* Geographic Pulse Summary */}
                       <div className="space-y-4 pt-4 border-t border-white/5">
@@ -3628,7 +3630,7 @@
                     </div>
                   </div>
 
-                  <div className="war-room-card rounded-[4rem] p-12 border-white/10 war-room-cyber-border overflow-hidden group">
+                  <div className="war-room-card rounded-[2.5rem] sm:rounded-[4rem] p-6 sm:p-12 border-white/10 war-room-cyber-border overflow-hidden group">
                     <div className="flex items-center justify-between mb-10">
                       <div>
                         <h3 className="text-2xl font-black text-white tracking-tight mb-2">地理分佈熱力圖</h3>
@@ -3684,7 +3686,7 @@
                     </div>
                   </div>
 
-                  <div className="war-room-card rounded-[4rem] p-12 border-white/10 war-room-cyber-border overflow-hidden group">
+                  <div className="war-room-card rounded-[2.5rem] sm:rounded-[4rem] p-6 sm:p-12 border-white/10 war-room-cyber-border overflow-hidden group">
                     <div className="flex items-center justify-between mb-10">
                       <div>
                         <h3 className="text-2xl font-black text-white tracking-tight mb-2">AI 即時情緒分析</h3>
@@ -3749,14 +3751,14 @@
                               </div>
                             </div>
 
-                            <div className="mt-10 p-6 rounded-[2rem] bg-indigo-600/10 border border-indigo-500/20 relative overflow-hidden group-hover:bg-indigo-600/20 transition-all">
+                            <div className="mt-10 p-4 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] bg-indigo-600/10 border border-indigo-500/20 relative overflow-hidden group-hover:bg-indigo-600/20 transition-all">
                               <div className="flex items-center gap-4 relative z-10">
-                                <div className="w-10 h-10 bg-indigo-500 rounded-xl flex items-center justify-center animate-bounce-subtle shadow-lg">
+                                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-indigo-500 rounded-xl flex items-center justify-center animate-bounce-subtle shadow-lg flex-shrink-0">
                                   <i className="ph ph-sparkle-fill text-white"></i>
                                 </div>
                                 <div>
-                                  <p className="text-indigo-300 font-bold text-sm">AI 核心洞察</p>
-                                  <p className="text-white/60 text-[11px] leading-relaxed">
+                                  <p className="text-indigo-300 font-bold text-xs sm:text-sm">AI 核心洞察</p>
+                                  <p className="text-white/60 text-[10px] sm:text-[11px] leading-relaxed">
                                     {posP > 60 
                                       ? `受訪者整體呈現高度正向情緒 (${posP}%)，顯示問卷內容或產品體驗極佳。` 
                                       : negP > 30 
@@ -3777,15 +3779,15 @@
 
               {/* Timing Analysis */}
               <div className="space-y-10">
-                <div className="flex items-center justify-between px-4">
+                <div className="flex items-center justify-between px-2 sm:px-4">
                   <div>
-                    <h3 className={`text-3xl font-black tracking-tight ${warRoom ? 'text-white' : 'text-slate-900'}`}>題目耗時分析</h3>
-                    <p className={`${warRoom ? 'text-white/40' : 'text-slate-400'} font-bold mt-1`}>
+                    <h3 className={`text-2xl sm:text-3xl font-black tracking-tight ${warRoom ? 'text-white' : 'text-slate-900'}`}>題目耗時分析</h3>
+                    <p className={`${warRoom ? 'text-white/40' : 'text-slate-400'} font-bold mt-1 text-xs sm:text-base`}>
                       {filter.questionId ? '篩選後的題目停留時間分布' : '了解填答者在哪些題目停留最久'}
                     </p>
                   </div>
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${warRoom ? 'bg-white/5 text-white/20' : 'bg-slate-50 text-slate-300'}`}>
-                    <i className="ph ph-timer-bold text-2xl"></i>
+                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center ${warRoom ? 'bg-white/5 text-white/20' : 'bg-slate-50 text-slate-300'}`}>
+                    <i className="ph ph-timer-bold text-xl sm:text-2xl"></i>
                   </div>
                 </div>
                 
@@ -3799,7 +3801,7 @@
                     const widthPercent = Math.max(5, (avg / maxTime) * 100);
 
                     return (
-                      <div key={q.id} className={`group p-8 rounded-[2.5rem] border-2 transition-all backdrop-blur-md ${
+                      <div key={q.id} className={`group p-6 sm:p-8 rounded-[1.5rem] sm:rounded-[2.5rem] border-2 transition-all backdrop-blur-md ${
                         warRoom 
                           ? 'war-room-card border-white/5 hover:border-indigo-500/30' 
                           : 'glass border-white hover:border-indigo-100 bg-white/40'
@@ -3877,10 +3879,10 @@
                     <table className="w-full text-left border-collapse whitespace-nowrap">
                       <thead>
                         <tr className={`${warRoom ? 'bg-white/5 text-white/20' : 'bg-slate-50/50 text-slate-400'} text-[10px] font-black uppercase tracking-[0.3em]`}>
-                          <th className="p-10">填答者資訊</th>
-                          <th className="p-10">作答總時長</th>
-                          <th className="p-10">提交時間</th>
-                          <th className="p-10 text-right">操作</th>
+                          <th className="p-4 sm:p-10">填答者資訊</th>
+                          <th className="p-4 sm:p-10">作答總時長</th>
+                          <th className="p-4 sm:p-10">提交時間</th>
+                          <th className="p-4 sm:p-10 text-right">操作</th>
                         </tr>
                       </thead>
                       <tbody className={`divide-y ${warRoom ? 'divide-white/5' : 'divide-slate-50'}`}>
@@ -3889,9 +3891,13 @@
                           .map((r) => {
                             const totalTime = Object.values(r.timings || {}).reduce((a, b) => a + (Number(b) || 0), 0);
                             return (
-                              <tr key={r.id} className={`group transition-all duration-300 ${warRoom ? 'hover:bg-white/5' : 'hover:bg-white'}`}>
-                                <td className="p-10">
-                                  <div className="flex items-center gap-6">
+                              <tr 
+                                key={r.id} 
+                                onClick={() => setSelected(r)}
+                                className={`group transition-all duration-300 cursor-pointer ${warRoom ? 'hover:bg-white/5' : 'hover:bg-white'}`}
+                              >
+                                <td className="p-4 sm:p-10">
+                                   <div className="flex items-center gap-6">
                                     <div className={`w-16 h-16 rounded-[1.5rem] flex items-center justify-center transition-all duration-500 shadow-inner ${
                                       warRoom ? 'bg-white/5 text-white/20 group-hover:bg-indigo-600 group-hover:text-white' : 'bg-slate-50 text-slate-300 group-hover:bg-indigo-600 group-hover:text-white'
                                     }`}>
@@ -3903,7 +3909,7 @@
                                     </div>
                                   </div>
                                 </td>
-                                <td className="p-10">
+                                <td className="p-4 sm:p-10">
                                   <div className={`inline-flex items-center gap-3 px-5 py-2.5 rounded-2xl font-black text-lg ${
                                     warRoom ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-50 text-indigo-600'
                                   }`}>
@@ -3911,7 +3917,7 @@
                                     {formatTime(totalTime)}
                                   </div>
                                 </td>
-                                <td className="p-10">
+                                <td className="p-4 sm:p-10">
                                   <div className="space-y-1">
                                     <div className={`font-black text-lg ${warRoom ? 'text-white' : 'text-slate-900'}`}>{new Date(r.submittedAt || 0).toLocaleDateString()}</div>
                                     <div className={`font-bold text-xs uppercase tracking-widest ${warRoom ? 'text-white/20' : 'text-slate-400'}`}>
@@ -3919,7 +3925,7 @@
                                     </div>
                                   </div>
                                 </td>
-                                <td className="p-10 text-right">
+                                <td className="p-4 sm:p-10 text-right">
                                   <button
                                     onClick={() => setSelected(r)}
                                     className={`inline-flex items-center gap-3 px-10 py-5 rounded-2xl font-black text-sm transition-all active:scale-95 shadow-2xl ${
@@ -3963,7 +3969,7 @@
             >
               <div className="space-y-12">
                 {/* User Profile Header */}
-                <div className={`relative overflow-hidden p-10 rounded-[3.5rem] border-4 shadow-2xl group transition-all duration-500 ${
+                <div className={`relative overflow-hidden p-6 sm:p-10 rounded-[2.5rem] sm:rounded-[3.5rem] border-4 shadow-2xl group transition-all duration-500 ${
                   warRoom 
                     ? 'war-room-card border-white/10 war-room-glow' 
                     : 'glass border-white shadow-indigo-100/20 bg-white/50 backdrop-blur-md'
@@ -3972,23 +3978,23 @@
                     warRoom ? 'bg-indigo-500/10' : 'bg-indigo-50'
                   }`}></div>
                   <div className="relative flex flex-col sm:flex-row items-center justify-between gap-8">
-                    <div className="flex items-center gap-8">
-                      <div className={`w-20 h-20 rounded-[2rem] flex items-center justify-center shadow-2xl transition-all ${
+                    <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-8">
+                      <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-[1.5rem] sm:rounded-[2rem] flex items-center justify-center shadow-2xl transition-all ${
                         warRoom ? 'bg-indigo-600 text-white shadow-indigo-500/20' : 'bg-slate-900 text-white shadow-slate-200 group-hover:bg-indigo-600'
                       }`}>
-                        <i className={`ph ph-user-circle-fill text-5xl ${warRoom ? 'war-room-pulse' : ''}`}></i>
+                        <i className={`ph ph-user-circle-fill text-4xl sm:text-5xl ${warRoom ? 'war-room-pulse' : ''}`}></i>
                       </div>
-                      <div>
-                        <div className={`font-black text-3xl mb-2 ${warRoom ? 'text-white war-room-text-glow' : 'text-slate-900'}`}>{selected.respondent?.name || "匿名"}</div>
-                        <div className={`flex items-center gap-2 font-bold ${warRoom ? 'text-white/40' : 'text-slate-500'}`}>
+                      <div className="text-center sm:text-left">
+                        <div className={`font-black text-2xl sm:text-3xl mb-2 ${warRoom ? 'text-white war-room-text-glow' : 'text-slate-900'}`}>{selected.respondent?.name || "匿名"}</div>
+                        <div className={`flex items-center justify-center sm:justify-start gap-2 font-bold ${warRoom ? 'text-white/40' : 'text-slate-500'}`}>
                           <i className={`ph ph-envelope-simple-fill ${warRoom ? 'text-indigo-400' : 'text-indigo-400'}`}></i>
-                          {selected.respondent?.email || "未提供信箱"}
+                          <span className="text-sm sm:text-base">{selected.respondent?.email || "未提供信箱"}</span>
                         </div>
                       </div>
                     </div>
-                    <div className="flex flex-col items-center sm:items-end gap-2">
+                    <div className="flex flex-col items-center sm:items-end gap-2 w-full sm:w-auto">
                       <div className={`text-[10px] font-black uppercase tracking-[0.2em] ${warRoom ? 'text-indigo-400' : 'text-slate-300'}`}>Total Time Spent</div>
-                      <div className={`px-8 py-4 rounded-2xl shadow-sm border text-3xl font-black tabular-nums transition-all ${
+                      <div className={`w-full sm:w-auto text-center px-8 py-4 rounded-2xl shadow-sm border text-2xl sm:text-3xl font-black tabular-nums transition-all ${
                         warRoom 
                           ? 'bg-white/5 border-white/10 text-white war-room-text-glow' 
                           : 'bg-white border-slate-100 text-indigo-600'
@@ -4001,18 +4007,18 @@
 
                 {/* Data Insights Summary for War Room */}
                 {warRoom && (
-                  <div className="grid grid-cols-2 gap-6">
-                    <div className="p-8 rounded-[2.5rem] bg-emerald-500/5 border border-emerald-500/20 flex flex-col gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="p-6 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] bg-emerald-500/5 border border-emerald-500/20 flex flex-col gap-2">
                       <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Efficiency Rating</span>
                       <div className="flex items-baseline gap-2">
-                        <span className="text-4xl font-black text-white">Optimal</span>
+                        <span className="text-3xl sm:text-4xl font-black text-white">Optimal</span>
                         <span className="text-xs text-emerald-400">94%</span>
                       </div>
                     </div>
-                    <div className="p-8 rounded-[2.5rem] bg-indigo-500/5 border border-indigo-500/20 flex flex-col gap-2">
+                    <div className="p-6 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] bg-indigo-500/5 border border-indigo-500/20 flex flex-col gap-2">
                       <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Consistency Score</span>
                       <div className="flex items-baseline gap-2">
-                        <span className="text-4xl font-black text-white">High</span>
+                        <span className="text-3xl sm:text-4xl font-black text-white">High</span>
                         <span className="text-xs text-indigo-400">0.82σ</span>
                       </div>
                     </div>
@@ -4035,21 +4041,21 @@
                       const ans = (selected.answers || {})[q.id];
                       const t = (selected.timings || {})[q.id];
                       return (
-                        <div key={q.id} className={`group p-10 rounded-[3.5rem] border-2 transition-all backdrop-blur-md ${
+                        <div key={q.id} className={`group p-6 sm:p-10 rounded-3xl sm:rounded-[3.5rem] border-2 transition-all backdrop-blur-md ${
                           warRoom 
                             ? 'war-room-card border-white/5 hover:border-indigo-500/30' 
                             : 'glass border-white hover:border-indigo-100 bg-white/50'
                         }`}>
-                          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
-                            <div className="flex items-center gap-5">
-                              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black transition-all ${
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6 mb-6 sm:mb-8">
+                            <div className="flex items-center gap-4 sm:gap-5">
+                              <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center font-black transition-all ${
                                 warRoom 
                                   ? 'bg-indigo-600 text-white shadow-indigo-500/20' 
                                   : 'bg-slate-100 text-slate-400 group-hover:bg-indigo-600 group-hover:text-white'
                               }`}>
                                 {idx + 1}
                               </div>
-                              <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all ${
+                              <div className={`inline-flex items-center gap-2 px-3 py-1 sm:px-4 sm:py-1.5 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all ${
                                 warRoom 
                                   ? 'bg-white/5 border-white/5 text-white/40' 
                                   : 'bg-slate-50 border-slate-100 text-slate-400'
@@ -4057,69 +4063,71 @@
                                 {q.type === 'choice' ? '🔘 Choice Question' : q.type === 'rating' ? '⭐ Rating Question' : q.type === 'file' ? '📁 File Question' : '💬 Text Question'}
                               </div>
                             </div>
-                            <div className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl border shadow-sm text-xs font-black uppercase tracking-widest tabular-nums transition-all ${
+                            <div className={`inline-flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-2xl border shadow-sm text-xs font-black uppercase tracking-widest tabular-nums transition-all ${
                               warRoom 
                                 ? 'bg-white/5 border-white/5 text-indigo-400' 
                                 : 'bg-white border-slate-100 text-indigo-600'
                             }`}>
-                              <i className="ph ph-timer-bold text-lg"></i>
+                              <i className="ph ph-timer-bold text-base sm:text-lg"></i>
                               {formatTime(t || 0)}
                             </div>
                           </div>
-                          <h5 className={`font-black mb-8 text-2xl tracking-tight leading-tight transition-colors ${
+                          <h5 className={`font-black mb-6 sm:mb-8 text-xl sm:text-2xl tracking-tight leading-tight transition-colors ${
                             warRoom ? 'text-white group-hover:text-indigo-400' : 'text-slate-900 group-hover:text-indigo-600'
                           }`}>{q.title}</h5>
-                          <div className={`rounded-[2rem] p-8 border-2 font-bold text-xl leading-relaxed shadow-inner transition-all ${
+                          <div className={`rounded-2xl sm:rounded-[2rem] p-6 sm:p-8 border-2 font-bold text-lg sm:text-xl leading-relaxed shadow-inner transition-all ${
                             warRoom 
                               ? 'bg-white/5 border-white/5 text-white/80' 
                               : 'bg-white/80 border-slate-50 text-slate-700'
                           }`}>
                             {ans ? (
-                              <div className="flex items-start gap-5">
-                                <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${
+                              <div className="flex items-start gap-4 sm:gap-5">
+                                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${
                                   warRoom ? 'bg-indigo-500/20' : 'bg-indigo-50'
                                 }`}>
-                                  <i className={`ph ${q.type === 'rating' ? 'ph-star-fill' : q.type === 'file' ? 'ph-file-cloud-fill' : 'ph-chat-centered-dots-fill'} text-2xl ${warRoom ? 'text-indigo-400' : 'text-indigo-400'}`}></i>
+                                  <i className={`ph ${q.type === 'rating' ? 'ph-star-fill' : q.type === 'file' ? 'ph-file-cloud-fill' : 'ph-chat-centered-dots-fill'} text-xl sm:text-2xl ${warRoom ? 'text-indigo-400' : 'text-indigo-400'}`}></i>
                                 </div>
-                                <div className="pt-1">
+                                <div className="pt-0.5 sm:pt-1 min-w-0 flex-1">
                                   {q.type === 'rating' ? (
-                                    <div className="flex items-center gap-3">
-                                      <span className="text-3xl font-black text-indigo-600">{ans}</span>
-                                      <span className="text-sm text-slate-400">/ 10</span>
-                                      <div className="flex gap-1 ml-4">
+                                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                                      <div className="flex items-baseline gap-1">
+                                        <span className="text-2xl sm:text-3xl font-black text-indigo-600">{ans}</span>
+                                        <span className="text-xs sm:text-sm text-slate-400">/ 10</span>
+                                      </div>
+                                      <div className="flex gap-1 overflow-x-auto pb-1 sm:pb-0">
                                         {[...Array(10)].map((_, i) => (
-                                          <div key={i} className={`w-2 h-2 rounded-full ${i < Number(ans) ? 'bg-indigo-500' : 'bg-slate-200'}`}></div>
+                                          <div key={i} className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full flex-shrink-0 ${i < Number(ans) ? 'bg-indigo-500' : 'bg-slate-200'}`}></div>
                                         ))}
                                       </div>
                                     </div>
                                   ) : q.type === 'file' ? (
-                                    <div className="flex items-center gap-4">
+                                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
                                       <a 
                                         href={ans} 
                                         target="_blank" 
                                         rel="noopener noreferrer"
-                                        className={`inline-flex items-center gap-3 px-8 py-4 rounded-2xl font-black text-sm transition-all active:scale-95 ${
+                                        className={`inline-flex items-center justify-center gap-2 sm:gap-3 px-6 py-3 sm:px-8 sm:py-4 rounded-xl sm:rounded-2xl font-black text-xs sm:text-sm transition-all active:scale-95 ${
                                           warRoom ? 'bg-indigo-600 text-white hover:bg-indigo-500' : 'bg-slate-900 text-white hover:bg-indigo-600'
                                         }`}
                                       >
-                                        <i className="ph ph-download-simple-bold text-xl"></i>
+                                        <i className="ph ph-download-simple-bold text-lg sm:text-xl"></i>
                                         下載 / 查看檔案
                                       </a>
-                                      <div className={`text-[10px] font-black uppercase tracking-widest ${warRoom ? 'text-white/20' : 'text-slate-300'}`}>
+                                      <div className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest ${warRoom ? 'text-white/20' : 'text-slate-300'}`}>
                                         Uploaded via Firebase Storage
                                       </div>
                                     </div>
-                                  ) : String(ans)}
+                                  ) : <span className="break-words">{String(ans)}</span>}
                                 </div>
                               </div>
                             ) : (
-                              <div className="flex items-center gap-5 italic transition-colors">
-                                <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+                              <div className="flex items-center gap-4 sm:gap-5 italic transition-colors">
+                                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
                                   warRoom ? 'bg-white/5 text-white/10' : 'bg-slate-50 text-slate-300'
                                 }`}>
-                                  <i className="ph ph-prohibit-bold text-2xl"></i>
+                                  <i className="ph ph-prohibit-bold text-xl sm:text-2xl"></i>
                                 </div>
-                                <span className={warRoom ? 'text-white/20' : 'text-slate-300'}>填答者跳過了此題</span>
+                                <span className={`text-sm sm:text-base ${warRoom ? 'text-white/20' : 'text-slate-300'}`}>填答者跳過了此題</span>
                               </div>
                             )}
                           </div>

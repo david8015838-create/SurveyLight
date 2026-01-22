@@ -1311,6 +1311,18 @@
                                 onClick={(e) => { 
                                   e.preventDefault();
                                   e.stopPropagation(); 
+                                  window.location.hash = `#/preview/${s.id}`;
+                                }}
+                                className="flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-600 hover:bg-amber-600 hover:text-white rounded-xl transition-all duration-300 font-bold text-xs border border-amber-100/50 active:scale-90 cursor-pointer shadow-sm hover:shadow-amber-200"
+                                style={{ pointerEvents: 'auto', touchAction: 'manipulation' }}
+                              >
+                                <i className="ph ph-eye-bold text-lg"></i>
+                                <span>模擬</span>
+                              </button>
+                              <button
+                                onClick={(e) => { 
+                                  e.preventDefault();
+                                  e.stopPropagation(); 
                                   console.log("ACTION: Share clicked", s.id);
                                   window.__lastClick = "Share:" + s.id;
                                   shareSurvey(s); 
@@ -1321,6 +1333,8 @@
                                 <i className="ph ph-share-network-bold text-lg"></i>
                                 <span>分享</span>
                               </button>
+                            </div>
+                            <div className="flex gap-2">
                               <button
                                 onClick={(e) => { 
                                   e.preventDefault();
@@ -1332,7 +1346,7 @@
                                   a.download = `${s.title || "survey"}.json`;
                                   a.click();
                                 }}
-                                className="flex items-center gap-2 px-4 py-2 bg-amber-50 text-amber-600 hover:bg-amber-600 hover:text-white rounded-xl transition-all duration-300 font-bold text-xs border border-amber-100/50 active:scale-90 cursor-pointer shadow-sm hover:shadow-amber-200"
+                                className="flex items-center gap-2 px-4 py-2 bg-slate-50 text-slate-600 hover:bg-slate-600 hover:text-white rounded-xl transition-all duration-300 font-bold text-xs border border-slate-100 active:scale-90 cursor-pointer shadow-sm"
                                 style={{ pointerEvents: 'auto', touchAction: 'manipulation' }}
                               >
                                 <i className="ph ph-download-simple-bold text-lg"></i>
@@ -1895,11 +1909,11 @@
       );
     };
 
-    const TakeSurvey = ({ surveyId }) => {
+    const TakeSurvey = ({ surveyId, isPreview = false }) => {
       const [survey, setSurvey] = useState(null);
       const [closedReason, setClosedReason] = useState(null); // 'expired' | 'limited' | 'inactive'
       const [step, setStep] = useState(-1); // -1 intro, 0..n-1 questions, n success
-      const [respondent, setRespondent] = useState({ name: "", email: "" });
+      const [respondent, setRespondent] = useState(isPreview ? { name: "模擬用戶", email: "preview@gmail.com" } : { name: "", email: "" });
       const [answers, setAnswers] = useState({});
       const [localFiles, setLocalFiles] = useState({}); // New: stores File objects before upload
       const [timings, setTimings] = useState({});
@@ -1923,29 +1937,32 @@
             const doc = await db.collection("surveys").doc(surveyId).get();
             if (!doc.exists) throw new Error("問卷不存在或已被刪除");
             const data = { id: doc.id, ...doc.data() };
-            document.title = `SurveyLight｜${data.title || "填寫問卷"}`;
+            document.title = isPreview ? `模擬預覽｜${data.title}` : `SurveyLight｜${data.title || "填寫問卷"}`;
 
-            // Check Active
-            if (!data.active) {
-              setClosedReason('inactive');
-              if (!cancelled) setSurvey(data);
-              return;
-            }
-
-            // Check Expire
-            if (data.expireAt && safeNow() > data.expireAt) {
-              setClosedReason('expired');
-              if (!cancelled) setSurvey(data);
-              return;
-            }
-
-            // Check Limit
-            if (data.limitCount) {
-              const resSnap = await db.collection("responses").where("surveyId", "==", surveyId).get();
-              if (resSnap.size >= data.limitCount) {
-                setClosedReason('limited');
+            // Check Status only if not in preview mode
+            if (!isPreview) {
+              // Check Active
+              if (!data.active) {
+                setClosedReason('inactive');
                 if (!cancelled) setSurvey(data);
                 return;
+              }
+
+              // Check Expire
+              if (data.expireAt && safeNow() > data.expireAt) {
+                setClosedReason('expired');
+                if (!cancelled) setSurvey(data);
+                return;
+              }
+
+              // Check Limit
+              if (data.limitCount) {
+                const resSnap = await db.collection("responses").where("surveyId", "==", surveyId).get();
+                if (resSnap.size >= data.limitCount) {
+                  setClosedReason('limited');
+                  if (!cancelled) setSurvey(data);
+                  return;
+                }
               }
             }
 
@@ -2062,15 +2079,21 @@
             }
           }
 
-          await db.collection("responses").add({
-            surveyId: survey.id,
-            surveyCreatorId: survey.creatorId || null,
-            respondent: { name: respondent.name.trim(), email: respondent.email.trim() },
-            answers: finalAnswers,
-            timings: finalTimings,
-            geo: geo,
-            submittedAt: safeNow(),
-          });
+          if (isPreview) {
+            console.log("PREVIEW MODE: Submission simulated", { respondent, finalAnswers });
+            // Simulate a delay
+            await new Promise(r => setTimeout(r, 1000));
+          } else {
+            await db.collection("responses").add({
+              surveyId: survey.id,
+              surveyCreatorId: survey.creatorId || null,
+              respondent: { name: respondent.name.trim(), email: respondent.email.trim() },
+              answers: finalAnswers,
+              timings: finalTimings,
+              geo: geo,
+              submittedAt: safeNow(),
+            });
+          }
           
           // 噴發慶祝紙屑
           if (window.confetti) {
@@ -2141,6 +2164,26 @@
       if (step >= (survey.questions || []).length && step !== -1) {
         return (
           <div className="min-h-screen flex items-center justify-center p-6 bg-slate-950 relative overflow-hidden">
+            {/* Preview Banner */}
+            {isPreview && (
+              <div className="fixed top-0 left-0 w-full z-[100] bg-amber-500 text-white px-6 py-3 flex items-center justify-between shadow-lg">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                    <i className="ph ph-eye-fill text-2xl"></i>
+                  </div>
+                  <div>
+                    <div className="font-black text-sm uppercase tracking-widest">模擬預覽模式</div>
+                    <div className="text-[10px] opacity-80 font-bold">目前為模擬填答，不會記錄任何真實數據或檔案。</div>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => window.location.hash = "#/dashboard"}
+                  className="px-5 py-2 bg-white text-amber-600 rounded-xl font-black text-xs hover:bg-amber-50 transition-colors"
+                >
+                  結束預覽
+                </button>
+              </div>
+            )}
             {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
             
             {/* Success Background Effects */}
@@ -2210,6 +2253,26 @@
       if (step === -1) {
         return (
           <div className="min-h-screen flex items-center justify-center p-6 bg-slate-50 relative overflow-hidden">
+            {/* Preview Banner */}
+            {isPreview && (
+              <div className="fixed top-0 left-0 w-full z-[100] bg-amber-500 text-white px-6 py-3 flex items-center justify-between shadow-lg">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                    <i className="ph ph-eye-fill text-2xl"></i>
+                  </div>
+                  <div>
+                    <div className="font-black text-sm uppercase tracking-widest">模擬預覽模式</div>
+                    <div className="text-[10px] opacity-80 font-bold">目前為模擬填答，不會記錄任何真實數據或檔案。</div>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => window.location.hash = "#/dashboard"}
+                  className="px-5 py-2 bg-white text-amber-600 rounded-xl font-black text-xs hover:bg-amber-50 transition-colors"
+                >
+                  結束預覽
+                </button>
+              </div>
+            )}
             {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
             {/* Background Decorations */}
             <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
@@ -2279,6 +2342,26 @@
 
       return (
         <div className={`min-h-screen flex flex-col items-center justify-center p-6 transition-all duration-1000 relative overflow-hidden ${focusMode ? 'bg-slate-950' : 'bg-slate-50'}`}>
+          {/* Preview Banner */}
+          {isPreview && (
+            <div className="fixed top-0 left-0 w-full z-[100] bg-amber-500 text-white px-6 py-3 flex items-center justify-between shadow-lg">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                  <i className="ph ph-eye-fill text-2xl"></i>
+                </div>
+                <div>
+                  <div className="font-black text-sm uppercase tracking-widest">模擬預覽模式</div>
+                  <div className="text-[10px] opacity-80 font-bold">目前為模擬填答，不會記錄任何真實數據或檔案。</div>
+                </div>
+              </div>
+              <button 
+                onClick={() => window.location.hash = "#/dashboard"}
+                className="px-5 py-2 bg-white text-amber-600 rounded-xl font-black text-xs hover:bg-amber-50 transition-colors"
+              >
+                結束預覽
+              </button>
+            </div>
+          )}
           {/* Take Survey Background Micro-interactions */}
           <div className="floating-bg">
             <div className="blob" style={{ top: '15%', left: '75%', animationDelay: '-4s', background: focusMode ? 'linear-gradient(135deg, rgba(79, 70, 229, 0.08) 0%, rgba(129, 140, 248, 0.08) 100%)' : 'linear-gradient(135deg, rgba(79, 70, 229, 0.03) 0%, rgba(129, 140, 248, 0.03) 100%)' }}></div>
@@ -4376,6 +4459,11 @@
         
         const current = route;
         if (current === "/create") return <CreateSurvey user={user} onBack={() => navigateHash("/dashboard")} />;
+        
+        if (current.startsWith("/preview/")) {
+          const sid = current.replace("/preview/", "");
+          return <TakeSurvey surveyId={sid} isPreview={true} />;
+        }
         
         if (current.startsWith("/analytics")) {
           const parts = current.split("/");

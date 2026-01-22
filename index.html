@@ -1845,9 +1845,14 @@
             if (!cancelled) setSurvey(sData);
 
             console.log("ANALYTICS: setting up responses listener for:", sData.id);
-            unsubscribeResponses = db.collection("responses")
-              .where("surveyId", "==", sData.id)
-              .onSnapshot(snap => {
+            // 增加對 creatorId 的過濾，確保符合安全規則 (security rules)
+            let q = db.collection("responses").where("surveyId", "==", sData.id);
+            if (!publicToken && user?.uid) {
+              console.log("ANALYTICS: adding creatorId filter for responses query");
+              q = q.where("creatorId", "==", user.uid);
+            }
+
+            unsubscribeResponses = q.onSnapshot(snap => {
                 console.log("ANALYTICS: responses updated, count:", snap.size);
                 const rData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 if (!cancelled) {

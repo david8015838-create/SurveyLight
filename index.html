@@ -1152,78 +1152,103 @@
               <div className="grid gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
                 {filteredSurveys.map(s => (
                   <div key={s.id} className="card group flex flex-col p-0 overflow-hidden hover:border-primary/30 transition-all duration-500">
-                    {/* Card Header with Status and Actions */}
-                    <div className="p-6 pb-0 flex justify-between items-start">
-                      <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border ${
+                    {/* Card Header with Status */}
+                    <div className="p-6 pb-0 flex justify-between items-center">
+                      <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${
                         s.active 
-                          ? 'bg-emerald-50 text-emerald-600 border-emerald-100' 
+                          ? 'bg-emerald-50 text-emerald-600 border-emerald-100 shadow-sm shadow-emerald-500/5' 
                           : 'bg-rose-50 text-rose-600 border-rose-100'
                       }`}>
                         <span className={`w-1.5 h-1.5 rounded-full ${s.active ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`}></span>
                         {s.active ? '進行中' : '已關閉'}
                       </div>
                       
-                      <div className="flex gap-2">
-                        <button
-                          onClick={(e) => { e.stopPropagation(); window.location.hash = `#/preview/${s.id}`; }}
-                          className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-50 text-slate-400 hover:text-primary hover:bg-primary-soft transition-all"
-                          title="預覽問卷"
-                          aria-label="預覽問卷"
-                        >
-                          <i className="ph ph-eye-bold text-lg"></i>
-                        </button>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); shareSurvey(s); }}
-                          className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-50 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 transition-all"
-                          title="分享連結"
-                          aria-label="分享連結"
-                        >
-                          <i className="ph ph-share-network-bold text-lg"></i>
-                        </button>
+                      <div className="text-[10px] font-black text-slate-300 uppercase tracking-widest">
+                        #{s.id.slice(-6).toUpperCase()}
                       </div>
                     </div>
 
                     {/* Card Body */}
-                    <div className="p-6 flex-1">
-                      <h3 className="text-xl font-bold text-slate-900 mb-2 line-clamp-1 group-hover:text-primary transition-colors">
+                    <div className="p-8 flex-1">
+                      <h3 className="text-2xl font-black text-slate-900 mb-3 line-clamp-1 group-hover:text-primary transition-colors tracking-tight">
                         {s.title}
                       </h3>
-                      <p className="text-slate-500 text-sm line-clamp-2 h-10 mb-6 font-medium">
+                      <p className="text-slate-500 text-sm line-clamp-2 h-10 mb-8 font-medium leading-relaxed">
                         {s.description || "尚未設定問卷描述..."}
                       </p>
                       
                       <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-                          <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">問題數量</div>
-                          <div className="text-lg font-bold text-slate-900">{(s.questions || []).length} <span className="text-xs text-slate-400">題</span></div>
+                        <div className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100 group-hover:bg-white transition-colors">
+                          <div className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">問題數量</div>
+                          <div className="text-xl font-black text-slate-900 flex items-baseline gap-1">
+                            {(s.questions || []).length}
+                            <span className="text-xs text-slate-400 font-bold">題</span>
+                          </div>
                         </div>
-                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-                          <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">建立日期</div>
-                          <div className="text-sm font-bold text-slate-900">{new Date(s.createdAt).toLocaleDateString()}</div>
+                        <div className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100 group-hover:bg-white transition-colors">
+                          <div className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">建立日期</div>
+                          <div className="text-sm font-black text-slate-900">{new Date(s.createdAt).toLocaleDateString()}</div>
                         </div>
                       </div>
                     </div>
 
-                    {/* Card Footer Actions */}
-                    <div className="p-6 pt-0 mt-auto flex gap-3">
-                      <button
-                        onClick={() => onAnalytics(s.id)}
-                        title="查看數據分析結果"
-                        aria-label="查看數據分析結果"
-                        className="flex-[2] btn-base btn-primary py-3 rounded-xl text-sm"
-                      >
-                        <i className="ph ph-chart-pie-slice-bold text-lg"></i>
-                        數據分析
-                      </button>
-                      <button
-                        onClick={() => onEdit(s)}
-                        title="編輯問卷內容與設定"
-                        aria-label="編輯問卷內容與設定"
-                        className="flex-1 btn-base btn-secondary py-3 rounded-xl text-sm"
-                      >
-                        <i className="ph ph-pencil-simple-line-bold text-lg"></i>
-                        編輯
-                      </button>
+                    {/* Card Footer Actions - Re-organized for maximum clarity */}
+                    <div className="p-8 pt-0 mt-auto space-y-4">
+                      {/* Primary Actions */}
+                      <div className="flex gap-4">
+                        <button
+                          onClick={() => onAnalytics(s.id)}
+                          title="查看數據分析結果"
+                          aria-label="查看數據分析結果"
+                          className="flex-[2] flex items-center justify-center gap-3 bg-indigo-600 text-white py-4 rounded-2xl text-sm font-black shadow-xl shadow-indigo-200 hover:bg-indigo-700 hover:-translate-y-0.5 transition-all active:scale-95"
+                        >
+                          <i className="ph ph-chart-pie-slice-bold text-xl"></i>
+                          數據分析
+                        </button>
+                        <button
+                          onClick={() => onEdit(s)}
+                          title="編輯問卷內容與設定"
+                          aria-label="編輯問卷內容與設定"
+                          className="flex-1 flex items-center justify-center gap-2 bg-white text-slate-700 border-2 border-slate-100 py-4 rounded-2xl text-sm font-black hover:border-indigo-600 hover:text-indigo-600 transition-all active:scale-95"
+                        >
+                          <i className="ph ph-pencil-simple-line-bold text-xl"></i>
+                          編輯
+                        </button>
+                      </div>
+
+                      {/* Visibility & Sharing Actions (The ones the user complained about) */}
+                      <div className="flex gap-3">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); window.location.hash = `#/preview/${s.id}`; }}
+                          className="flex-1 flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all text-[10px] font-black uppercase tracking-widest border border-blue-100 shadow-sm"
+                          title="模擬預覽問卷"
+                          aria-label="模擬預覽問卷"
+                        >
+                          <i className="ph ph-eye-bold text-lg"></i>
+                          模擬預覽
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); shareSurvey(s); }}
+                          className="flex-1 flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all text-[10px] font-black uppercase tracking-widest border border-emerald-100 shadow-sm"
+                          title="分享問卷連結"
+                          aria-label="分享問卷連結"
+                        >
+                          <i className="ph ph-share-network-bold text-lg"></i>
+                          分享問卷
+                        </button>
+                      </div>
+                      
+                      {/* Danger & Utility Zone */}
+                      <div className="flex gap-3">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); duplicateSurvey(s); }}
+                          title="複製此問卷為副本"
+                          aria-label="複製此問卷為副本"
+                          className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-slate-50 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 transition-all text-[10px] font-black uppercase tracking-widest border border-slate-100 hover:border-indigo-200 shadow-sm"
+                        >
+                          <i className="ph ph-copy-bold text-sm"></i>
+                          複製副本
+                        </button>
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -1231,10 +1256,12 @@
                           }}
                           title="刪除這份問卷"
                           aria-label="刪除這份問卷"
-                          className="w-12 btn-base bg-rose-50 text-rose-500 border-rose-100 hover:bg-rose-500 hover:text-white rounded-xl transition-all"
+                          className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-rose-50 text-rose-500 border border-rose-100 hover:bg-rose-600 hover:text-white hover:border-rose-600 transition-all text-[10px] font-black uppercase tracking-widest shadow-sm"
                         >
-                          <i className="ph ph-trash-bold text-lg"></i>
+                          <i className="ph ph-trash-bold text-sm"></i>
+                          刪除問卷
                         </button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -1496,9 +1523,10 @@
                       onClick={() => removeQuestion(q.id)} 
                       title="刪除此題目"
                       aria-label="刪除此題目"
-                      className="w-12 h-12 flex items-center justify-center bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white rounded-2xl transition-all shadow-sm hover:shadow-rose-100"
+                      className="flex items-center gap-2 px-4 py-2.5 bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white rounded-xl transition-all shadow-sm font-black text-[10px] uppercase tracking-widest"
                     >
-                      <i className="ph ph-trash-bold text-xl"></i>
+                      <i className="ph ph-trash-bold text-lg"></i>
+                      <span className="hidden sm:inline">刪除題目</span>
                     </button>
                   )}
                 </div>
@@ -1532,7 +1560,7 @@
                             onClick={() => removeOption(q.id, oIdx)} 
                             title="刪除此選項"
                             aria-label="刪除此選項"
-                            className="w-12 h-12 flex items-center justify-center text-slate-200 hover:text-rose-500 opacity-0 group-hover/opt:opacity-100 transition-all"
+                            className="w-12 h-12 flex items-center justify-center text-slate-300 hover:text-rose-500 transition-all active:scale-90"
                           >
                             <i className="ph ph-minus-circle-bold text-2xl"></i>
                           </button>
@@ -1598,7 +1626,9 @@
               aria-label="新增一個新問題"
               className="group flex items-center gap-4 px-10 py-5 bg-slate-900 text-white rounded-[2rem] font-black text-lg hover:bg-indigo-600 transition-all active:scale-95 shadow-2xl shadow-slate-200"
             >
-              <i className="ph ph-plus-circle-fill text-2xl group-hover:rotate-90 transition-transform"></i> 新增問題
+              <i className="ph ph-plus-circle-fill text-2xl group-hover:rotate-90 transition-transform"></i>
+              <span className="hidden sm:inline">新增問題</span>
+              <span className="sm:hidden">新增</span>
             </button>
             <Button 
               onClick={submit} 
@@ -1610,7 +1640,11 @@
               {saving ? (
                 <span className="spinner w-7 h-7 border-4 border-white/20 border-l-white"></span>
               ) : (
-                <>發布問卷 <i className="ph ph-paper-plane-right-fill text-2xl ml-2"></i></>
+                <div className="flex items-center gap-3">
+                  <span className="hidden sm:inline">發布問卷</span>
+                  <span className="sm:hidden">發布</span>
+                  <i className="ph ph-paper-plane-right-fill text-2xl"></i>
+                </div>
               )}
             </Button>
           </div>
@@ -2804,27 +2838,28 @@
                   onClick={() => setWarRoom(!warRoom)}
                   title={warRoom ? "關閉戰情室視覺化模式" : "開啟戰情室視覺化模式"}
                   aria-label={warRoom ? "關閉戰情室視覺化模式" : "開啟戰情室視覺化模式"}
-                  className={`btn-base px-6 py-3 rounded-xl font-bold transition-all ${
+                  className={`px-6 py-3.5 rounded-2xl font-black transition-all shadow-xl flex items-center gap-3 border-2 ${
                     warRoom 
-                      ? 'bg-primary text-white shadow-lg shadow-primary/30' 
-                      : 'bg-white text-slate-600 border border-slate-200 hover:border-primary hover:text-primary'
+                      ? 'bg-indigo-600 text-white shadow-indigo-200 border-indigo-600 hover:bg-indigo-700' 
+                      : 'bg-white text-slate-700 border-slate-100 hover:border-indigo-600 hover:text-indigo-600 hover:shadow-indigo-50'
                   }`}
                 >
-                  <i className={`ph ${warRoom ? 'ph-monitor-fill' : 'ph-monitor-play-fill'} text-lg`}></i>
-                  {warRoom ? '關閉戰情室' : '戰情室模式'}
+                  <div className={`w-2.5 h-2.5 rounded-full ${warRoom ? 'bg-white animate-pulse shadow-[0_0_10px_#fff]' : 'bg-indigo-600'}`}></div>
+                  <span className="text-sm tracking-tight">{warRoom ? '關閉戰情室模式' : '開啟戰情室模式'}</span>
                 </button>
                 
                 {!publicToken && (
-                  <>
+                  <div className="flex items-center bg-white p-1.5 rounded-2xl border-2 border-slate-100 shadow-sm">
                     <button 
                       onClick={downloadCSV}
                       title="將所有回覆數據匯出為 CSV 檔案"
                       aria-label="將所有回覆數據匯出為 CSV 檔案"
-                      className="btn-base btn-primary px-6 py-3 rounded-xl font-bold"
+                      className="px-6 py-2.5 rounded-xl font-black text-xs flex items-center gap-2 text-slate-600 hover:bg-emerald-50 hover:text-emerald-600 transition-all border border-transparent hover:border-emerald-100"
                     >
-                      <i className="ph ph-file-csv-fill text-lg"></i>
-                      匯出數據
+                      <i className="ph ph-file-csv-fill text-xl text-emerald-500"></i>
+                      匯出 CSV
                     </button>
+                    <div className="w-px h-6 bg-slate-100 mx-2"></div>
                     {survey?.shareToken && (
                       <button 
                         onClick={() => {
@@ -2835,13 +2870,13 @@
                         }}
                         title="複製公開分析報告的連結"
                         aria-label="複製公開分析報告的連結"
-                        className="btn-base bg-slate-900 text-white px-6 py-3 rounded-xl font-bold hover:bg-slate-800"
+                        className="px-6 py-2.5 rounded-xl font-black text-xs flex items-center gap-2 text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 transition-all border border-transparent hover:border-indigo-100"
                       >
-                        <i className="ph ph-share-network-fill text-lg"></i>
+                        <i className="ph ph-share-network-fill text-xl text-indigo-600"></i>
                         分享報告
                       </button>
                     )}
-                  </>
+                  </div>
                 )}
               </div>
             </div>

@@ -327,7 +327,15 @@
   <!-- 避免 React 載入前白屏 -->
   <div id="boot-loading" class="min-h-screen flex items-center justify-center p-6">
     <div class="bg-white rounded-2xl shadow-lg p-8 w-full max-w-sm text-center">
-      <div class="spinner mx-auto mb-4"></div>
+      <div class="w-20 h-20 mx-auto mb-4 bg-primary rounded-2xl flex items-center justify-center shadow-lg overflow-hidden p-3">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" class="w-full h-full">
+          <rect width="192" height="192" rx="40" fill="#4F46E5"/>
+          <path d="M60 50h72a10 10 0 0 1 10 10v88a10 10 0 0 1-10 10H60a10 10 0 0 1-10-10V60a10 10 0 0 1 10-10z" fill="#ffffff"/>
+          <path d="M72 76h48" stroke="#4F46E5" stroke-width="10" stroke-linecap="round"/>
+          <path d="M72 100h48" stroke="#4F46E5" stroke-width="10" stroke-linecap="round"/>
+          <path d="M72 124h34" stroke="#4F46E5" stroke-width="10" stroke-linecap="round"/>
+        </svg>
+      </div>
       <div class="text-gray-800 font-bold text-lg">SurveyLight</div>
       <div class="text-gray-500 text-sm mt-1">載入中...</div>
     </div>
@@ -472,7 +480,15 @@
               100% { width: 0; left: 100%; }
             }
           `}</style>
-          <div className="spinner mx-auto mb-8"></div>
+          <div className="w-16 h-16 mx-auto mb-8 bg-primary rounded-2xl flex items-center justify-center shadow-lg overflow-hidden p-2.5">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" className="w-full h-full">
+              <rect width="192" height="192" rx="40" fill="#4F46E5"/>
+              <path d="M60 50h72a10 10 0 0 1 10 10v88a10 10 0 0 1-10 10H60a10 10 0 0 1-10-10V60a10 10 0 0 1 10-10z" fill="#ffffff"/>
+              <path d="M72 76h48" stroke="#4F46E5" stroke-width="10" stroke-linecap="round"/>
+              <path d="M72 100h48" stroke="#4F46E5" stroke-width="10" stroke-linecap="round"/>
+              <path d="M72 124h34" stroke="#4F46E5" stroke-width="10" stroke-linecap="round"/>
+            </svg>
+          </div>
           <div className="text-slate-800 font-black text-2xl tracking-tight mb-2">{text}</div>
           <div className="text-indigo-600/40 text-[10px] font-black uppercase tracking-[0.3em]">SurveyLight Engine</div>
         </div>
@@ -694,8 +710,14 @@
 
           <div className="card p-10 sm:p-12 max-w-md w-full text-center relative overflow-hidden bg-white/80 backdrop-blur-xl border-white/50">
             <div className="relative">
-              <div className="w-24 h-24 sm:w-28 sm:h-28 bg-primary text-white rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-xl shadow-primary/20 rotate-3 hover:rotate-0 transition-transform duration-500">
-                <i className="ph ph-lightning-fill text-5xl"></i>
+              <div className="w-24 h-24 sm:w-28 sm:h-28 bg-primary text-white rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-xl shadow-primary/20 rotate-3 hover:rotate-0 transition-transform duration-500 overflow-hidden">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" className="w-full h-full">
+                  <rect width="192" height="192" rx="40" fill="#4F46E5"/>
+                  <path d="M60 50h72a10 10 0 0 1 10 10v88a10 10 0 0 1-10 10H60a10 10 0 0 1-10-10V60a10 10 0 0 1 10-10z" fill="#ffffff"/>
+                  <path d="M72 76h48" stroke="#4F46E5" stroke-width="10" stroke-linecap="round"/>
+                  <path d="M72 100h48" stroke="#4F46E5" stroke-width="10" stroke-linecap="round"/>
+                  <path d="M72 124h34" stroke="#4F46E5" stroke-width="10" stroke-linecap="round"/>
+                </svg>
               </div>
               
               <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 mb-2 tracking-tight">SurveyLight</h1>
@@ -3885,8 +3907,14 @@
           <header className="sticky top-0 z-[100] bg-white/80 backdrop-blur-xl border-b border-slate-100">
             <div className="app-container py-4 flex items-center justify-between">
               <div className="flex items-center gap-3 cursor-pointer group" onClick={() => navigateHash("/dashboard")}>
-                <div className="w-10 h-10 rounded-xl bg-slate-900 group-hover:bg-primary flex items-center justify-center shadow-lg transition-all duration-300">
-                  <i className="ph ph-lightning-fill text-white text-xl"></i>
+                <div className="w-10 h-10 rounded-xl bg-primary group-hover:bg-primary-hover flex items-center justify-center shadow-lg transition-all duration-300 overflow-hidden p-1.5">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" className="w-full h-full">
+                    <rect width="192" height="192" rx="40" fill="#4F46E5"/>
+                    <path d="M60 50h72a10 10 0 0 1 10 10v88a10 10 0 0 1-10 10H60a10 10 0 0 1-10-10V60a10 10 0 0 1 10-10z" fill="#ffffff"/>
+                    <path d="M72 76h48" stroke="#4F46E5" stroke-width="10" stroke-linecap="round"/>
+                    <path d="M72 100h48" stroke="#4F46E5" stroke-width="10" stroke-linecap="round"/>
+                    <path d="M72 124h34" stroke="#4F46E5" stroke-width="10" stroke-linecap="round"/>
+                  </svg>
                 </div>
                 <span className="text-xl font-black text-slate-900 tracking-tight">SurveyLight<span className="text-primary">.</span></span>
               </div>
